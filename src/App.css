@@ -730,7 +730,7 @@ body.is-grabbing *,
 
 /* ==========================================================================
 /* ==========================================================================
-   TIMELINE CHRONO-SPHÈRE // PURE TRANSPARENT AWWWARDS SYSTEM (1950 - 2100)
+   TIMELINE CHRONO-SPHÈRE // PURE AWWWARDS FLOATING SYSTEM
    ========================================================================== */
 
 .timeline-awwwards-system {
@@ -743,71 +743,108 @@ body.is-grabbing *,
   user-select: none;
 }
 
-/* 1. Large Peeking Arrow Trigger (No background, pure tactical glyph, tucked in left edge) */
-.timeline-peeking-arrow {
-  position: absolute;
+/* 1. Refined Left-Edge Tactical Arrow Trigger */
+.timeline-awwwards-trigger {
+  position: fixed;
   left: 0;
   top: 50%;
-  transform: translateY(-50%) translateX(-12px);
+  transform: translateY(-50%) translateX(-8px);
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   background: transparent !important;
   border: none !important;
-  padding: 16px 10px 16px 4px;
+  padding: 16px 14px 16px 4px;
   cursor: pointer;
   color: var(--cyan-bright, #00f2fe);
   pointer-events: auto;
+  z-index: 96;
   transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
-  filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.5));
+  filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.45));
 }
 
-.timeline-peeking-arrow:hover {
+.timeline-awwwards-trigger:hover {
   transform: translateY(-50%) translateX(6px);
   filter: drop-shadow(0 0 16px rgba(0, 242, 254, 0.95)) drop-shadow(0 0 32px rgba(0, 242, 254, 0.6));
 }
 
-.peeking-notch-track {
-  width: 3px;
-  height: 38px;
-  border-radius: 3px;
-  background: linear-gradient(180deg, transparent 0%, rgba(0, 242, 254, 0.8) 50%, transparent 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.timeline-awwwards-trigger.is-open {
+  transform: translateY(-50%) translateX(0);
 }
 
-.peeking-pulse-dot {
-  width: 5px;
-  height: 5px;
+.timeline-awwwards-trigger.is-open:hover {
+  transform: translateY(-50%) translateX(4px);
+}
+
+/* Tactical Rail Line + Dot */
+.trigger-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  width: 3px;
+  position: relative;
+}
+
+.trigger-rail-line {
+  width: 1.5px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 242, 254, 0.7) 40%, rgba(0, 242, 254, 0.9) 60%, transparent 100%);
+  border-radius: 2px;
+}
+
+.trigger-rail-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: #00f2fe;
-  box-shadow: 0 0 8px #00f2fe;
+  box-shadow: 0 0 8px #00f2fe, 0 0 16px #00f2fe;
   animation: pulseDot 2s infinite ease-in-out;
 }
 
-.peeking-arrow-svg {
-  flex-shrink: 0;
-  transition: transform 0.25s ease;
+/* Chevron SVG */
+.trigger-chevron-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.timeline-peeking-arrow:hover .peeking-arrow-svg {
-  transform: translateX(3px);
+.timeline-awwwards-trigger.is-open .trigger-chevron-wrap {
+  transform: rotate(180deg);
 }
 
-.peeking-label-col {
+.trigger-chevron-svg {
+  stroke: var(--cyan-bright, #00f2fe);
+  filter: drop-shadow(0 0 6px rgba(0, 242, 254, 0.6));
+  transition: all 0.25s ease;
+}
+
+.timeline-awwwards-trigger:hover .trigger-chevron-svg {
+  filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.95));
+}
+
+/* Info Lockup (Year + Label) */
+.trigger-info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: 1px;
   opacity: 0.85;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.timeline-peeking-arrow:hover .peeking-label-col {
+.timeline-awwwards-trigger:hover .trigger-info {
   opacity: 1;
+  transform: translateX(2px);
 }
 
-.peeking-year {
+.trigger-year {
   font-family: var(--font-mono, monospace);
   font-size: 13px;
   font-weight: 800;
@@ -817,24 +854,22 @@ body.is-grabbing *,
   line-height: 1;
 }
 
-.peeking-sub {
+.trigger-label {
   font-family: var(--font-mono, monospace);
   font-size: 8px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.6);
-  letter-spacing: 1.5px;
-  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 2px;
 }
 
-/* 2. Transparent Floating Awwwards Wheel Panel */
+/* 2. Pure Transparent Floating Wheel Panel */
 .timeline-transparent-panel {
   position: absolute;
-  left: 8px;
+  left: 24px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
@@ -845,7 +880,7 @@ body.is-grabbing *,
 @keyframes timelineTransparentSlide {
   from {
     opacity: 0;
-    transform: translateY(-50%) translateX(-40px);
+    transform: translateY(-50%) translateX(-30px);
   }
   to {
     opacity: 1;
@@ -853,78 +888,10 @@ body.is-grabbing *,
   }
 }
 
-/* Retract Arrow (Slides back into bezel on click) */
-.timeline-retract-arrow {
-  position: absolute;
-  left: 216px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent !important;
-  border: none !important;
-  padding: 10px 4px;
-  cursor: pointer;
-  color: var(--cyan-bright, #00f2fe);
-  filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.5));
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease;
-  z-index: 10;
-}
-
-.timeline-retract-arrow:hover {
-  transform: translateY(-50%) translateX(-6px);
-  filter: drop-shadow(0 0 16px rgba(0, 242, 254, 0.95)) drop-shadow(0 0 28px rgba(0, 242, 254, 0.6));
-}
-
-/* Floating Minimalist Header */
-.timeline-floating-header {
-  padding-left: 22px;
-  margin-bottom: 2px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.timeline-floating-meta {
-  font-family: var(--font-mono, monospace);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  color: rgba(0, 242, 254, 0.85);
-  text-transform: uppercase;
-  text-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
-}
-
-.timeline-floating-year-row {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.timeline-floating-year {
-  font-family: var(--font-mono, monospace);
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--cyan-bright, #00f2fe);
-  letter-spacing: 1px;
-  text-shadow: 0 0 20px rgba(0, 242, 254, 0.8);
-  line-height: 1;
-}
-
-.timeline-floating-era {
-  font-size: 9px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
-  letter-spacing: 0.08em;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
-  max-width: 140px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* Arc Wheel Inside Transparent Panel */
 .timeline-arc-container {
   position: relative;
-  width: 220px;
+  width: 200px;
   height: 440px;
   display: block;
   background: transparent !important;
@@ -954,53 +921,6 @@ body.is-grabbing *,
 
 .arc-apex-reticle {
   transition: transform 0.15s ease-out;
-}
-
-/* Floating Transparent Milestone Tags */
-.timeline-floating-milestones {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
-  width: 220px;
-  padding-left: 8px;
-  margin-top: 4px;
-}
-
-.floating-milestone-pill {
-  background: rgba(10, 16, 26, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 242, 254, 0.22);
-  border-radius: 999px;
-  padding: 5px 0;
-  text-align: center;
-  font-family: var(--font-mono, monospace);
-  font-size: 9px;
-  font-weight: 700;
-  color: #94a3b8;
-  cursor: pointer;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-  white-space: nowrap;
-}
-
-.floating-milestone-pill:hover {
-  color: #ffffff;
-  border-color: rgba(0, 242, 254, 0.6);
-  background: rgba(0, 242, 254, 0.15);
-  box-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
-  transform: translateY(-1px);
-}
-
-.floating-milestone-pill.is-active {
-  background: rgba(0, 242, 254, 0.25);
-  border-color: var(--cyan-bright, #00f2fe);
-  color: var(--cyan-bright, #00f2fe);
-  box-shadow: 0 0 14px rgba(0, 242, 254, 0.5);
-}
-
-.floating-milestone-pill.is-live {
-  border-color: rgba(0, 242, 254, 0.45);
-  color: #00f2fe;
 }
 
 

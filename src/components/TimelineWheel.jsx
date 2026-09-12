@@ -356,88 +356,53 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
       ref={widgetRef}
       className={`timeline-awwwards-system ${isOpen ? 'is-open' : 'is-collapsed'}`}
     >
-      {/* 1. Large Peeking Arrow Trigger (No background, pure tactical chevron, peeking from edge) */}
-      {!isOpen && (
-        <button
-          type="button"
-          className="timeline-peeking-arrow"
-          onClick={() => {
-            sound.click();
-            setIsOpen(true);
-          }}
-          onMouseEnter={() => sound.hover(0.4)}
-          title="Ouvrir la chronologie (1950 — 2100)"
-          aria-label="Ouvrir la chronologie"
-        >
-          <div className="peeking-notch-track">
-            <span className="peeking-pulse-dot" />
-          </div>
+      {/* 1. Refined Awwwards Edge Toggle Arrow (Seamlessly toggles Open / Close) */}
+      <button
+        type="button"
+        className={`timeline-awwwards-trigger ${isOpen ? 'is-open' : 'is-collapsed'}`}
+        onClick={() => {
+          sound.click();
+          setIsOpen((prev) => !prev);
+        }}
+        onMouseEnter={() => sound.hover(0.35)}
+        title={isOpen ? 'Replier la chronologie (Échap)' : 'Ouvrir la chronologie'}
+        aria-label={isOpen ? 'Replier la chronologie' : 'Ouvrir la chronologie'}
+      >
+        <div className="trigger-rail">
+          <div className="trigger-rail-line" />
+          <div className="trigger-rail-dot" />
+        </div>
+
+        <div className="trigger-chevron-wrap">
           <svg
-            className="peeking-arrow-svg"
-            width="28"
-            height="54"
-            viewBox="0 0 28 54"
+            className="trigger-chevron-svg"
+            width="22"
+            height="44"
+            viewBox="0 0 22 44"
             fill="none"
           >
             <path
-              d="M7 10 L21 27 L7 44"
+              d="M 5 7 L 17 22 L 5 37"
               stroke="#00f2fe"
-              strokeWidth="3.2"
+              strokeWidth="2.6"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
-          <div className="peeking-label-col">
-            <span className="peeking-year">{roundedActive}</span>
-            <span className="peeking-sub">ANNÉE</span>
-          </div>
-        </button>
-      )}
+        </div>
 
-      {/* 2. Transparent Floating Awwwards Wheel (Zero opaque box, zero cards) */}
+        {!isOpen && (
+          <div className="trigger-info">
+            <span className="trigger-year">{roundedActive}</span>
+            <span className="trigger-label">ANNÉE</span>
+          </div>
+        )}
+      </button>
+
+      {/* 2. Pure Transparent Floating Wheel (No header, no milestone pills, no stray arrow) */}
       {isOpen && (
         <div className="timeline-transparent-panel">
-          {/* Retract Arrow Button (To slide back into the bezel) */}
-          <button
-            type="button"
-            className="timeline-retract-arrow"
-            onClick={() => {
-              sound.click();
-              setIsOpen(false);
-            }}
-            onMouseEnter={() => sound.hover(0.35)}
-            title="Replier la chronologie (Échap)"
-            aria-label="Replier la chronologie"
-          >
-            <svg
-              className="retract-arrow-svg"
-              width="28"
-              height="54"
-              viewBox="0 0 28 54"
-              fill="none"
-            >
-              <path
-                d="M21 10 L7 27 L21 44"
-                stroke="#00f2fe"
-                strokeWidth="3.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-
-          {/* Floating Minimalist Header (Directly over the map, transparent) */}
-          <div className="timeline-floating-header">
-            <div className="timeline-floating-meta">CHRONOLOGIE // 1950 — 2100</div>
-            <div className="timeline-floating-year-row">
-              <span className="timeline-floating-year">{roundedActive}</span>
-              <span className="timeline-floating-era">
-                {currentBenchmark ? currentBenchmark.label : 'ÉVOLUTION HISTORIQUE'}
-              </span>
-            </div>
-          </div>
-
-          {/* Interactive Wheel Arc (Transparent, Scrollable & Draggable) */}
+          {/* Interactive Wheel Arc (Scrollable & Draggable) */}
           <div
             className={`timeline-arc-container ${isDragging ? 'is-dragging' : ''}`}
             onWheel={handleWheel}
@@ -547,21 +512,6 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
                 );
               })}
             </svg>
-          </div>
-
-          {/* Floating Transparent Milestone Tags */}
-          <div className="timeline-floating-milestones">
-            {[1950, 1980, 2000, 2026, 2050, 2100].map((yr) => (
-              <button
-                key={yr}
-                type="button"
-                className={`floating-milestone-pill ${roundedActive === yr ? 'is-active' : ''} ${yr === 2026 ? 'is-live' : ''}`}
-                onClick={(e) => handleSelectYear(yr, e)}
-                onMouseEnter={() => sound.hover(0.25)}
-              >
-                {yr === 2026 ? '2026 LIVE' : yr}
-              </button>
-            ))}
           </div>
         </div>
       )}
