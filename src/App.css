@@ -958,24 +958,33 @@ body.timeline-scrubbing-active * {
   transform: translateX(100%);
 }
 
-.drawer-toggle-tab {
+/* Drawer Edge Tabs Container (Stacked vertically on the left edge at the same level) */
+.drawer-edge-tabs-container {
   position: absolute;
-  top: 96px;
-  left: -36px;
-  width: 36px;
-  height: 156px;
+  top: 84px;
+  left: -38px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: auto;
+  z-index: 25;
+}
+
+.drawer-edge-tab {
+  width: 38px;
+  height: 148px;
   background: linear-gradient(180deg, rgba(13, 22, 35, 0.96) 0%, rgba(6, 11, 20, 0.98) 100%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(0, 242, 254, 0.35);
   border-right: none;
   border-radius: 12px 0 0 12px;
-  color: var(--cyan-bright);
+  color: var(--cyan-bright, #00f2fe);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 12px;
   cursor: pointer;
   box-shadow: 
     -10px 0 30px rgba(0, 0, 0, 0.85),
@@ -983,11 +992,11 @@ body.timeline-scrubbing-active * {
   pointer-events: auto;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
-  z-index: 10;
   overflow: hidden;
+  position: relative;
 }
 
-.drawer-toggle-tab::before {
+.drawer-edge-tab::before {
   content: '';
   position: absolute;
   top: 14px;
@@ -998,7 +1007,7 @@ body.timeline-scrubbing-active * {
   border-radius: 2px;
 }
 
-.drawer-toggle-tab:hover {
+.drawer-edge-tab:hover {
   background: linear-gradient(180deg, rgba(18, 30, 48, 0.98) 0%, rgba(8, 14, 26, 0.99) 100%);
   border-color: #00f2fe;
   color: #ffffff;
@@ -1008,7 +1017,59 @@ body.timeline-scrubbing-active * {
     inset 0 0 14px rgba(0, 242, 254, 0.15);
 }
 
-.drawer-toggle-tab:active {
+.drawer-edge-tab.is-active {
+  background: linear-gradient(180deg, rgba(20, 36, 60, 0.99) 0%, rgba(10, 18, 32, 0.99) 100%);
+  border-color: #00f2fe;
+  box-shadow: 
+    -14px 0 36px rgba(0, 242, 254, 0.45),
+    inset 0 0 14px rgba(0, 242, 254, 0.25);
+  transform: translateX(-4px);
+}
+
+.drawer-edge-tab.drawer-journal-tab {
+  border-color: rgba(0, 245, 160, 0.35);
+  height: 156px;
+}
+
+.drawer-edge-tab.drawer-journal-tab::before {
+  background: linear-gradient(180deg, transparent, rgba(0, 245, 160, 0.8), transparent);
+}
+
+.drawer-edge-tab.drawer-journal-tab:hover {
+  border-color: #00f5a0;
+  box-shadow: 
+    -14px 0 36px rgba(0, 245, 160, 0.35),
+    inset 0 0 14px rgba(0, 245, 160, 0.15);
+}
+
+.drawer-edge-tab.drawer-journal-tab.is-active {
+  border-color: #00f5a0;
+  background: linear-gradient(180deg, rgba(10, 38, 32, 0.99) 0%, rgba(6, 20, 18, 0.99) 100%);
+  box-shadow: 
+    -14px 0 36px rgba(0, 245, 160, 0.45),
+    inset 0 0 14px rgba(0, 245, 160, 0.25);
+}
+
+.drawer-edge-tab.drawer-journal-tab .journal-edge-icon {
+  color: #00f5a0;
+  filter: drop-shadow(0 0 8px rgba(0, 245, 160, 0.7));
+}
+
+.drawer-edge-tab.drawer-journal-tab:hover .toggle-tab-text {
+  color: #00f5a0;
+  text-shadow: 0 0 10px rgba(0, 245, 160, 0.7);
+}
+
+.journal-tab-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #00f2fe;
+  box-shadow: 0 0 10px #00f2fe, 0 0 20px #00f2fe;
+  animation: pulseDotLive 1.6s infinite ease-in-out;
+}
+
+.drawer-edge-tab:active {
   transform: translateX(-1px);
 }
 
@@ -1023,7 +1084,7 @@ body.timeline-scrubbing-active * {
   transition: color 0.2s ease;
 }
 
-.drawer-toggle-tab:hover .toggle-tab-text {
+.drawer-edge-tab:hover .toggle-tab-text {
   color: #00f2fe;
   text-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
 }
@@ -1868,4 +1929,49 @@ body.timeline-scrubbing-active * {
   border-color: rgba(255, 85, 85, 0.4);
 }
 
+/* ── Tactical Transit Markers Interactivity ──────────────────────── */
+.flight-div-icon-wrap,
+.vessel-div-icon-wrap,
+.satellite-div-icon-wrapper,
+.cctv-div-icon-wrapper {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
 
+.flight-div-marker,
+.vessel-div-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, background 0.2s ease;
+  cursor: pointer !important;
+}
+
+.flight-div-marker {
+  background: rgba(0, 245, 160, 0.22);
+  border: 1px solid #00f5a0;
+  color: #00f5a0;
+  box-shadow: 0 0 10px rgba(0, 245, 160, 0.5);
+}
+
+.flight-div-marker:hover {
+  transform: scale(1.3) !important;
+  box-shadow: 0 0 20px rgba(0, 245, 160, 0.95);
+  background: rgba(0, 245, 160, 0.45);
+}
+
+.vessel-div-marker {
+  background: rgba(245, 158, 11, 0.24);
+  border: 1px solid #f59e0b;
+  color: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+.vessel-div-marker:hover {
+  transform: scale(1.3) !important;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.95);
+  background: rgba(245, 158, 11, 0.45);
+}

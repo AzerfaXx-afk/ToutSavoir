@@ -27,13 +27,13 @@ import {
   ShieldAlert,
   Calendar,
   Maximize2,
+  BookOpen,
 } from 'lucide-react';
 import { ChronoJournalTab } from './ChronoJournalTab';
 import './LiveTelemetryDrawer.css';
 
 /* ── Unified Category System (replaces old tabs) ─────────────────── */
 const UNIFIED_CATEGORIES = [
-  { id: 'journal', label: 'Journal du Jour', type: 'journal' },
   { id: 'all', label: 'Tout', type: 'metrics' },
   { id: 'population', label: 'Démographie', type: 'metrics' },
   { id: 'economy', label: 'Économie', type: 'metrics' },
@@ -85,6 +85,8 @@ export function LiveTelemetryDrawer({
   const isOpen = propIsOpen !== undefined ? propIsOpen : internalIsOpen;
 
   const [activeCategory, setActiveCategory] = useState('all');
+  const [drawerMode, setDrawerMode] = useState('metrics'); // 'metrics' | 'journal'
+  const [cctvFilter, setCctvFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [metrics, setMetrics] = useState(() => computeWorldometerMetrics(1));
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -93,6 +95,34 @@ export function LiveTelemetryDrawer({
   const categoryScrollRef = useRef(null);
   const dateInputRef = useRef(null);
   const timeInputRef = useRef(null);
+
+  const handleToggleMetrics = useCallback(() => {
+    sound.click();
+    if (!isOpen) {
+      setDrawerMode('metrics');
+      if (onToggleOpen) onToggleOpen(true);
+      else setInternalIsOpen(true);
+    } else if (drawerMode === 'metrics') {
+      if (onToggleOpen) onToggleOpen(false);
+      else setInternalIsOpen(false);
+    } else {
+      setDrawerMode('metrics');
+    }
+  }, [isOpen, drawerMode, onToggleOpen]);
+
+  const handleToggleJournal = useCallback(() => {
+    sound.click();
+    if (!isOpen) {
+      setDrawerMode('journal');
+      if (onToggleOpen) onToggleOpen(true);
+      else setInternalIsOpen(true);
+    } else if (drawerMode === 'journal') {
+      if (onToggleOpen) onToggleOpen(false);
+      else setInternalIsOpen(false);
+    } else {
+      setDrawerMode('journal');
+    }
+  }, [isOpen, drawerMode, onToggleOpen]);
 
   /* ── Temporal State (Live vs Custom Time & Date) ────────────────── */
   const [customDate, setCustomDate] = useState(null); // null = Live Realtime Mode
@@ -205,15 +235,27 @@ export function LiveTelemetryDrawer({
   }, [activeCategory, searchQuery]);
 
   const filteredCCTV = useMemo(() => {
-    if (!searchQuery) return CCTV_FEEDS;
-    const q = searchQuery.toLowerCase();
-    return CCTV_FEEDS.filter(
-      (c) =>
+    return CCTV_FEEDS.filter((c) => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch =
+        !q ||
         c.name.toLowerCase().includes(q) ||
         c.city.toLowerCase().includes(q) ||
-        c.country.toLowerCase().includes(q)
-    );
-  }, [searchQuery]);
+        c.country.toLowerCase().includes(q) ||
+        (c.category && c.category.toLowerCase().includes(q));
+
+      if (!matchesSearch) return false;
+
+      if (cctvFilter === 'all') return true;
+      const cat = (c.category || '').toLowerCase();
+      if (cctvFilter === 'megapoles') return cat.includes('mégapole') || cat.includes('capitale') || cat.includes('ville');
+      if (cctvFilter === 'maritime') return cat.includes('maritime') || cat.includes('chokepoint') || cat.includes('canal') || cat.includes('détroit');
+      if (cctvFilter === 'aeroports') return cat.includes('aéroport') || cat.includes('piste');
+      if (cctvFilter === 'nature') return cat.includes('nature') || cat.includes('volcan') || cat.includes('monument') || cat.includes('site');
+      if (cctvFilter === 'espace') return cat.includes('espace') || cat.includes('atmosphère');
+      return true;
+    });
+  }, [searchQuery, cctvFilter]);
 
   const filteredSatellites = useMemo(() => {
     if (!searchQuery) return SATELLITES_DATA;
@@ -410,21 +452,38 @@ export function LiveTelemetryDrawer({
   /* ── Render ────────────────────────────────────────────────────── */
   return (
     <aside className={`live-telemetry-drawer ${isOpen ? 'is-open' : 'is-closed'}`}>
-      {/* Toggle Tab on Left Edge */}
-      <button
-        type="button"
-        className="drawer-toggle-tab"
-        onClick={toggleOpen}
-        onMouseEnter={() => sound.hover()}
-        title={isOpen ? 'Réduire le panneau' : 'Ouvrir le centre de données'}
-        aria-label={isOpen ? 'Fermer le panneau' : 'Ouvrir le panneau'}
-      >
-        {isOpen ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-        <span className="toggle-tab-text">
-          {isOpen ? 'RÉDUIRE' : 'CHRONOS // INTEL'}
-        </span>
-        <span className="toggle-tab-dot" />
-      </button>
+      {/* Edge Navigation Tabs (Stacked vertically at same edge level) */}
+      <div className="drawer-edge-tabs-container">
+        {/* Tab 1: Réduire / Stats Monde */}
+        <button
+          type="button"
+          className={`drawer-edge-tab ${isOpen && drawerMode === 'metrics' ? 'is-active' : ''}`}
+          onClick={handleToggleMetrics}
+          onMouseEnter={() => sound.hover()}
+          title={isOpen && drawerMode === 'metrics' ? 'Réduire le panneau' : 'Statistiques & Télémétrie Monde'}
+          aria-label={isOpen && drawerMode === 'metrics' ? 'Fermer le panneau' : 'Ouvrir les statistiques'}
+        >
+          {isOpen && drawerMode === 'metrics' ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+          <span className="toggle-tab-text">
+            {isOpen && drawerMode === 'metrics' ? 'RÉDUIRE' : 'CHRONOS // INTEL'}
+          </span>
+          <span className="toggle-tab-dot" />
+        </button>
+
+        {/* Tab 2: Journal du Jour (Same Level Edge Tab) */}
+        <button
+          type="button"
+          className={`drawer-edge-tab drawer-journal-tab ${isOpen && drawerMode === 'journal' ? 'is-active' : ''}`}
+          onClick={handleToggleJournal}
+          onMouseEnter={() => sound.hover()}
+          title="Consulter le Journal du Jour (Chronologie 24h & Faits marquants)"
+          aria-label="Journal du Jour"
+        >
+          <BookOpen size={13} className="journal-edge-icon" />
+          <span className="toggle-tab-text">JOURNAL DU JOUR</span>
+          <span className="journal-tab-dot" />
+        </button>
+      </div>
 
       {/* Drawer Inner Panel */}
       <div className="drawer-panel-inner">
@@ -536,102 +595,129 @@ export function LiveTelemetryDrawer({
           </div>
         </div>
 
-        {/* ─── Category Navigation with Arrows ─── */}
-        <div className="drawer-categories-nav">
+        {/* Mode Switcher Bar between Telemetry & Journal du Jour */}
+        <div className="drawer-mode-switch-bar">
           <button
             type="button"
-            className="cat-arrow-btn"
-            onClick={() => scrollCategories('left')}
-            aria-label="Défiler vers la gauche"
+            className={`mode-switch-btn ${drawerMode === 'metrics' ? 'is-active' : ''}`}
+            onClick={() => {
+              sound.click(0.3);
+              setDrawerMode('metrics');
+            }}
           >
-            <ChevronLeft size={14} />
+            <span>TÉLÉMÉTRIE MONDIALE</span>
           </button>
-
-          <div className="cat-chips-container" ref={categoryScrollRef}>
-            {UNIFIED_CATEGORIES.map((cat) => {
-              const isActive = activeCategory === cat.id;
-              const count =
-                cat.type === 'metrics'
-                  ? cat.id === 'all'
-                    ? METRIC_DEFINITIONS.length
-                    : METRIC_DEFINITIONS.filter((m) => m.cat === cat.id).length
-                  : cat.type === 'cctv'
-                  ? CCTV_FEEDS.length
-                  : cat.type === 'satellites'
-                  ? SATELLITES_DATA.length
-                  : cat.type === 'intel'
-                  ? LIVE_BULLETINS.length + HOTSPOTS.length
-                  : null;
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  className={`cat-chip ${isActive ? 'is-active' : ''}`}
-                  onClick={() => handleCategoryClick(cat.id)}
-                >
-                  <span className="cat-chip-label">{cat.label}</span>
-                  {count !== null && (
-                    <span className="cat-chip-count">{count}</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
           <button
             type="button"
-            className="cat-arrow-btn"
-            onClick={() => scrollCategories('right')}
-            aria-label="Défiler vers la droite"
+            className={`mode-switch-btn is-journal ${drawerMode === 'journal' ? 'is-active' : ''}`}
+            onClick={() => {
+              sound.click(0.3);
+              setDrawerMode('journal');
+            }}
           >
-            <ChevronRight size={14} />
+            <BookOpen size={12} />
+            <span>JOURNAL DU JOUR (24H)</span>
           </button>
         </div>
 
-        {/* ─── Search Bar ─── */}
-        <div className="drawer-search-row">
-          <div className="drawer-search-box">
-            <Search size={13} className="search-icon" />
-            <input
-              type="text"
-              className="drawer-search-input"
-              placeholder="Rechercher..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                className="search-clear-btn"
-                onClick={() => setSearchQuery('')}
-                title="Effacer"
-              >
-                <X size={11} />
-              </button>
-            )}
-          </div>
-          {contentCount !== null && (
-            <span className="search-results-count">{contentCount}</span>
-          )}
-        </div>
-
-        {/* ─── Content Scroll Area ─── */}
-        <div className="drawer-scroll-area">
-          {/* ── CHRONO-JOURNAL / BRIEFING QUOTIDIEN ── */}
-          {activeType === 'journal' && (
+        {/* ─── Dedicated Journal du Jour Page View ─── */}
+        {drawerMode === 'journal' ? (
+          <div className="drawer-scroll-area is-journal-dedicated">
             <ChronoJournalTab
               selectedDate={customDateRef.current || new Date()}
               metrics={metrics}
             />
-          )}
+          </div>
+        ) : (
+          <>
+            {/* ─── Category Navigation with Arrows ─── */}
+            <div className="drawer-categories-nav">
+              <button
+                type="button"
+                className="cat-arrow-btn"
+                onClick={() => scrollCategories('left')}
+                aria-label="Défiler vers la gauche"
+              >
+                <ChevronLeft size={14} />
+              </button>
 
-          {/* ── METRICS ── */}
-          {activeType === 'metrics' && (
-            <>
-              {filteredMetrics.length === 0 ? (
-                <div className="empty-state">Aucun résultat trouvé.</div>
-              ) : (
-                <div className="metrics-grid">
+              <div className="cat-chips-container" ref={categoryScrollRef}>
+                {UNIFIED_CATEGORIES.map((cat) => {
+                  const isActive = activeCategory === cat.id;
+                  const count =
+                    cat.type === 'metrics'
+                      ? cat.id === 'all'
+                        ? METRIC_DEFINITIONS.length
+                        : METRIC_DEFINITIONS.filter((m) => m.cat === cat.id).length
+                      : cat.type === 'cctv'
+                      ? CCTV_FEEDS.length
+                      : cat.type === 'satellites'
+                      ? SATELLITES_DATA.length
+                      : cat.type === 'intel'
+                      ? LIVE_BULLETINS.length + HOTSPOTS.length
+                      : null;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      className={`cat-chip ${isActive ? 'is-active' : ''}`}
+                      onClick={() => handleCategoryClick(cat.id)}
+                    >
+                      <span className="cat-chip-label">{cat.label}</span>
+                      {count !== null && (
+                        <span className="cat-chip-count">{count}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                className="cat-arrow-btn"
+                onClick={() => scrollCategories('right')}
+                aria-label="Défiler vers la droite"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
+
+            {/* ─── Search Bar ─── */}
+            <div className="drawer-search-row">
+              <div className="drawer-search-box">
+                <Search size={13} className="search-icon" />
+                <input
+                  type="text"
+                  className="drawer-search-input"
+                  placeholder="Rechercher..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="search-clear-btn"
+                    onClick={() => setSearchQuery('')}
+                    title="Effacer"
+                  >
+                    <X size={11} />
+                  </button>
+                )}
+              </div>
+              {contentCount !== null && (
+                <span className="search-results-count">{contentCount}</span>
+              )}
+            </div>
+
+            {/* ─── Content Scroll Area ─── */}
+            <div className="drawer-scroll-area">
+              {/* ── METRICS ── */}
+              {activeType === 'metrics' && (
+                <>
+                  {filteredMetrics.length === 0 ? (
+                    <div className="empty-state">Aucun résultat trouvé.</div>
+                  ) : (
+                    <div className="metrics-grid">
                   {filteredMetrics.map((def, i) => {
                     const val = metrics[def.id] !== undefined ? metrics[def.id] : 0;
                     return (
@@ -668,8 +754,60 @@ export function LiveTelemetryDrawer({
           {/* ── CCTV EN DIRECT ── */}
           {activeType === 'cctv' && (
             <>
+              {/* Sub-category filter pills */}
+              <div className="cctv-subfilter-bar">
+                {[
+                  { id: 'all', label: 'Tous', count: CCTV_FEEDS.length },
+                  {
+                    id: 'megapoles',
+                    label: 'Villes & Capitales',
+                    count: CCTV_FEEDS.filter((c) => {
+                      const k = (c.category || '').toLowerCase();
+                      return k.includes('mégapole') || k.includes('capitale') || k.includes('ville');
+                    }).length,
+                  },
+                  {
+                    id: 'maritime',
+                    label: 'Maritime & Détroits',
+                    count: CCTV_FEEDS.filter((c) => (c.category || '').toLowerCase().includes('maritime')).length,
+                  },
+                  {
+                    id: 'aeroports',
+                    label: 'Aéroports & Pistes',
+                    count: CCTV_FEEDS.filter((c) => (c.category || '').toLowerCase().includes('aéroport')).length,
+                  },
+                  {
+                    id: 'nature',
+                    label: 'Nature & Monuments',
+                    count: CCTV_FEEDS.filter((c) => {
+                      const k = (c.category || '').toLowerCase();
+                      return k.includes('nature') || k.includes('monument') || k.includes('site');
+                    }).length,
+                  },
+                  {
+                    id: 'espace',
+                    label: 'Espace & Orbite',
+                    count: CCTV_FEEDS.filter((c) => (c.category || '').toLowerCase().includes('espace')).length,
+                  },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`cctv-subfilter-btn ${cctvFilter === item.id ? 'is-active' : ''}`}
+                    onClick={() => {
+                      sound.click(0.4);
+                      setCctvFilter(item.id);
+                    }}
+                    onMouseEnter={() => sound.hover()}
+                  >
+                    <span>{item.label}</span>
+                    <span className="subfilter-count">{item.count}</span>
+                  </button>
+                ))}
+              </div>
+
               {filteredCCTV.length === 0 ? (
-                <div className="empty-state">Aucun flux trouvé.</div>
+                <div className="empty-state">Aucun flux trouvé dans cette catégorie.</div>
               ) : (
                 <div className="cctv-live-grid">
                   {filteredCCTV.map((cam, i) => (
@@ -910,7 +1048,9 @@ export function LiveTelemetryDrawer({
               </div>
             </div>
           )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </aside>
   );

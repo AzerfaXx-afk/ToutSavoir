@@ -58,13 +58,31 @@ async function fetchWikipediaOnThisDay(month, day, targetYear) {
     if (!res.ok) throw new Error(`Wiki API status: ${res.status}`);
     const data = await res.json();
 
+    // Deterministic spread of events throughout the 24-hour cycle of this day
+    const timeSlots = [
+      '01:15 UTC', '03:40 UTC', '06:20 UTC', '08:45 UTC',
+      '10:30 UTC', '12:15 UTC', '14:20 UTC', '16:05 UTC',
+      '17:50 UTC', '19:35 UTC', '21:10 UTC', '22:45 UTC',
+    ];
+
     // Map events
     const rawEvents = Array.isArray(data.selected) ? data.selected : (Array.isArray(data.events) ? data.events : []);
-    const mappedEvents = rawEvents.map((item) => {
+    const mappedEvents = rawEvents.map((item, idx) => {
       const mainPage = item.pages && item.pages[0] ? item.pages[0] : null;
+      // Extract hour from text if present (e.g. "à 14 h 30", "vers 8 h"), otherwise use deterministic slot
+      const timeMatch = item.text.match(/(?:à|vers)\s+(\d{1,2})\s*h\s*(\d{2})?/i);
+      const assignedTime = timeMatch
+        ? `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2] ? String(timeMatch[2]).padStart(2, '0') : '00'} UTC`
+        : timeSlots[idx % timeSlots.length];
+
+      const [h, m] = assignedTime.replace(' UTC', '').split(':').map(Number);
+      const minutesOfDay = (h || 0) * 60 + (m || 0);
+
       return {
         id: `ev-${item.year}-${Math.random().toString(36).slice(2, 7)}`,
         year: item.year,
+        time: assignedTime,
+        minutesOfDay,
         text: item.text,
         title: mainPage ? mainPage.normalizedtitle || mainPage.title : 'Événement mondial',
         description: mainPage ? mainPage.description : '',
@@ -75,8 +93,8 @@ async function fetchWikipediaOnThisDay(month, day, targetYear) {
       };
     });
 
-    // Sort by chronological proximity or historical importance
-    mappedEvents.sort((a, b) => b.year - a.year);
+    // Sort by 24h chronological order
+    mappedEvents.sort((a, b) => a.minutesOfDay - b.minutesOfDay);
 
     return {
       events: mappedEvents,

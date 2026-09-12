@@ -7,6 +7,7 @@ import { TimelineWheel } from './components/TimelineWheel';
 import { GlobalSpotlightModal } from './components/GlobalSpotlightModal';
 import { CCTVLiveMonitor } from './components/CCTVLiveMonitor';
 import { TacticalShortcutsModal } from './components/TacticalShortcutsModal';
+import { MapLayerToggles } from './components/MapLayerToggles';
 import { Play, Pause, VolumeX, Maximize2, Minimize2, HelpCircle } from 'lucide-react';
 import { sound } from './utils/soundFX';
 import './App.css';
@@ -17,10 +18,34 @@ export default function App() {
   const [autoRotate, setAutoRotate] = useState(true);
   const [selectedYear, setSelectedYear] = useState(2026);
 
-  // Multi-toggle active layers set (all layers active by default)
-  const [activeLayers] = useState(
-    () => new Set(['aviation', 'satellites', 'cctv', 'conflicts', 'cables', 'telluric', 'weather'])
+  // Multi-toggle active layers set (all 9 strategic layers active by default)
+  const [activeLayers, setActiveLayers] = useState(
+    () => new Set(['aviation', 'maritime', 'cctv', 'satellites', 'cables', 'conflicts', 'telluric', 'cyber', 'weather'])
   );
+
+  const handleToggleLayer = useCallback((layerId) => {
+    sound.click(0.35);
+    setActiveLayers((prev) => {
+      const next = new Set(prev);
+      if (next.has(layerId)) {
+        next.delete(layerId);
+      } else {
+        next.add(layerId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleToggleAllLayers = useCallback((enableAll) => {
+    sound.click(0.45);
+    if (enableAll) {
+      setActiveLayers(
+        new Set(['aviation', 'maritime', 'cctv', 'satellites', 'cables', 'conflicts', 'telluric', 'cyber', 'weather'])
+      );
+    } else {
+      setActiveLayers(new Set());
+    }
+  }, []);
 
   // Global search spotlight modal state
   const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
@@ -288,6 +313,13 @@ export default function App() {
       <TimelineWheel
         currentYear={selectedYear}
         onYearChange={setSelectedYear}
+      />
+
+      {/* Bottom-Left: Cybernetic Map Layer Toggles HUD */}
+      <MapLayerToggles
+        activeLayers={activeLayers}
+        onToggleLayer={handleToggleLayer}
+        onToggleAll={handleToggleAllLayers}
       />
 
       {/* Main Map Viewport (Takes 100% Fullscreen) */}

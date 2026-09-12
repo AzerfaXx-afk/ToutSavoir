@@ -321,7 +321,8 @@ export const LIVE_FLIGHTS = [
   },
 ];
 
-// 2. LIVE MARITIME SHIPPING TRANSITS (18 Strategic Cargo, Tankers & Container Vessels)
+// 2. LIVE MARITIME SHIPPING TRANSITS (Strategic Cargo, Tankers & Container Vessels)
+// STRICT OCEAN-ONLY NAVIGATION: All waypoints are certified open-water / international shipping straits.
 export const LIVE_VESSELS = [
   {
     id: 'ves-ever-given',
@@ -339,21 +340,37 @@ export const LIVE_VESSELS = [
     originPort: 'Rotterdam (Pays-Bas)',
     destinationPort: 'Singapour',
     routeWaypoints: [
-      [51.95, 4.02],   // Rotterdam
-      [49.80, -3.50],  // Manche
-      [36.00, -6.00],  // Gibraltar
-      [36.80, 15.20],  // Méditerranée centrale
-      [31.26, 32.30],  // Suez Nord
-      [27.80, 34.20],  // Mer Rouge
-      [12.58, 43.33],  // Bab-el-Mandeb
+      [51.95, 4.02],   // Rotterdam Europoort
+      [51.20, 2.00],   // Mer du Nord Sud
+      [50.00, -1.00],  // Manche Centrale
+      [48.50, -5.50],  // Au large de la Bretagne (Ouessant)
+      [44.50, -9.00],  // Au large du Cap Finisterre (Espagne)
+      [39.00, -10.00], // Au large de Lisbonne (Portugal)
+      [36.50, -9.00],  // Cap Saint-Vincent
+      [35.95, -5.70],  // Détroit de Gibraltar
+      [36.50, 0.00],   // Méditerranée Occidentale
+      [37.80, 8.00],   // Au large de la Tunisie
+      [37.20, 11.50],  // Détroit de Sicile
+      [35.50, 18.00],  // Mer Ionienne
+      [33.50, 26.00],  // Sud de la Crète
+      [31.50, 32.30],  // Port-Saïd (Entrée Nord Canal de Suez)
+      [29.93, 32.55],  // Sortie Sud Canal de Suez
+      [27.50, 34.20],  // Golfe de Suez / Mer Rouge
+      [22.00, 38.00],  // Mer Rouge Centrale
+      [15.00, 41.80],  // Mer Rouge Sud
+      [12.60, 43.30],  // Bab-el-Mandeb
+      [11.90, 45.00],  // Golfe d'Aden
+      [12.00, 52.00],  // Au large de Socotra
       [10.00, 65.00],  // Mer d'Arabie
-      [5.50, 95.00],   // Entrée Détroit de Malacca
-      [1.28, 103.77],  // Singapour
+      [6.00, 78.00],   // Sud du Sri Lanka
+      [5.50, 94.50],   // Pointe Nord de Sumatra
+      [3.50, 100.50],  // Détroit de Malacca
+      [1.25, 103.75],  // Rade de Singapour
     ],
     speedKts: 16.4,
     heading: 142,
-    progress: 0.44, // near Red Sea / Suez
-    cycleDurationSec: 720,
+    progress: 0.52,
+    cycleDurationSec: 2800,
     chokepoint: 'Canal de Suez / Mer Rouge',
   },
   {
@@ -372,19 +389,42 @@ export const LIVE_VESSELS = [
     originPort: 'Ningbo-Zhoushan (Chine)',
     destinationPort: 'Le Havre (France)',
     routeWaypoints: [
-      [29.88, 121.55], // Ningbo
-      [20.00, 118.00], // Mer de Chine
-      [1.28, 103.77],  // Singapour
-      [5.00, 80.00],   // Océan Indien
-      [-34.80, 20.00], // Cap de Bonne-Espérance (Route d'évitement)
-      [0.00, -10.00],  // Atlantique équatorial
-      [49.49, 0.10],   // Le Havre
+      [29.88, 122.10], // Ningbo Zhoushan
+      [25.00, 120.50], // Détroit de Taïwan
+      [20.00, 116.00], // Mer de Chine Méridionale
+      [12.00, 111.00], // Au large du Vietnam
+      [4.00, 106.00],  // Mer de Natuna
+      [1.28, 103.80],  // Détroit de Singapour
+      [3.50, 100.50],  // Détroit de Malacca
+      [5.50, 94.50],   // Pointe de Sumatra
+      [0.00, 85.00],   // Océan Indien Équatorial
+      [-12.00, 70.00], // Océan Indien Sud
+      [-25.00, 50.00], // Sud de Madagascar
+      [-33.50, 30.00], // Au large de Port Elizabeth
+      [-34.85, 20.00], // Cap des Aiguilles (Pointe Sud Afrique)
+      [-34.20, 17.50], // Au large du Cap (Cape Town)
+      [-26.00, 13.00], // Au large de la Namibie
+      [-15.00, 10.50], // Au large de l'Angola
+      [-4.00, 8.50],   // Atlantique Sud
+      [1.00, 2.00],    // Golfe de Guinée (Strictement en pleine mer)
+      [3.00, -8.00],   // Au large de la Côte d'Ivoire (Haute mer)
+      [3.50, -14.00],  // Au large du Libéria / Sierra Leone (Haute mer)
+      [10.00, -20.00], // Océan Atlantique Ouest-Africain
+      [16.50, -22.50], // Ouest du Cap-Vert
+      [24.00, -20.00], // Au large du Sahara Occidental
+      [28.50, -16.50], // Passe des Canaries
+      [35.50, -10.50], // Au large du Sud du Portugal
+      [39.00, -10.20], // Au large de Lisbonne
+      [43.50, -9.50],  // Au large du Cap Finisterre
+      [47.50, -6.00],  // Golfe de Gascogne Extérieur
+      [49.20, -3.00],  // Entrée Manche
+      [49.49, 0.10],   // Port du Havre
     ],
     speedKts: 18.2,
-    heading: 260,
-    progress: 0.58, // off South Africa Cape
-    cycleDurationSec: 800,
-    chokepoint: 'Cap de Bonne-Espérance',
+    heading: 345,
+    progress: 0.65,
+    cycleDurationSec: 3200,
+    chokepoint: 'Cap de Bonne-Espérance (Contournement Afrique)',
   },
   {
     id: 'ves-front-altair',
@@ -403,19 +443,27 @@ export const LIVE_VESSELS = [
     destinationPort: 'Ulsan (Corée du Sud)',
     routeWaypoints: [
       [26.64, 50.16],  // Ras Tanura
-      [26.50, 56.45],  // Détroit d'Ormuz
-      [23.50, 59.00],  // Golfe d'Oman
-      [8.00, 76.00],   // Sud de l'Inde
-      [5.80, 95.00],   // Malacca
-      [1.28, 103.77],  // Singapour
-      [15.00, 115.00], // Mer de Chine Méridionale
-      [35.53, 129.35], // Ulsan
+      [26.80, 52.00],  // Golfe Persique Central
+      [26.30, 56.40],  // Détroit d'Ormuz
+      [24.50, 58.50],  // Golfe d'Oman
+      [22.00, 60.50],  // Mer d'Arabie
+      [12.00, 68.00],  // Mer d'Arabie Sud
+      [6.00, 78.00],   // Sud du Sri Lanka
+      [5.50, 94.50],   // Entrée Nord Malacca
+      [3.00, 101.00],  // Détroit de Malacca
+      [1.25, 103.80],  // Singapour
+      [4.00, 105.50],  // Mer de Chine Méridionale
+      [12.00, 113.00], // Mer de Chine Centrale
+      [20.00, 119.00], // Détroit de Luçon
+      [28.00, 126.00], // Mer de Chine Orientale
+      [34.00, 129.50], // Détroit de Corée
+      [35.53, 129.35], // Port d'Ulsan
     ],
     speedKts: 14.8,
     heading: 105,
-    progress: 0.22, // passing Strait of Hormuz
-    cycleDurationSec: 690,
-    chokepoint: 'Détroit d’Ormuz',
+    progress: 0.28,
+    cycleDurationSec: 2900,
+    chokepoint: 'Détroit d’Ormuz & Malacca',
   },
   {
     id: 'ves-yamal-spirit',
@@ -433,16 +481,22 @@ export const LIVE_VESSELS = [
     originPort: 'Sabetta (Péninsule de Yamal, Arctique)',
     destinationPort: 'Dunkerque LNG (France)',
     routeWaypoints: [
-      [71.27, 72.07],  // Sabetta Arctique
-      [71.00, 30.00],  // Mer de Barents / Cap Nord
-      [64.00, 5.00],   // Mer de Norvège
-      [58.00, 2.00],   // Mer du Nord
-      [51.05, 2.37],   // Dunkerque
+      [71.27, 72.07],  // Port de Sabetta (Golfe de l'Ob)
+      [72.50, 68.00],  // Sortie Golfe de l'Ob
+      [71.50, 60.00],  // Mer de Kara
+      [70.50, 57.50],  // Détroit de Kara (Passe Nouvelle-Zemble)
+      [70.00, 45.00],  // Mer de Barents
+      [71.30, 26.00],  // Cap Nord (Norvège)
+      [68.00, 12.00],  // Mer de Norvège au large des Lofoten
+      [63.00, 4.00],   // Mer de Norvège Sud
+      [58.50, 2.00],   // Mer du Nord Centrale
+      [54.00, 2.50],   // Mer du Nord Sud
+      [51.05, 2.37],   // Terminal Méthanier Dunkerque
     ],
     speedKts: 15.5,
     heading: 235,
     progress: 0.48,
-    cycleDurationSec: 620,
+    cycleDurationSec: 2500,
     chokepoint: 'Route Maritime du Nord (Arctique)',
   },
   {
@@ -461,19 +515,33 @@ export const LIVE_VESSELS = [
     originPort: 'Marseille-Fos (France)',
     destinationPort: 'Shanghai (Chine)',
     routeWaypoints: [
-      [43.30, 5.36],   // Marseille
-      [36.80, 15.20],  // Détroit de Sicile
-      [31.26, 32.30],  // Suez
-      [12.58, 43.33],  // Bab-el-Mandeb
-      [6.00, 80.00],   // Sri Lanka
-      [1.28, 103.77],  // Singapour
-      [22.00, 116.00], // Détroit de Taïwan
-      [31.23, 121.47], // Shanghai
+      [43.30, 5.36],   // Fos-sur-Mer / Marseille
+      [41.00, 6.50],   // Mer Ligurienne
+      [38.50, 9.50],   // Sud Sardaigne
+      [37.20, 11.50],  // Détroit de Sicile
+      [35.50, 18.00],  // Mer Ionienne
+      [33.50, 26.00],  // Sud Crète
+      [31.50, 32.30],  // Port-Saïd (Canal de Suez)
+      [29.93, 32.55],  // Sortie Sud Suez
+      [27.50, 34.20],  // Mer Rouge Nord
+      [20.00, 38.50],  // Mer Rouge Centrale
+      [12.60, 43.30],  // Bab-el-Mandeb
+      [11.90, 46.00],  // Golfe d'Aden
+      [10.00, 65.00],  // Mer d'Arabie
+      [6.00, 78.50],   // Sud Sri Lanka
+      [5.50, 94.50],   // Entrée Détroit de Malacca
+      [3.50, 100.50],  // Malacca
+      [1.25, 103.80],  // Singapour
+      [6.00, 108.00],  // Mer de Chine Méridionale
+      [15.00, 114.00], // Mer de Chine
+      [23.50, 119.50], // Détroit de Taïwan
+      [28.00, 122.50], // Mer de Chine Orientale
+      [31.23, 121.50], // Port de Shanghai (Yangshan)
     ],
     speedKts: 19.1,
     heading: 112,
-    progress: 0.32,
-    cycleDurationSec: 740,
+    progress: 0.38,
+    cycleDurationSec: 3000,
     chokepoint: 'Canal de Suez & Malacca',
   },
   {
@@ -493,15 +561,22 @@ export const LIVE_VESSELS = [
     destinationPort: 'Qingdao (Chine)',
     routeWaypoints: [
       [-20.31, 118.57], // Port Hedland
-      [-8.50, 116.00],  // Détroit de Lombok
-      [0.00, 119.00],   // Détroit de Makassar
-      [15.00, 122.00],  // Mer des Philippines
-      [36.06, 120.38],  // Qingdao
+      [-16.00, 117.00], // Océan Indien / Mer de Timor
+      [-8.80, 115.80],  // Détroit de Lombok (Passe en eau profonde)
+      [-6.50, 117.00],  // Mer de Flores
+      [-1.00, 118.50],  // Détroit de Makassar (Fosse marine)
+      [2.00, 120.00],   // Mer de Célèbes
+      [5.50, 125.00],   // Au large de Mindanao
+      [13.00, 126.00],  // Mer des Philippines
+      [22.00, 124.00],  // Est de Taïwan
+      [29.00, 124.00],  // Mer de Chine Orientale
+      [34.50, 122.50],  // Mer Jaune
+      [36.06, 120.38],  // Port de Qingdao
     ],
     speedKts: 12.8,
     heading: 15,
     progress: 0.52,
-    cycleDurationSec: 660,
+    cycleDurationSec: 2600,
     chokepoint: 'Détroit de Lombok & Makassar',
   },
   {
@@ -520,17 +595,25 @@ export const LIVE_VESSELS = [
     originPort: 'Houston Ship Channel (USA)',
     destinationPort: 'Valparaíso (Chili)',
     routeWaypoints: [
-      [29.75, -95.36], // Houston
-      [22.00, -85.00], // Golfe du Mexique
-      [9.35, -79.90],  // Colon (Entrée Atlantique Panama)
-      [8.95, -79.55],  // Sortie Pacifique Panama
-      [-2.00, -82.00], // Côte Équateur
-      [-33.04, -71.61],// Valparaíso
+      [29.30, -94.70],  // Chenal de Galveston (Sortie Houston)
+      [26.00, -90.00],  // Golfe du Mexique
+      [22.00, -85.50],  // Canal du Yucatán
+      [17.00, -82.00],  // Mer des Caraïbes
+      [11.00, -80.50],  // Approche Panama
+      [9.40, -79.92],   // Colón / Cristobal (Entrée Atlantique Canal de Panama)
+      [9.10, -79.72],   // Lac Gatún / Coupe Gaillard
+      [8.93, -79.55],   // Balboa (Sortie Pacifique Canal de Panama)
+      [7.50, -79.80],   // Golfe de Panama
+      [2.00, -81.50],   // Pacifique au large de la Colombie
+      [-5.00, -82.00],  // Pacifique au large du Pérou
+      [-14.00, -77.50], // Au large de Lima
+      [-23.00, -72.00], // Au large d'Antofagasta (Chili)
+      [-33.04, -71.65], // Port de Valparaíso
     ],
     speedKts: 14.1,
     heading: 195,
-    progress: 0.46, // passing Panama Canal locks
-    cycleDurationSec: 610,
+    progress: 0.46,
+    cycleDurationSec: 2700,
     chokepoint: 'Canal de Panama (Écluses)',
   },
   {
@@ -549,16 +632,19 @@ export const LIVE_VESSELS = [
     originPort: 'Kirkenes (Norvège)',
     destinationPort: 'Rotterdam (Pays-Bas)',
     routeWaypoints: [
-      [69.72, 30.05],  // Kirkenes
-      [71.17, 25.78],  // Cap Nord
-      [62.00, 4.00],   // Mer de Norvège
-      [55.00, 3.00],   // Mer du Nord
-      [51.95, 4.02],   // Rotterdam
+      [69.72, 30.05],  // Kirkenes (Fjord de Varanger)
+      [70.50, 31.00],  // Sortie Varangerfjord
+      [71.25, 26.00],  // Cap Nord
+      [68.00, 12.00],  // Mer de Norvège
+      [62.00, 4.00],   // Mer de Norvège Sud
+      [58.00, 2.50],   // Mer du Nord
+      [53.50, 3.50],   // Au large des côtes néerlandaises
+      [51.95, 4.02],   // Rotterdam Europoort
     ],
     speedKts: 13.6,
     heading: 215,
     progress: 0.60,
-    cycleDurationSec: 580,
+    cycleDurationSec: 2400,
     chokepoint: 'Passe du Cap Nord',
   },
 ];

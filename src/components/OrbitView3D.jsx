@@ -724,7 +724,7 @@ export function OrbitView3D({
       activeVessels.push({
         curve,
         shipMesh,
-        speed: 0.0007 + (idx % 3) * 0.0003,
+        speed: 0.000035 + (idx % 3) * 0.000015, // Realistic calm maritime pace (~15-20 knots)
         offset: (idx * 0.16) % 1,
       });
     });
@@ -1389,7 +1389,7 @@ export function OrbitView3D({
       }
 
       // Animate maritime cargo vessels
-      maritimeGroup.visible = layers.has('aviation') || layers.has('maritime');
+      maritimeGroup.visible = layers.has('maritime');
       if (maritimeGroup.visible) {
         activeVessels.forEach((ves) => {
           const t = (frameCount * ves.speed + ves.offset) % 1;

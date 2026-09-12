@@ -12,7 +12,7 @@ import {
   THERMAL_ANOMALIES,
   WEATHER_SYSTEMS,
 } from '../data/osirisStreams';
-import { LIVE_FLIGHTS, LIVE_VESSELS, getLiveTransitPositions } from '../data/liveTransits';
+import { LIVE_FLIGHTS, LIVE_VESSELS, getLiveTransitPositions, interpolateGreatCircle } from '../data/liveTransits';
 import { TacticalInspectionCard } from './TacticalInspectionCard';
 
 export function TacticalMap2D({
@@ -40,6 +40,7 @@ export function TacticalMap2D({
   const cctvLayerRef = useRef(null);
   const cablesLayerRef = useRef(null);
   const weatherLayerRef = useRef(null);
+  const inspectedRouteLayerRef = useRef(null);
 
   const [hoveredCountry, setHoveredCountry] = useState(null);
   const [selectedTerritory, setSelectedTerritory] = useState(null);
@@ -99,6 +100,10 @@ export function TacticalMap2D({
     });
 
     mapInstanceRef.current = map;
+
+    // Dedicated high z-index pane for interactive markers to ensure instant clicks
+    const transitsPane = map.createPane('transitsPane');
+    transitsPane.style.zIndex = '650';
 
     // Right-Click Drag to Pan implementation (clic droit maintenu pour déplacer)
     let isRightDragging = false;
@@ -307,9 +312,10 @@ export function TacticalMap2D({
           m.setLatLng([fl.lat, fl.lng]);
           m.setIcon(icon);
         } else {
-          const m = L.marker([fl.lat, fl.lng], { icon });
+          const m = L.marker([fl.lat, fl.lng], { icon, pane: 'transitsPane' });
           m.bindTooltip(`<b>${fl.callsign} // ${fl.airline}</b><br/>${fl.aircraft}<br/>${fl.origin.code} (${fl.origin.city}) ➔ ${fl.destination.code} (${fl.destination.city})<br/>Alt: ${fl.altitudeM?.toLocaleString()} m • Vit: ${fl.speedKmh} km/h<br/><i style="color:#00f5a0;">Cliquer pour télémétrie complète</i>`);
-          m.on('click', () => {
+          m.on('click', (e) => {
+            if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
             sound.click();
             setInspectedTarget({ type: 'flight', ...fl });
           });
@@ -333,9 +339,10 @@ export function TacticalMap2D({
           m.setLatLng([ves.lat, ves.lng]);
           m.setIcon(icon);
         } else {
-          const m = L.marker([ves.lat, ves.lng], { icon });
+          const m = L.marker([ves.lat, ves.lng], { icon, pane: 'transitsPane' });
           m.bindTooltip(`<b>${ves.name} ${ves.flagEmoji || '⚓'}</b><br/>${ves.type}<br/>${ves.originPort} ➔ ${ves.destinationPort}<br/>Vitesse: ${ves.speedKts} Nœuds • ${ves.chokepoint}<br/><i style="color:#f59e0b;">Cliquer pour télémétrie cargaison</i>`);
-          m.on('click', () => {
+          m.on('click', (e) => {
+            if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
             sound.click();
             setInspectedTarget({ type: 'vessel', ...ves });
           });
@@ -413,9 +420,10 @@ export function TacticalMap2D({
         iconSize: [26, 26],
         iconAnchor: [13, 13],
       });
-      const marker = L.marker([lat, lng], { icon });
+      const marker = L.marker([lat, lng], { icon, pane: 'transitsPane' });
       marker.bindTooltip(`<b>${sat.name}</b><br/>Alt: ${sat.altitudeKm} km • Vit: ${sat.speedKmh.toLocaleString()} km/h<br/>NORAD ${sat.noradId} // ${sat.type}`);
-      marker.on('click', () => {
+      marker.on('click', (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
         sound.click();
         setInspectedTarget({ type: 'satellite', ...sat });
         if (onSelectSatellite) onSelectSatellite(sat);
@@ -433,9 +441,10 @@ export function TacticalMap2D({
         iconSize: [28, 28],
         iconAnchor: [14, 14],
       });
-      const marker = L.marker([cam.lat, cam.lng], { icon });
+      const marker = L.marker([cam.lat, cam.lng], { icon, pane: 'transitsPane' });
       marker.bindTooltip(`<b>${cam.name}</b><br/>${cam.city}, ${cam.country}<br/>${cam.category} • ${cam.resolution}<br/><i style="color:#38bdf8;">Cliquer pour ouvrir le flux vidéo</i>`);
-      marker.on('click', () => {
+      marker.on('click', (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
         sound.click();
         setInspectedTarget({ type: 'cctv', ...cam });
       });
@@ -494,10 +503,8 @@ export function TacticalMap2D({
 
     // Attach initial active layers
     pulsesLayer.addTo(map);
-    if (activeLayers.has('aviation')) {
-      aviationLayer.addTo(map);
-      maritimeLayer.addTo(map);
-    }
+    if (activeLayers.has('aviation')) aviationLayer.addTo(map);
+    if (activeLayers.has('maritime')) maritimeLayer.addTo(map);
     if (activeLayers.has('cyber')) cyberLayer.addTo(map);
     if (activeLayers.has('conflicts')) conflictsLayer.addTo(map);
     if (activeLayers.has('telluric')) telluricLayer.addTo(map);
@@ -742,10 +749,7 @@ export function TacticalMap2D({
 
     Object.entries(layersMap).forEach(([layerKey, layer]) => {
       if (!layer) return;
-      const shouldBeActive =
-        layerKey === 'maritime'
-          ? activeLayers.has('aviation') || activeLayers.has('maritime')
-          : activeLayers.has(layerKey);
+      const shouldBeActive = activeLayers.has(layerKey);
 
       if (shouldBeActive) {
         if (!map.hasLayer(layer)) map.addLayer(layer);
@@ -764,6 +768,125 @@ export function TacticalMap2D({
       easeLinearity: 0.25,
     });
   }, [targetLocation]);
+
+  // Dynamic Route Highlighting for Inspected Transits (Vessels & Flights)
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (inspectedRouteLayerRef.current) {
+      map.removeLayer(inspectedRouteLayerRef.current);
+      inspectedRouteLayerRef.current = null;
+    }
+
+    if (!inspectedTarget) return;
+
+    const routeGroup = L.layerGroup();
+
+    if (inspectedTarget.type === 'vessel' && inspectedTarget.routeWaypoints?.length > 1) {
+      const pts = inspectedTarget.routeWaypoints;
+
+      // Outer ambient glow
+      L.polyline(pts, {
+        color: '#f59e0b',
+        weight: 6,
+        opacity: 0.3,
+        lineCap: 'round',
+        interactive: false,
+      }).addTo(routeGroup);
+
+      // Core crisp dashed maritime track
+      L.polyline(pts, {
+        color: '#fbbf24',
+        weight: 2.5,
+        opacity: 0.95,
+        dashArray: '8, 6',
+        interactive: false,
+      }).addTo(routeGroup);
+
+      // Departure Harbor
+      const [startLat, startLng] = pts[0];
+      const startMarker = L.circleMarker([startLat, startLng], {
+        radius: 5,
+        color: '#ffffff',
+        fillColor: '#10b981',
+        fillOpacity: 1,
+        weight: 2,
+      });
+      startMarker.bindTooltip(`<b>PORT DE DÉPART</b><br/>${inspectedTarget.originPort}`);
+      startMarker.addTo(routeGroup);
+
+      // Destination Harbor
+      const [endLat, endLng] = pts[pts.length - 1];
+      const endMarker = L.circleMarker([endLat, endLng], {
+        radius: 5,
+        color: '#ffffff',
+        fillColor: '#f59e0b',
+        fillOpacity: 1,
+        weight: 2,
+      });
+      endMarker.bindTooltip(`<b>DESTINATION</b><br/>${inspectedTarget.destinationPort}`);
+      endMarker.addTo(routeGroup);
+
+      routeGroup.addTo(map);
+      inspectedRouteLayerRef.current = routeGroup;
+    } else if (
+      inspectedTarget.type === 'flight' &&
+      inspectedTarget.origin?.coords &&
+      inspectedTarget.destination?.coords
+    ) {
+      const pStart = inspectedTarget.origin.coords;
+      const pEnd = inspectedTarget.destination.coords;
+      const pts = [];
+      const steps = 40;
+      for (let i = 0; i <= steps; i++) {
+        pts.push(interpolateGreatCircle(pStart, pEnd, i / steps));
+      }
+
+      // Outer glow
+      L.polyline(pts, {
+        color: '#00f2fe',
+        weight: 6,
+        opacity: 0.32,
+        lineCap: 'round',
+        interactive: false,
+      }).addTo(routeGroup);
+
+      // Crisp dash
+      L.polyline(pts, {
+        color: '#38bdf8',
+        weight: 2.2,
+        opacity: 0.95,
+        dashArray: '6, 5',
+        interactive: false,
+      }).addTo(routeGroup);
+
+      // Origin airport
+      const origMarker = L.circleMarker(pStart, {
+        radius: 5,
+        color: '#ffffff',
+        fillColor: '#00f5a0',
+        fillOpacity: 1,
+        weight: 2,
+      });
+      origMarker.bindTooltip(`<b>DÉPART : ${inspectedTarget.origin.code}</b><br/>${inspectedTarget.origin.city}, ${inspectedTarget.origin.country}`);
+      origMarker.addTo(routeGroup);
+
+      // Destination airport
+      const destMarker = L.circleMarker(pEnd, {
+        radius: 5,
+        color: '#ffffff',
+        fillColor: '#00f2fe',
+        fillOpacity: 1,
+        weight: 2,
+      });
+      destMarker.bindTooltip(`<b>ARRIVÉE : ${inspectedTarget.destination.code}</b><br/>${inspectedTarget.destination.city}, ${inspectedTarget.destination.country}`);
+      destMarker.addTo(routeGroup);
+
+      routeGroup.addTo(map);
+      inspectedRouteLayerRef.current = routeGroup;
+    }
+  }, [inspectedTarget]);
 
   const handleResetView = () => {
     sound.click();

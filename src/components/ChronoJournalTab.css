@@ -1,59 +1,76 @@
-/* ChronoJournalTab: Awwwards Daily Briefing & Temporal Intelligence Log */
+/* ==========================================================================
+   CHRONO-JOURNAL TAB — AWWWARDS 24-HOUR CHRONOLOGICAL INTELLIGENCE TIMELINE
+   ========================================================================== */
+
 .chrono-journal-container {
   display: flex;
   flex-direction: column;
   gap: 16px;
   width: 100%;
-  animation: journalFadeIn 0.3s ease-out;
+  animation: journalFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-mono, monospace);
 }
 
 @keyframes journalFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Header Banner */
+/* 1. Header Banner */
 .journal-header-card {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(0, 242, 254, 0.08) 0%, rgba(14, 20, 32, 0.9) 100%);
-  border: 1px solid rgba(0, 242, 254, 0.25);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.1) 0%, rgba(10, 16, 28, 0.95) 100%);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.journal-header-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00f2fe, transparent);
 }
 
 .journal-header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .journal-title-tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-mono, monospace);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 1.5px;
-  color: #00f2fe;
+  color: var(--cyan-bright, #00f2fe);
 }
 
 .journal-source-tag {
-  font-family: var(--font-mono, monospace);
   font-size: 8.5px;
-  color: var(--neo-text-muted, #64748b);
+  color: #64748b;
   letter-spacing: 0.8px;
 }
 
 .journal-date-large {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 800;
   color: #ffffff;
   text-transform: capitalize;
   letter-spacing: 0.5px;
+  line-height: 1.2;
 }
 
 .journal-stats-pills {
@@ -61,64 +78,26 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .journal-stat-pill {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 8px;
+  padding: 4px 9px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  font-family: var(--font-mono, monospace);
   font-size: 9px;
   color: #94a3b8;
 }
 
 .journal-stat-pill strong {
-  color: #ffffff;
-}
-
-/* Filters bar */
-.journal-filter-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-
-.journal-filter-btn {
-  padding: 5px 11px;
-  border-radius: 7px;
-  font-family: var(--font-mono, monospace);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  color: #64748b;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.journal-filter-btn:hover {
-  color: #ffffff;
-  border-color: rgba(0, 242, 254, 0.3);
-  background: rgba(0, 242, 254, 0.06);
-}
-
-.journal-filter-btn.is-active {
   color: #00f2fe;
-  border-color: rgba(0, 242, 254, 0.5);
-  background: rgba(0, 242, 254, 0.12);
-  box-shadow: 0 0 12px rgba(0, 242, 254, 0.2);
 }
 
-/* Daily Figures Snapshot Grid */
+/* 2. Figures Snapshot Grid */
 .journal-figures-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -126,81 +105,265 @@
 }
 
 .journal-fig-card {
-  padding: 10px 12px;
-  border-radius: 9px;
-  background: rgba(14, 20, 32, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
+  padding: 10px 12px;
+  background: rgba(14, 20, 32, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s ease;
+}
+
+.journal-fig-card:hover {
+  background: rgba(18, 26, 42, 0.9);
+  border-color: rgba(0, 242, 254, 0.25);
+  transform: translateY(-1px);
 }
 
 .journal-fig-label {
-  font-size: 9px;
-  color: #94a3b8;
+  font-size: 8.5px;
   font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .journal-fig-val {
-  font-family: var(--font-mono, monospace);
   font-size: 15px;
   font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.journal-fig-val.is-emerald {
+  color: #00f5a0;
+  text-shadow: 0 0 10px rgba(0, 245, 160, 0.4);
+}
+
+.journal-fig-val.is-crimson {
+  color: #ef4444;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.journal-fig-val.is-cyan {
+  color: #00f2fe;
+  text-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+}
+
+.journal-fig-val.is-amber {
+  color: #f59e0b;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+}
+
+/* 3. Search Bar */
+.journal-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.journal-search-icon {
+  position: absolute;
+  left: 12px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.journal-search-input {
+  width: 100%;
+  padding: 8px 32px 8px 32px;
+  background: rgba(8, 12, 20, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  color: #ffffff;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.journal-search-input:focus {
+  border-color: rgba(0, 242, 254, 0.5);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.2);
+  background: rgba(12, 18, 30, 0.95);
+}
+
+.journal-search-clear {
+  position: absolute;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.journal-search-clear:hover {
   color: #ffffff;
 }
 
-/* Cards Feed */
-.journal-feed {
+/* 4. Filters Bar */
+.journal-filter-bar {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
 }
 
+.journal-filter-btn {
+  padding: 5px 10px;
+  border-radius: 7px;
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.journal-filter-btn:hover {
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.journal-filter-btn.is-active {
+  color: #00f2fe;
+  background: rgba(0, 242, 254, 0.12);
+  border-color: rgba(0, 242, 254, 0.4);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+}
+
+/* 5. Chronological 24-Hour Timeline Feed */
+.journal-timeline-feed {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-left: 24px;
+  margin-top: 4px;
+}
+
+.timeline-spine-rail {
+  position: absolute;
+  top: 8px;
+  bottom: 12px;
+  left: 7px;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(0, 242, 254, 0.5) 0%, rgba(0, 242, 254, 0.1) 100%);
+  border-radius: 2px;
+}
+
+/* Timeline Node */
+.journal-timeline-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.timeline-node-marker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: -24px;
+}
+
+.node-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #080d16;
+  border: 2px solid #00f2fe;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
+  z-index: 2;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.is-earthquake-node .node-dot {
+  border-color: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+}
+
+.node-time-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #00f2fe;
+  background: rgba(0, 242, 254, 0.08);
+  padding: 2px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.is-earthquake-node .node-time-badge {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+/* Event Card */
 .journal-item-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 14px;
-  border-radius: 11px;
-  background: rgba(14, 20, 32, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(14, 20, 32, 0.9) 0%, rgba(8, 12, 20, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid rgba(0, 242, 254, 0.5);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .journal-item-card:hover {
-  border-color: rgba(0, 242, 254, 0.35);
-  background: rgba(18, 26, 42, 0.95);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 242, 254, 0.15);
+  background: linear-gradient(145deg, rgba(18, 26, 42, 0.95) 0%, rgba(10, 16, 26, 0.98) 100%);
+  border-color: rgba(0, 242, 254, 0.3);
+  border-left-color: #00f2fe;
+  box-shadow: 0 8px 28px rgba(0, 242, 254, 0.12), 0 4px 12px rgba(0, 0, 0, 0.6);
+  transform: translateX(3px);
+}
+
+.journal-item-card.is-earthquake {
+  border-left-color: #f59e0b;
 }
 
 .journal-item-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 }
 
 .journal-year-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 7px;
-  border-radius: 5px;
-  font-family: var(--font-mono, monospace);
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 800;
-  background: rgba(0, 242, 254, 0.12);
   color: #00f2fe;
-  border: 1px solid rgba(0, 242, 254, 0.3);
+  background: rgba(0, 242, 254, 0.1);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 242, 254, 0.2);
 }
 
 .journal-cat-badge {
-  font-family: var(--font-mono, monospace);
   font-size: 8px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 1px;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
   text-transform: uppercase;
 }
@@ -211,13 +374,14 @@
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-.journal-cat-badge.science {
+.journal-cat-badge.scienceespace {
   background: rgba(168, 85, 247, 0.15);
   color: #a855f7;
   border: 1px solid rgba(168, 85, 247, 0.3);
 }
 
-.journal-cat-badge.catastrophe {
+.journal-cat-badge.catastrophe,
+.journal-cat-badge.sisme {
   background: rgba(245, 158, 11, 0.15);
   color: #f59e0b;
   border: 1px solid rgba(245, 158, 11, 0.3);
@@ -229,68 +393,10 @@
   border: 1px solid rgba(148, 163, 184, 0.3);
 }
 
-.journal-item-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #ffffff;
-  line-height: 1.35;
-}
-
-.journal-item-body {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.journal-item-thumb {
-  width: 68px;
-  height: 68px;
-  border-radius: 7px;
-  object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  flex-shrink: 0;
-}
-
-.journal-item-text {
-  font-size: 11px;
-  color: #94a3b8;
-  line-height: 1.5;
-  flex: 1;
-}
-
-.journal-item-link {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-family: var(--font-mono, monospace);
-  font-size: 9px;
-  font-weight: 700;
-  color: #00f2fe;
-  text-decoration: none;
-  margin-top: 2px;
-  transition: color 0.2s ease;
-}
-
-.journal-item-link:hover {
-  color: #38bdf8;
-  text-decoration: underline;
-}
-
-/* Earthquake Specific Card */
-.journal-item-card.is-earthquake {
-  border-left: 3px solid #f59e0b;
-}
-
-.journal-item-card.is-earthquake.critical {
-  border-left: 3px solid #ef4444;
-}
-
 .quake-mag-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-family: var(--font-mono, monospace);
   font-size: 11px;
   font-weight: 900;
   padding: 3px 8px;
@@ -313,19 +419,88 @@
   color: #050b14;
 }
 
-/* Loading State */
-.journal-loading-state {
+.journal-item-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.35;
+  letter-spacing: 0.2px;
+}
+
+.journal-item-body {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.journal-item-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.journal-item-text {
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.55;
+  flex: 1;
+}
+
+.journal-item-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--cyan-bright, #00f2fe);
+  text-decoration: none;
+  margin-top: 2px;
+  transition: all 0.2s ease;
+}
+
+.journal-item-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+  transform: translateX(2px);
+}
+
+/* Empty State */
+.journal-empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
   gap: 12px;
+  color: #64748b;
+  text-align: center;
+  font-size: 11px;
+}
+
+.journal-empty-icon {
+  opacity: 0.5;
+}
+
+/* Loading State */
+.journal-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px;
+  gap: 14px;
   color: #00f2fe;
+  text-align: center;
 }
 
 .journal-spin-icon {
-  animation: spinJournal 1s infinite linear;
+  animation: spinJournal 1.2s infinite linear;
+  filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.6));
 }
 
 @keyframes spinJournal {
@@ -334,8 +509,14 @@
 }
 
 .journal-loading-text {
-  font-family: var(--font-mono, monospace);
   font-size: 11px;
-  letter-spacing: 1px;
-  color: #94a3b8;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: #e2e8f0;
+}
+
+.journal-loading-sub {
+  font-size: 9.5px;
+  color: #64748b;
+  letter-spacing: 0.5px;
 }
