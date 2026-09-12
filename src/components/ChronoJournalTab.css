@@ -1,0 +1,341 @@
+/* ChronoJournalTab: Awwwards Daily Briefing & Temporal Intelligence Log */
+.chrono-journal-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  animation: journalFadeIn 0.3s ease-out;
+}
+
+@keyframes journalFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header Banner */
+.journal-header-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.08) 0%, rgba(14, 20, 32, 0.9) 100%);
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.journal-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.journal-title-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #00f2fe;
+}
+
+.journal-source-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  color: var(--neo-text-muted, #64748b);
+  letter-spacing: 0.8px;
+}
+
+.journal-date-large {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
+}
+
+.journal-stats-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.journal-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  color: #94a3b8;
+}
+
+.journal-stat-pill strong {
+  color: #ffffff;
+}
+
+/* Filters bar */
+.journal-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.journal-filter-btn {
+  padding: 5px 11px;
+  border-radius: 7px;
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.journal-filter-btn:hover {
+  color: #ffffff;
+  border-color: rgba(0, 242, 254, 0.3);
+  background: rgba(0, 242, 254, 0.06);
+}
+
+.journal-filter-btn.is-active {
+  color: #00f2fe;
+  border-color: rgba(0, 242, 254, 0.5);
+  background: rgba(0, 242, 254, 0.12);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.2);
+}
+
+/* Daily Figures Snapshot Grid */
+.journal-figures-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.journal-fig-card {
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: rgba(14, 20, 32, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.journal-fig-label {
+  font-size: 9px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.journal-fig-val {
+  font-family: var(--font-mono, monospace);
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+/* Cards Feed */
+.journal-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.journal-item-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 11px;
+  background: rgba(14, 20, 32, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.journal-item-card:hover {
+  border-color: rgba(0, 242, 254, 0.35);
+  background: rgba(18, 26, 42, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 242, 254, 0.15);
+}
+
+.journal-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.journal-year-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 800;
+  background: rgba(0, 242, 254, 0.12);
+  color: #00f2fe;
+  border: 1px solid rgba(0, 242, 254, 0.3);
+}
+
+.journal-cat-badge {
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.journal-cat-badge.geopolitique {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.journal-cat-badge.science {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.journal-cat-badge.catastrophe {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.journal-cat-badge.histoire {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.journal-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.35;
+}
+
+.journal-item-body {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.journal-item-thumb {
+  width: 68px;
+  height: 68px;
+  border-radius: 7px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.journal-item-text {
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.journal-item-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  color: #00f2fe;
+  text-decoration: none;
+  margin-top: 2px;
+  transition: color 0.2s ease;
+}
+
+.journal-item-link:hover {
+  color: #38bdf8;
+  text-decoration: underline;
+}
+
+/* Earthquake Specific Card */
+.journal-item-card.is-earthquake {
+  border-left: 3px solid #f59e0b;
+}
+
+.journal-item-card.is-earthquake.critical {
+  border-left: 3px solid #ef4444;
+}
+
+.quake-mag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 6px;
+  color: #ffffff;
+}
+
+.quake-mag-badge.critical {
+  background: #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.quake-mag-badge.high {
+  background: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+}
+
+.quake-mag-badge.moderate {
+  background: #00f2fe;
+  color: #050b14;
+}
+
+/* Loading State */
+.journal-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 12px;
+  color: #00f2fe;
+}
+
+.journal-spin-icon {
+  animation: spinJournal 1s infinite linear;
+}
+
+@keyframes spinJournal {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.journal-loading-text {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #94a3b8;
+}

@@ -300,6 +300,7 @@ export default function App() {
             onSelectSatellite={handleSelectSatellite}
             onSelectCountry={handleSelectCountry}
             targetLocation={targetLocation}
+            isDrawerOpen={isDrawerOpen}
           />
         ) : (
           <OrbitView3D
@@ -310,6 +311,7 @@ export default function App() {
             onSelectSatellite={handleSelectSatellite}
             onSelectCountry={handleSelectCountry}
             targetLocation={targetLocation}
+            isDrawerOpen={isDrawerOpen}
           />
         )}
       </main>

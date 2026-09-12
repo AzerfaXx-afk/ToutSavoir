@@ -1,0 +1,445 @@
+/* Tactical Inspection Card (Osiris-style HUD Target Telemetry Card) */
+
+.tactical-inspection-card {
+  position: fixed;
+  right: 24px;
+  bottom: 68px;
+  width: 340px;
+  max-width: calc(100vw - 48px);
+  background: rgba(5, 10, 19, 0.94);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(0, 242, 254, 0.35);
+  border-radius: 8px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.9), 0 0 24px rgba(0, 242, 254, 0.15);
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  color: #fff;
+  font-family: var(--font-sans);
+  animation: ticFadeSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* When the right drawer is open, smoothly translate or push the card so it is not obstructed */
+.tactical-inspection-card.drawer-is-open {
+  right: 404px;
+}
+
+@media (max-width: 860px) {
+  .tactical-inspection-card {
+    right: 12px;
+    bottom: 80px;
+    width: calc(100vw - 24px);
+  }
+  .tactical-inspection-card.drawer-is-open {
+    right: 12px;
+    bottom: 80px;
+  }
+}
+
+@keyframes ticFadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header */
+.tic-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 10px;
+}
+
+.tic-target-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tic-icon {
+  flex-shrink: 0;
+}
+.tic-icon.cctv { color: #38bdf8; }
+.tic-icon.flight { color: #00f5a0; }
+.tic-icon.vessel { color: #f59e0b; }
+.tic-icon.sat { color: #a855f7; }
+
+.tic-type-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.tic-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tic-zulu {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.tic-close-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tic-close-btn:hover {
+  background: rgba(255, 51, 102, 0.2);
+  border-color: #ff3366;
+  color: #ff3366;
+  transform: scale(1.05);
+}
+
+/* Title & Subtitle */
+.tic-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tic-main-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #ffffff;
+  line-height: 1.3;
+}
+
+.tic-sub-name {
+  margin: 0;
+  font-size: 10.5px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+/* Media preview for CCTV */
+.tic-media-preview {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  background: #000;
+  cursor: pointer;
+}
+
+.tic-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease, filter 0.3s ease;
+}
+
+.tic-media-preview:hover .tic-img {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+.tic-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.2),
+    rgba(0, 0, 0, 0.2) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.tic-media-overlay {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.tic-live-pulse-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 51, 102, 0.5);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: #ff3366;
+}
+
+.tic-dot {
+  width: 5px;
+  height: 5px;
+  background: #ff3366;
+  border-radius: 50%;
+  animation: ticBlink 1s infinite;
+}
+
+@keyframes ticBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.tic-res-badge {
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: #38bdf8;
+}
+
+.tic-hover-watch {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 15, 30, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.tic-media-preview:hover .tic-hover-watch {
+  opacity: 1;
+}
+
+/* Flight corridor preview */
+.tic-corridor-preview {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.tic-corridor-endpoints {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.endpoint {
+  display: flex;
+  flex-direction: column;
+}
+.endpoint.dest {
+  align-items: flex-end;
+}
+
+.endpoint .iata {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.endpoint .city {
+  font-size: 9.5px;
+  color: #94a3b8;
+}
+
+.corridor-mid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.corridor-line {
+  position: relative;
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.corridor-plane-icon {
+  position: absolute;
+  top: 50%;
+  color: #00f5a0;
+  filter: drop-shadow(0 0 6px #00f5a0);
+}
+
+.corridor-cat {
+  font-size: 8.5px;
+  color: #64748b;
+  font-family: var(--font-mono);
+}
+
+/* Vessel route preview */
+.tic-vessel-preview {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tic-vessel-route {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.vessel-arrow {
+  color: #f59e0b;
+}
+
+.vessel-chokepoint-tag {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: #fbbf24;
+}
+
+/* Telemetry Grid */
+.tic-metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.tic-metric-cell {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tic-metric-cell.full-width {
+  grid-column: span 2;
+}
+
+.tic-label {
+  font-size: 8.5px;
+  font-family: var(--font-mono);
+  color: #64748b;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.tic-val {
+  font-size: 11px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.tic-val.mono {
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.tic-val.cyan {
+  color: #38bdf8;
+}
+
+.tic-val.green {
+  color: #00f5a0;
+}
+
+.tic-val.text-dim {
+  color: #94a3b8;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+/* Footer Actions */
+.tic-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.tic-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tic-action-btn.primary {
+  background: rgba(0, 242, 254, 0.15);
+  border: 1px solid #00f2fe;
+  color: #00f2fe;
+  box-shadow: 0 0 14px rgba(0, 242, 254, 0.25);
+}
+
+.tic-action-btn.primary:hover {
+  background: #00f2fe;
+  color: #000;
+  box-shadow: 0 0 22px rgba(0, 242, 254, 0.6);
+  transform: translateY(-1px);
+}
+
+.tic-action-btn.secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+}
+
+.tic-action-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  transform: translateY(-1px);
+}

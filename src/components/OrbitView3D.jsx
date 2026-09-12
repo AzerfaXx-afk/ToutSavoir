@@ -13,6 +13,8 @@ import {
   THERMAL_ANOMALIES,
   WEATHER_SYSTEMS,
 } from '../data/osirisStreams';
+import { LIVE_FLIGHTS, LIVE_VESSELS } from '../data/liveTransits';
+import { TacticalInspectionCard } from './TacticalInspectionCard';
 
 // Fast point-in-polygon ray-casting algorithm
 function pointInPolygon(point, poly) {
@@ -38,6 +40,7 @@ export function OrbitView3D({
   onSelectSatellite,
   onSelectCountry,
   targetLocation,
+  isDrawerOpen = false,
 }) {
   const mountRef = useRef(null);
   const [coords, setCoords] = useState({ lat: '48.85° N', lng: '2.35° E' });
@@ -45,6 +48,7 @@ export function OrbitView3D({
   const [hoveredCountry, setHoveredCountry] = useState(null);
   const [hoverScreenPos, setHoverScreenPos] = useState({ x: 0, y: 0 });
   const [selectedTerritory, setSelectedTerritory] = useState(null);
+  const [inspectedTarget, setInspectedTarget] = useState(null);
 
   // References
   const controlsRef = useRef(null);
@@ -643,10 +647,11 @@ export function OrbitView3D({
     const aviationGroup = new THREE.Group();
     earthGroup.add(aviationGroup);
     const activeFlights = [];
+    const flightClickMeshes = [];
 
-    AVIATION_ROUTES.forEach((route, idx) => {
-      const [fromLat, fromLng] = route.from;
-      const [toLat, toLng] = route.to;
+    LIVE_FLIGHTS.forEach((fl, idx) => {
+      const [fromLat, fromLng] = fl.origin.coords;
+      const [toLat, toLng] = fl.destination.coords;
       const vFrom = new THREE.Vector3(...coordsToVector(fromLng, fromLat, R_EARTH + 0.005));
       const vTo = new THREE.Vector3(...coordsToVector(toLng, toLat, R_EARTH + 0.005));
       const dist = vFrom.distanceTo(vTo);
@@ -657,7 +662,7 @@ export function OrbitView3D({
       const points = curve.getPoints(40);
       const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
       const lineMat = new THREE.LineBasicMaterial({
-        color: 0x00f2fe,
+        color: 0x00f5a0,
         transparent: true,
         opacity: 0.35,
       });
@@ -665,16 +670,16 @@ export function OrbitView3D({
       aviationGroup.add(arcLine);
 
       // Moving Aircraft Node
-      const planeGeom = new THREE.ConeGeometry(0.012, 0.035, 6);
-      const planeMat = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-      });
+      const planeGeom = new THREE.ConeGeometry(0.014, 0.04, 6);
+      const planeMat = new THREE.MeshBasicMaterial({ color: 0x00f5a0 });
       const planeMesh = new THREE.Mesh(planeGeom, planeMat);
+      planeMesh.userData = { isFlight: true, flight: fl };
       aviationGroup.add(planeMesh);
+      flightClickMeshes.push(planeMesh);
 
       // Airport Hub Dots
       const hubGeom = new THREE.CircleGeometry(0.008, 12);
-      const hubMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe, side: THREE.DoubleSide });
+      const hubMat = new THREE.MeshBasicMaterial({ color: 0x00f5a0, side: THREE.DoubleSide });
       const hubFrom = new THREE.Mesh(hubGeom, hubMat);
       hubFrom.position.copy(vFrom);
       hubFrom.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), vFrom.clone().normalize());
@@ -683,8 +688,44 @@ export function OrbitView3D({
       activeFlights.push({
         curve,
         planeMesh,
-        speed: 0.0018 + (idx % 3) * 0.0006,
-        offset: (idx * 0.17) % 1,
+        speed: 0.0016 + (idx % 3) * 0.0005,
+        offset: (idx * 0.14) % 1,
+      });
+    });
+
+    // 11c-2. Maritime Shipping Lanes Layer
+    const maritimeGroup = new THREE.Group();
+    earthGroup.add(maritimeGroup);
+    const activeVessels = [];
+    const vesselClickMeshes = [];
+
+    LIVE_VESSELS.forEach((ves, idx) => {
+      const pts = ves.routeWaypoints.map(([wLat, wLng]) => {
+        return new THREE.Vector3(...coordsToVector(wLng, wLat, R_EARTH + 0.004));
+      });
+      const curve = new THREE.CatmullRomCurve3(pts);
+      const routePoints = curve.getPoints(50);
+      const routeGeom = new THREE.BufferGeometry().setFromPoints(routePoints);
+      const routeMat = new THREE.LineBasicMaterial({
+        color: 0xf59e0b,
+        transparent: true,
+        opacity: 0.25,
+      });
+      maritimeGroup.add(new THREE.Line(routeGeom, routeMat));
+
+      // Ship Mesh
+      const shipGeom = new THREE.BoxGeometry(0.014, 0.008, 0.026);
+      const shipMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+      const shipMesh = new THREE.Mesh(shipGeom, shipMat);
+      shipMesh.userData = { isVessel: true, vessel: ves };
+      maritimeGroup.add(shipMesh);
+      vesselClickMeshes.push(shipMesh);
+
+      activeVessels.push({
+        curve,
+        shipMesh,
+        speed: 0.0007 + (idx % 3) * 0.0003,
+        offset: (idx * 0.16) % 1,
       });
     });
 
@@ -1041,7 +1082,7 @@ export function OrbitView3D({
           const hitCam = cctvHits[0].object.userData?.camera;
           if (hitCam) {
             sound.click();
-            if (onSelectCCTV) onSelectCCTV(hitCam);
+            setInspectedTarget({ type: 'cctv', ...hitCam });
             return;
           }
         }
@@ -1052,7 +1093,30 @@ export function OrbitView3D({
           const hitSat = satHits[0].object.userData?.satellite;
           if (hitSat) {
             sound.click();
+            setInspectedTarget({ type: 'satellite', ...hitSat });
             if (onSelectSatellite) onSelectSatellite(hitSat);
+            return;
+          }
+        }
+
+        // 3. Check Live Flights click
+        const flightHits = raycaster.intersectObjects(flightClickMeshes, true);
+        if (flightHits.length > 0) {
+          const hitFl = flightHits[0].object.userData?.flight;
+          if (hitFl) {
+            sound.click();
+            setInspectedTarget({ type: 'flight', ...hitFl });
+            return;
+          }
+        }
+
+        // 4. Check Live Maritime Vessels click
+        const vesselHits = raycaster.intersectObjects(vesselClickMeshes, true);
+        if (vesselHits.length > 0) {
+          const hitVes = vesselHits[0].object.userData?.vessel;
+          if (hitVes) {
+            sound.click();
+            setInspectedTarget({ type: 'vessel', ...hitVes });
             return;
           }
         }
@@ -1324,6 +1388,18 @@ export function OrbitView3D({
         });
       }
 
+      // Animate maritime cargo vessels
+      maritimeGroup.visible = layers.has('aviation') || layers.has('maritime');
+      if (maritimeGroup.visible) {
+        activeVessels.forEach((ves) => {
+          const t = (frameCount * ves.speed + ves.offset) % 1;
+          const pos = ves.curve.getPoint(t);
+          ves.shipMesh.position.copy(pos);
+          const tangent = ves.curve.getTangent(t).normalize();
+          ves.shipMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tangent);
+        });
+      }
+
       // Animate cyber attack pulses
       if (cyberGroup.visible) {
         activeAttacks.forEach((att) => {
@@ -1541,6 +1617,24 @@ export function OrbitView3D({
           </div>
         </div>
       )}
+
+      {/* Tactical Bottom-Right Inspection Target Card (Osiris HUD style) */}
+      <TacticalInspectionCard
+        target={inspectedTarget}
+        onClose={() => setInspectedTarget(null)}
+        onOpenLive={(target) => {
+          if (onSelectCCTV) onSelectCCTV(target);
+        }}
+        onCenter={(lat, lng) => {
+          const [x, y, z] = coordsToVector(lng, lat, 4.2);
+          if (cameraRef.current && controlsRef.current) {
+            cameraRef.current.position.set(x, y, z);
+            controlsRef.current.target.set(0, 0, 0);
+            controlsRef.current.update();
+          }
+        }}
+        isDrawerOpen={isDrawerOpen}
+      />
 
       {/* Floating Center-Bottom Coordinates - Pure typography directly on space canvas */}
       <div className="floating-coords-pill">

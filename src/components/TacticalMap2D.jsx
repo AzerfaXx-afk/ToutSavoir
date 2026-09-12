@@ -12,6 +12,8 @@ import {
   THERMAL_ANOMALIES,
   WEATHER_SYSTEMS,
 } from '../data/osirisStreams';
+import { LIVE_FLIGHTS, LIVE_VESSELS, getLiveTransitPositions } from '../data/liveTransits';
+import { TacticalInspectionCard } from './TacticalInspectionCard';
 
 export function TacticalMap2D({
   activeLayer = 'satellite',
@@ -20,6 +22,7 @@ export function TacticalMap2D({
   onSelectSatellite,
   onSelectCountry,
   targetLocation,
+  isDrawerOpen = false,
 }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -29,6 +32,7 @@ export function TacticalMap2D({
 
   const pulsesLayerRef = useRef(null);
   const aviationLayerRef = useRef(null);
+  const maritimeLayerRef = useRef(null);
   const cyberLayerRef = useRef(null);
   const conflictsLayerRef = useRef(null);
   const telluricLayerRef = useRef(null);
@@ -39,6 +43,7 @@ export function TacticalMap2D({
 
   const [hoveredCountry, setHoveredCountry] = useState(null);
   const [selectedTerritory, setSelectedTerritory] = useState(null);
+  const [inspectedTarget, setInspectedTarget] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0, lat: '48.85° N', lng: '2.35° E' });
 
   // Styles definition
@@ -259,21 +264,89 @@ export function TacticalMap2D({
     const pulsesLayer = L.layerGroup();
     pulsesLayerRef.current = pulsesLayer;
 
-    // 2. Aviation routes layer
+    // 2. Aviation routes layer + live commercial/cargo flight vectors
     const aviationLayer = L.layerGroup();
     aviationLayerRef.current = aviationLayer;
     AVIATION_ROUTES.forEach((route) => {
       const line = L.polyline([route.from, route.to], {
         color: '#00f2fe',
-        weight: 1.5,
-        opacity: 0.65,
-        dashArray: '4, 8',
+        weight: 1.2,
+        opacity: 0.4,
+        dashArray: '3, 6',
       });
-      line.bindTooltip(`VOL ${route.code} // ${route.airline}<br/>${route.origin} ➔ ${route.dest}<br/>Altitude: ${route.alt}`);
+      line.bindTooltip(`COULOIR AÉRIEN // ${route.airline}<br/>${route.origin} ➔ ${route.dest}<br/>Altitude: ${route.alt}`);
       line.addTo(aviationLayer);
-      L.circleMarker(route.from, { radius: 3.5, color: '#00f2fe', fillColor: '#ffffff', fillOpacity: 0.9 }).addTo(aviationLayer);
-      L.circleMarker(route.to, { radius: 3.5, color: '#00f2fe', fillColor: '#00f2fe', fillOpacity: 0.9 }).addTo(aviationLayer);
+      L.circleMarker(route.from, { radius: 2.5, color: '#00f2fe', fillColor: '#ffffff', fillOpacity: 0.8 }).addTo(aviationLayer);
+      L.circleMarker(route.to, { radius: 2.5, color: '#00f2fe', fillColor: '#00f2fe', fillOpacity: 0.8 }).addTo(aviationLayer);
     });
+
+    // 2b. Maritime shipping lanes layer
+    const maritimeLayer = L.layerGroup();
+    maritimeLayerRef.current = maritimeLayer;
+
+    // Track active flight & vessel markers for live smooth animation
+    const flightMarkersMap = new Map();
+    const vesselMarkersMap = new Map();
+
+    const updateTransits = () => {
+      const { flights, vessels } = getLiveTransitPositions(Date.now());
+
+      // Update flights
+      flights.forEach((fl) => {
+        const rotation = fl.calculatedHeading || 0;
+        const iconHtml = `<div class="flight-div-marker" style="transform: rotate(${rotation}deg);" title="${fl.callsign} (${fl.airline})"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>`;
+        const icon = L.divIcon({
+          className: 'flight-div-icon-wrap',
+          html: iconHtml,
+          iconSize: [26, 26],
+          iconAnchor: [13, 13],
+        });
+
+        if (flightMarkersMap.has(fl.id)) {
+          const m = flightMarkersMap.get(fl.id);
+          m.setLatLng([fl.lat, fl.lng]);
+          m.setIcon(icon);
+        } else {
+          const m = L.marker([fl.lat, fl.lng], { icon });
+          m.bindTooltip(`<b>${fl.callsign} // ${fl.airline}</b><br/>${fl.aircraft}<br/>${fl.origin.code} (${fl.origin.city}) ➔ ${fl.destination.code} (${fl.destination.city})<br/>Alt: ${fl.altitudeM?.toLocaleString()} m • Vit: ${fl.speedKmh} km/h<br/><i style="color:#00f5a0;">Cliquer pour télémétrie complète</i>`);
+          m.on('click', () => {
+            sound.click();
+            setInspectedTarget({ type: 'flight', ...fl });
+          });
+          m.addTo(aviationLayer);
+          flightMarkersMap.set(fl.id, m);
+        }
+      });
+
+      // Update vessels
+      vessels.forEach((ves) => {
+        const iconHtml = `<div class="vessel-div-marker" title="${ves.name} (${ves.flag})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/><path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/><line x1="12" y1="1" x2="12" y2="5"/></svg></div>`;
+        const icon = L.divIcon({
+          className: 'vessel-div-icon-wrap',
+          html: iconHtml,
+          iconSize: [26, 26],
+          iconAnchor: [13, 13],
+        });
+
+        if (vesselMarkersMap.has(ves.id)) {
+          const m = vesselMarkersMap.get(ves.id);
+          m.setLatLng([ves.lat, ves.lng]);
+          m.setIcon(icon);
+        } else {
+          const m = L.marker([ves.lat, ves.lng], { icon });
+          m.bindTooltip(`<b>${ves.name} ${ves.flagEmoji || '⚓'}</b><br/>${ves.type}<br/>${ves.originPort} ➔ ${ves.destinationPort}<br/>Vitesse: ${ves.speedKts} Nœuds • ${ves.chokepoint}<br/><i style="color:#f59e0b;">Cliquer pour télémétrie cargaison</i>`);
+          m.on('click', () => {
+            sound.click();
+            setInspectedTarget({ type: 'vessel', ...ves });
+          });
+          m.addTo(maritimeLayer);
+          vesselMarkersMap.set(ves.id, m);
+        }
+      });
+    };
+
+    updateTransits();
+    const transitInterval = setInterval(updateTransits, 1500);
 
     // 3. Cyber warfare layer
     const cyberLayer = L.layerGroup();
@@ -344,12 +417,13 @@ export function TacticalMap2D({
       marker.bindTooltip(`<b>${sat.name}</b><br/>Alt: ${sat.altitudeKm} km • Vit: ${sat.speedKmh.toLocaleString()} km/h<br/>NORAD ${sat.noradId} // ${sat.type}`);
       marker.on('click', () => {
         sound.click();
+        setInspectedTarget({ type: 'satellite', ...sat });
         if (onSelectSatellite) onSelectSatellite(sat);
       });
       marker.addTo(satellitesLayer);
     });
 
-    // 7. CCTV live cameras layer
+    // 7. CCTV live cameras layer (46 strategic global webcams)
     const cctvLayer = L.layerGroup();
     cctvLayerRef.current = cctvLayer;
     CCTV_FEEDS.forEach((cam) => {
@@ -363,7 +437,7 @@ export function TacticalMap2D({
       marker.bindTooltip(`<b>${cam.name}</b><br/>${cam.city}, ${cam.country}<br/>${cam.category} • ${cam.resolution}<br/><i style="color:#38bdf8;">Cliquer pour ouvrir le flux vidéo</i>`);
       marker.on('click', () => {
         sound.click();
-        if (onSelectCCTV) onSelectCCTV(cam);
+        setInspectedTarget({ type: 'cctv', ...cam });
       });
       marker.addTo(cctvLayer);
     });
@@ -420,7 +494,10 @@ export function TacticalMap2D({
 
     // Attach initial active layers
     pulsesLayer.addTo(map);
-    if (activeLayers.has('aviation')) aviationLayer.addTo(map);
+    if (activeLayers.has('aviation')) {
+      aviationLayer.addTo(map);
+      maritimeLayer.addTo(map);
+    }
     if (activeLayers.has('cyber')) cyberLayer.addTo(map);
     if (activeLayers.has('conflicts')) conflictsLayer.addTo(map);
     if (activeLayers.has('telluric')) telluricLayer.addTo(map);
@@ -653,6 +730,7 @@ export function TacticalMap2D({
 
     const layersMap = {
       aviation: aviationLayerRef.current,
+      maritime: maritimeLayerRef.current,
       cyber: cyberLayerRef.current,
       conflicts: conflictsLayerRef.current,
       telluric: telluricLayerRef.current,
@@ -664,7 +742,12 @@ export function TacticalMap2D({
 
     Object.entries(layersMap).forEach(([layerKey, layer]) => {
       if (!layer) return;
-      if (activeLayers.has(layerKey)) {
+      const shouldBeActive =
+        layerKey === 'maritime'
+          ? activeLayers.has('aviation') || activeLayers.has('maritime')
+          : activeLayers.has(layerKey);
+
+      if (shouldBeActive) {
         if (!map.hasLayer(layer)) map.addLayer(layer);
       } else {
         if (map.hasLayer(layer)) map.removeLayer(layer);
@@ -792,6 +875,19 @@ export function TacticalMap2D({
           </div>
         </div>
       )}
+
+      {/* Tactical Bottom-Right Inspection Target Card (Osiris HUD style) */}
+      <TacticalInspectionCard
+        target={inspectedTarget}
+        onClose={() => setInspectedTarget(null)}
+        onOpenLive={(target) => {
+          if (onSelectCCTV) onSelectCCTV(target);
+        }}
+        onCenter={(lat, lng) => {
+          mapInstanceRef.current?.flyTo([lat, lng], 6, { duration: 1.2 });
+        }}
+        isDrawerOpen={isDrawerOpen}
+      />
 
       {/* Floating Center-Bottom Coordinates - Directly on map, no capsule, no border */}
       <div className="floating-coords-pill">

@@ -960,53 +960,94 @@ body.timeline-scrubbing-active * {
 
 .drawer-toggle-tab {
   position: absolute;
-  top: 85px;
-  left: -32px;
-  width: 32px;
-  height: 144px;
-  background: rgba(8, 14, 22, 0.94);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 242, 254, 0.3);
+  top: 96px;
+  left: -36px;
+  width: 36px;
+  height: 156px;
+  background: linear-gradient(180deg, rgba(13, 22, 35, 0.96) 0%, rgba(6, 11, 20, 0.98) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 242, 254, 0.35);
   border-right: none;
-  border-radius: 6px 0 0 6px;
+  border-radius: 12px 0 0 12px;
   color: var(--cyan-bright);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 14px;
   cursor: pointer;
-  box-shadow: -6px 8px 24px rgba(0, 0, 0, 0.8);
+  box-shadow: 
+    -10px 0 30px rgba(0, 0, 0, 0.85),
+    -2px 0 12px rgba(0, 242, 254, 0.15);
   pointer-events: auto;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.drawer-toggle-tab::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 3px;
+  width: 2px;
+  background: linear-gradient(180deg, transparent, rgba(0, 242, 254, 0.8), transparent);
+  border-radius: 2px;
 }
 
 .drawer-toggle-tab:hover {
-  background: rgba(14, 24, 38, 0.98);
-  border-color: var(--cyan-bright);
-  color: #fff;
-  box-shadow: -8px 12px 28px rgba(0, 242, 254, 0.3);
+  background: linear-gradient(180deg, rgba(18, 30, 48, 0.98) 0%, rgba(8, 14, 26, 0.99) 100%);
+  border-color: #00f2fe;
+  color: #ffffff;
+  transform: translateX(-3px);
+  box-shadow: 
+    -14px 0 36px rgba(0, 242, 254, 0.35),
+    inset 0 0 14px rgba(0, 242, 254, 0.15);
+}
+
+.drawer-toggle-tab:active {
+  transform: translateX(-1px);
 }
 
 .toggle-tab-text {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: #cbd5e1;
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  color: #e2e8f0;
+  transition: color 0.2s ease;
+}
+
+.drawer-toggle-tab:hover .toggle-tab-text {
+  color: #00f2fe;
+  text-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
 }
 
 .toggle-tab-dot {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background-color: var(--cyan-bright);
-  box-shadow: 0 0 8px var(--cyan-bright);
-  animation: pulseDot 2s infinite;
+  background-color: #00f5a0;
+  box-shadow: 0 0 10px #00f5a0, 0 0 20px #00f5a0;
+  animation: pulseDotLive 1.6s infinite ease-in-out;
+}
+
+@keyframes pulseDotLive {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 8px #00f5a0;
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+    box-shadow: 0 0 2px #00f5a0;
+  }
 }
 
 .drawer-panel-inner {
@@ -1555,6 +1596,48 @@ body.timeline-scrubbing-active * {
 .satellite-div-marker:hover {
   transform: scale(1.25) rotate(15deg);
   box-shadow: 0 0 18px #00f2fe;
+}
+
+.flight-div-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(4, 16, 12, 0.92);
+  border: 1.5px solid #00f5a0;
+  color: #00f5a0;
+  box-shadow: 0 0 12px rgba(0, 245, 160, 0.5);
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.flight-div-marker:hover {
+  transform: scale(1.3);
+  box-shadow: 0 0 20px #00f5a0;
+  border-color: #ffffff;
+}
+
+.vessel-div-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(22, 14, 4, 0.92);
+  border: 1.5px solid #f59e0b;
+  color: #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.vessel-div-marker:hover {
+  transform: scale(1.3);
+  box-shadow: 0 0 20px #f59e0b;
+  border-color: #ffffff;
 }
 
 .weather-div-marker {

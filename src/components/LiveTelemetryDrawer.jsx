@@ -28,10 +28,12 @@ import {
   Calendar,
   Maximize2,
 } from 'lucide-react';
+import { ChronoJournalTab } from './ChronoJournalTab';
 import './LiveTelemetryDrawer.css';
 
 /* ── Unified Category System (replaces old tabs) ─────────────────── */
 const UNIFIED_CATEGORIES = [
+  { id: 'journal', label: 'Journal du Jour', type: 'journal' },
   { id: 'all', label: 'Tout', type: 'metrics' },
   { id: 'population', label: 'Démographie', type: 'metrics' },
   { id: 'economy', label: 'Économie', type: 'metrics' },
@@ -615,6 +617,14 @@ export function LiveTelemetryDrawer({
 
         {/* ─── Content Scroll Area ─── */}
         <div className="drawer-scroll-area">
+          {/* ── CHRONO-JOURNAL / BRIEFING QUOTIDIEN ── */}
+          {activeType === 'journal' && (
+            <ChronoJournalTab
+              selectedDate={customDateRef.current || new Date()}
+              metrics={metrics}
+            />
+          )}
+
           {/* ── METRICS ── */}
           {activeType === 'metrics' && (
             <>

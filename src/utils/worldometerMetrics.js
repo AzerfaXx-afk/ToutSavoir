@@ -15,7 +15,7 @@ export const WORLDOMETER_CATEGORIES = [
 ];
 
 export const METRIC_DEFINITIONS = [
-  // 1. POPULATION
+  // 1. POPULATION MONDIALE (Calibré exactement sur worldometers.info)
   {
     id: 'world_pop',
     cat: 'population',
@@ -23,8 +23,8 @@ export const METRIC_DEFINITIONS = [
     unit: 'habitants',
     type: 'counter',
     scope: 'instant',
-    ratePerSec: 2.36,
-    baseVal: 8185420000,
+    ratePerSec: 2.22,
+    baseVal: 8264179671, // Base 01/01/2026 -> At Sept 2026: ~8 316 175 000 hab
     color: 'var(--cyan-bright)',
   },
   {
@@ -34,7 +34,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'naissances',
     type: 'counter',
     scope: 'year',
-    ratePerSec: 4.29,
+    ratePerSec: 4.195,
     baseVal: 0,
     color: 'var(--emerald-live)',
   },
@@ -45,7 +45,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'naissances',
     type: 'counter',
     scope: 'day',
-    ratePerSec: 4.29,
+    ratePerSec: 4.195,
     baseVal: 0,
     color: 'var(--emerald-live)',
   },
@@ -56,7 +56,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'décès',
     type: 'counter',
     scope: 'year',
-    ratePerSec: 1.93,
+    ratePerSec: 1.975,
     baseVal: 0,
     color: 'var(--crimson-alert)',
   },
@@ -67,7 +67,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'décès',
     type: 'counter',
     scope: 'day',
-    ratePerSec: 1.93,
+    ratePerSec: 1.975,
     baseVal: 0,
     color: 'var(--crimson-alert)',
   },
@@ -78,21 +78,56 @@ export const METRIC_DEFINITIONS = [
     unit: 'personnes',
     type: 'counter',
     scope: 'year',
-    ratePerSec: 2.36,
+    ratePerSec: 2.22,
+    baseVal: 0,
+    color: 'var(--cyan-bright)',
+  },
+  {
+    id: 'net_growth_today',
+    cat: 'population',
+    label: 'Croissance démographique nette aujourd’hui',
+    unit: 'personnes',
+    type: 'counter',
+    scope: 'day',
+    ratePerSec: 2.22,
     baseVal: 0,
     color: 'var(--cyan-bright)',
   },
 
-  // 2. GOUVERNEMENT & ÉCONOMIE
+  // 2. GOUVERNEMENT & ÉCONOMIE (Calibré sur worldometers.info)
   {
-    id: 'military_spending_today',
+    id: 'health_spending_public_today',
     cat: 'economy',
-    label: 'Dépenses militaires mondiales aujourd’hui',
+    label: 'Dépenses publiques de santé aujourd’hui',
     unit: '$ US',
     prefix: '$',
     type: 'counter',
     scope: 'day',
-    ratePerSec: 76103,
+    ratePerSec: 232535,
+    baseVal: 0,
+    color: 'var(--emerald-live)',
+  },
+  {
+    id: 'education_spending_today',
+    cat: 'economy',
+    label: 'Dépenses d’éducation publique aujourd’hui',
+    unit: '$ US',
+    prefix: '$',
+    type: 'counter',
+    scope: 'day',
+    ratePerSec: 152033,
+    baseVal: 0,
+    color: 'var(--cyan-bright)',
+  },
+  {
+    id: 'military_spending_today',
+    cat: 'economy',
+    label: 'Dépenses militaires publiques aujourd’hui',
+    unit: '$ US',
+    prefix: '$',
+    type: 'counter',
+    scope: 'day',
+    ratePerSec: 60946,
     baseVal: 0,
     color: 'var(--amber-warn)',
   },
@@ -103,7 +138,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'véhicules',
     type: 'counter',
     scope: 'year',
-    ratePerSec: 2.695,
+    ratePerSec: 2.920,
     baseVal: 0,
     color: '#cbd5e1',
   },
@@ -114,7 +149,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'vélos',
     type: 'counter',
     scope: 'year',
-    ratePerSec: 3.805,
+    ratePerSec: 5.130,
     baseVal: 0,
     color: '#94a3b8',
   },
@@ -125,7 +160,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'unités',
     type: 'counter',
     scope: 'year',
-    ratePerSec: 8.244,
+    ratePerSec: 7.013,
     baseVal: 0,
     color: 'var(--cyan-bright)',
   },
@@ -439,6 +474,56 @@ export const METRIC_DEFINITIONS = [
   },
 ];
 
+// Official UN World Population Prospects Benchmark Table (1900 - 2050)
+export const HISTORICAL_UN_POPULATIONS = {
+  1900: 1650000000,
+  1910: 1750000000,
+  1920: 1860000000,
+  1930: 2070000000,
+  1940: 2300000000,
+  1950: 2536431000,
+  1960: 3034949000,
+  1970: 3700437000,
+  1980: 4458003000,
+  1990: 5327231000,
+  2000: 6143493000,
+  2005: 6541907000,
+  2010: 6956823000,
+  2015: 7379797000,
+  2018: 7631091000,
+  2020: 7794798000,
+  2021: 7874965000,
+  2022: 7954000000,
+  2023: 8045311000,
+  2024: 8118835000,
+  2025: 8191988000,
+  2026: 8264179671, // Base 01/01/2026
+  2030: 8546141000,
+  2035: 8887524000,
+  2040: 9198847000,
+  2050: 9709491000,
+};
+
+// Returns exact or interpolated benchmark population for any year
+export function getBenchmarkPopulationForYear(year) {
+  if (HISTORICAL_UN_POPULATIONS[year]) return HISTORICAL_UN_POPULATIONS[year];
+  const keys = Object.keys(HISTORICAL_UN_POPULATIONS).map(Number).sort((a, b) => a - b);
+  if (year <= keys[0]) return HISTORICAL_UN_POPULATIONS[keys[0]];
+  if (year >= keys[keys.length - 1]) return HISTORICAL_UN_POPULATIONS[keys[keys.length - 1]];
+
+  let prev = keys[0];
+  let next = keys[keys.length - 1];
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (year >= keys[i] && year <= keys[i + 1]) {
+      prev = keys[i];
+      next = keys[i + 1];
+      break;
+    }
+  }
+  const ratio = (year - prev) / (next - prev);
+  return Math.round(HISTORICAL_UN_POPULATIONS[prev] + ratio * (HISTORICAL_UN_POPULATIONS[next] - HISTORICAL_UN_POPULATIONS[prev]));
+}
+
 // Helper to calculate current live snapshot or historical date snapshot for all metrics
 export function computeWorldometerMetrics(yearMultiplier = 1, referenceDate = null) {
   const dateObj = referenceDate ? new Date(referenceDate) : new Date();
@@ -452,20 +537,31 @@ export function computeWorldometerMetrics(yearMultiplier = 1, referenceDate = nu
   const startOfYear = new Date(Date.UTC(year, 0, 1, 0, 0, 0));
   const secondsYear = Math.max(0, (dateObj.getTime() - startOfYear.getTime()) / 1000);
 
+  // Demography benchmark scale for the active year relative to 2026
+  const yearBasePop = getBenchmarkPopulationForYear(year);
+  const nextYearBasePop = getBenchmarkPopulationForYear(year + 1);
+  const annualGrowth = Math.max(1000000, nextYearBasePop - yearBasePop);
+  const dynamicRatePerSec = annualGrowth / (365.25 * 86400);
+  const eraScale = yearBasePop / 8264179671;
+
   const results = {};
 
   for (const def of METRIC_DEFINITIONS) {
     let val = def.baseVal;
-    if (def.scope === 'day') {
-      val = Math.floor(def.baseVal + secondsToday * def.ratePerSec);
+    if (def.id === 'world_pop') {
+      val = Math.floor(yearBasePop + secondsYear * dynamicRatePerSec);
+    } else if (def.scope === 'day') {
+      const scaledRate = def.ratePerSec * (def.cat === 'population' ? eraScale : Math.min(1.5, Math.max(0.1, eraScale)));
+      val = Math.floor(secondsToday * scaledRate);
     } else if (def.scope === 'year') {
-      val = Math.floor(def.baseVal + secondsYear * def.ratePerSec);
+      const scaledRate = def.ratePerSec * (def.cat === 'population' ? eraScale : Math.min(1.5, Math.max(0.05, eraScale)));
+      val = Math.floor(secondsYear * scaledRate);
     } else if (def.scope === 'instant') {
-      val = Math.floor((def.baseVal + secondsYear * def.ratePerSec) * yearMultiplier);
+      val = Math.floor((def.baseVal + secondsYear * def.ratePerSec) * eraScale);
     } else if (def.scope === 'fixed_countdown') {
-      // Countdown decreases each day
       const daysIntoYear = secondsYear / 86400;
-      val = Math.max(0, Math.floor(def.baseVal - daysIntoYear));
+      const yearsDiff = 2026 - year;
+      val = Math.max(0, Math.floor(def.baseVal + yearsDiff * 365.25 - daysIntoYear));
     }
     results[def.id] = val;
   }
