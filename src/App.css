@@ -743,29 +743,31 @@ body.is-grabbing *,
   user-select: none;
 }
 
-/* 1. Refined Left-Edge Tactical Arrow Trigger */
+/* 1. Solid Awwwards Arrow Trigger Emerging from the Wall */
 .timeline-awwwards-trigger {
   position: fixed;
   left: 0;
   top: 50%;
-  transform: translateY(-50%) translateX(-8px);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: transparent !important;
   border: none !important;
-  padding: 16px 14px 16px 4px;
+  padding: 18px 18px 18px 0;
   cursor: pointer;
   color: var(--cyan-bright, #00f2fe);
   pointer-events: auto;
   z-index: 96;
-  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
-  filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.45));
+  /* At rest: arrow is nestled inside the left screen bezel / wall, with just the glowing arrow tip peeking */
+  transform: translateY(-50%) translateX(-14px);
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.35s ease;
+  filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.5));
 }
 
+/* Hover: Glides smoothly OUT OF THE WALL into the viewport with spring overshoot */
 .timeline-awwwards-trigger:hover {
-  transform: translateY(-50%) translateX(6px);
-  filter: drop-shadow(0 0 16px rgba(0, 242, 254, 0.95)) drop-shadow(0 0 32px rgba(0, 242, 254, 0.6));
+  transform: translateY(-50%) translateX(16px);
+  filter: drop-shadow(0 0 16px rgba(0, 242, 254, 1)) drop-shadow(0 0 35px rgba(0, 242, 254, 0.75));
 }
 
 .timeline-awwwards-trigger.is-open {
@@ -773,28 +775,28 @@ body.is-grabbing *,
 }
 
 .timeline-awwwards-trigger.is-open:hover {
-  transform: translateY(-50%) translateX(4px);
+  transform: translateY(-50%) translateX(-5px);
 }
 
-/* Tactical Rail Line + Dot */
-.trigger-rail {
+/* Wall Dock Slit / Screen Edge Socket */
+.trigger-wall-dock {
+  position: relative;
+  width: 3px;
+  height: 46px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 44px;
-  width: 3px;
-  position: relative;
 }
 
-.trigger-rail-line {
-  width: 1.5px;
+.dock-laser-line {
+  width: 2px;
   height: 100%;
-  background: linear-gradient(180deg, transparent 0%, rgba(0, 242, 254, 0.7) 40%, rgba(0, 242, 254, 0.9) 60%, transparent 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 242, 254, 0.7) 30%, #ffffff 50%, rgba(0, 242, 254, 0.7) 70%, transparent 100%);
+  box-shadow: 0 0 8px #00f2fe;
   border-radius: 2px;
 }
 
-.trigger-rail-dot {
+.dock-laser-pulse {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -802,31 +804,51 @@ body.is-grabbing *,
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #00f2fe;
+  background: #ffffff;
   box-shadow: 0 0 8px #00f2fe, 0 0 16px #00f2fe;
   animation: pulseDot 2s infinite ease-in-out;
 }
 
-/* Chevron SVG */
-.trigger-chevron-wrap {
+/* Solid Arrow Wrap (Emerges & Flips smoothly) */
+.trigger-solid-arrow-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.timeline-awwwards-trigger.is-open .trigger-chevron-wrap {
+.timeline-awwwards-trigger:hover .trigger-solid-arrow-wrap {
+  transform: scale(1.1) translateX(3px);
+}
+
+.timeline-awwwards-trigger.is-open .trigger-solid-arrow-wrap {
   transform: rotate(180deg);
 }
 
-.trigger-chevron-svg {
-  stroke: var(--cyan-bright, #00f2fe);
-  filter: drop-shadow(0 0 6px rgba(0, 242, 254, 0.6));
-  transition: all 0.25s ease;
+.timeline-awwwards-trigger.is-open:hover .trigger-solid-arrow-wrap {
+  transform: rotate(180deg) scale(1.1) translateX(3px);
 }
 
-.timeline-awwwards-trigger:hover .trigger-chevron-svg {
-  filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.95));
+/* Solid Arrow SVG & Dynamic Pulse */
+@keyframes arrowSolidGlowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px rgba(0, 242, 254, 0.65));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(0, 242, 254, 0.95)) drop-shadow(0 0 24px rgba(0, 242, 254, 0.5));
+  }
+}
+
+.trigger-solid-arrow-svg {
+  display: block;
+  overflow: visible;
+  animation: arrowSolidGlowPulse 2.4s infinite ease-in-out;
+  transition: filter 0.3s ease;
+}
+
+.timeline-awwwards-trigger:hover .trigger-solid-arrow-svg {
+  animation: none;
+  filter: drop-shadow(0 0 14px rgba(0, 242, 254, 1)) drop-shadow(0 0 28px rgba(0, 242, 254, 0.8));
 }
 
 /* Info Lockup (Year + Label) */
@@ -835,13 +857,14 @@ body.is-grabbing *,
   flex-direction: column;
   align-items: flex-start;
   gap: 1px;
-  opacity: 0.85;
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  opacity: 0.8;
+  transform: translateX(-3px);
+  transition: opacity 0.3s ease, transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .timeline-awwwards-trigger:hover .trigger-info {
   opacity: 1;
-  transform: translateX(2px);
+  transform: translateX(3px);
 }
 
 .trigger-year {
@@ -850,7 +873,7 @@ body.is-grabbing *,
   font-weight: 800;
   color: #00f2fe;
   letter-spacing: 0.8px;
-  text-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
+  text-shadow: 0 0 12px rgba(0, 242, 254, 0.7);
   line-height: 1;
 }
 
@@ -858,7 +881,7 @@ body.is-grabbing *,
   font-family: var(--font-mono, monospace);
   font-size: 8px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.6);
   letter-spacing: 2px;
 }
 

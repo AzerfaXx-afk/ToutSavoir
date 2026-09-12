@@ -356,7 +356,7 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
       ref={widgetRef}
       className={`timeline-awwwards-system ${isOpen ? 'is-open' : 'is-collapsed'}`}
     >
-      {/* 1. Refined Awwwards Edge Toggle Arrow (Seamlessly toggles Open / Close) */}
+      {/* 1. Solid Aerospace Arrow Trigger Emerging from the Wall */}
       <button
         type="button"
         className={`timeline-awwwards-trigger ${isOpen ? 'is-open' : 'is-collapsed'}`}
@@ -368,26 +368,88 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
         title={isOpen ? 'Replier la chronologie (Échap)' : 'Ouvrir la chronologie'}
         aria-label={isOpen ? 'Replier la chronologie' : 'Ouvrir la chronologie'}
       >
-        <div className="trigger-rail">
-          <div className="trigger-rail-line" />
-          <div className="trigger-rail-dot" />
+        {/* Wall Bezel Dock / Laser Emerge Slit */}
+        <div className="trigger-wall-dock">
+          <div className="dock-laser-line" />
+          <div className="dock-laser-pulse" />
         </div>
 
-        <div className="trigger-chevron-wrap">
+        {/* Solid Arrow Head Emerging From Wall */}
+        <div className="trigger-solid-arrow-wrap">
           <svg
-            className="trigger-chevron-svg"
-            width="22"
-            height="44"
-            viewBox="0 0 22 44"
+            className="trigger-solid-arrow-svg"
+            width="32"
+            height="38"
+            viewBox="0 0 32 38"
             fill="none"
           >
-            <path
-              d="M 5 7 L 17 22 L 5 37"
-              stroke="#00f2fe"
-              strokeWidth="2.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <defs>
+              {/* Upper facet (illuminated cyber cyan to electric white) */}
+              <linearGradient id="solidArrowTopFacet" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#cffafe" />
+                <stop offset="35%" stopColor="#38bdf8" />
+                <stop offset="100%" stopColor="#00f2fe" />
+              </linearGradient>
+              {/* Lower facet (beveled deep cyan shadow) */}
+              <linearGradient id="solidArrowBottomFacet" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#0284c7" />
+                <stop offset="60%" stopColor="#0369a1" />
+                <stop offset="100%" stopColor="#082f49" />
+              </linearGradient>
+              {/* Perimeter bevel highlight */}
+              <linearGradient id="solidArrowRimGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
+                <stop offset="50%" stopColor="#00f2fe" stopOpacity="0.85" />
+                <stop offset="100%" stopColor="#0284c7" stopOpacity="0.4" />
+              </linearGradient>
+              <filter id="arrowSolidBloom" x="-40%" y="-40%" width="180%" height="180%">
+                <feDropShadow dx="0" dy="0" stdDeviation="3.5" floodColor="#00f2fe" floodOpacity="0.75" />
+              </filter>
+            </defs>
+
+            <g filter="url(#arrowSolidBloom)">
+              {/* Top Facet: (0, 7) -> (14, 7) -> (28, 19) -> (0, 19) */}
+              <polygon
+                points="0,7 14,7 28,19 0,19"
+                fill="url(#solidArrowTopFacet)"
+              />
+
+              {/* Bottom Facet: (0, 19) -> (28, 19) -> (14, 31) -> (0, 31) */}
+              <polygon
+                points="0,19 28,19 14,31 0,31"
+                fill="url(#solidArrowBottomFacet)"
+              />
+
+              {/* Razor White Laser Center Spine */}
+              <line
+                x1="2"
+                y1="19"
+                x2="27"
+                y2="19"
+                stroke="#ffffff"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+
+              {/* Inner Tactical Micro Chevron accent */}
+              <path
+                d="M 9 13 L 15 19 L 9 25"
+                stroke="#ffffff"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeOpacity="0.8"
+              />
+
+              {/* Outer Precision Bevel Rim */}
+              <polygon
+                points="0,7 14,7 28,19 14,31 0,31"
+                fill="none"
+                stroke="url(#solidArrowRimGrad)"
+                strokeWidth="1.2"
+                strokeLinejoin="round"
+              />
+            </g>
           </svg>
         </div>
 
@@ -421,7 +483,7 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
               viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
             >
               <defs>
-                <linearGradient id="arcGlowGradient" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="arcGlowGradient" x1="0%" y1="0%" x2="0%" y2="1">
                   <stop offset="0%" stopColor="#00f2fe" stopOpacity="0" />
                   <stop offset="20%" stopColor="#00f2fe" stopOpacity="0.25" />
                   <stop offset="50%" stopColor="#00f2fe" stopOpacity="0.9" />
@@ -446,23 +508,6 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
                 strokeWidth="1.6"
                 className="arc-track-line"
               />
-
-              {/* Precision Laser Arrow Indicator */}
-              <g className="arc-apex-reticle" filter="url(#reticleGlow)">
-                <line
-                  x1={20}
-                  y1={CENTER_Y}
-                  x2={46}
-                  y2={CENTER_Y}
-                  stroke="#00f2fe"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                />
-                <path
-                  d={`M 44 ${CENTER_Y - 4.5} L 52 ${CENTER_Y} L 44 ${CENTER_Y + 4.5} Z`}
-                  fill="#00f2fe"
-                />
-              </g>
 
               {/* Graduations (Ticks) and Dates */}
               {items.map((item) => {
