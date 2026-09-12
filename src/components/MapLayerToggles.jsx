@@ -198,58 +198,68 @@ export function MapLayerToggles({
             </button>
           </div>
 
-          {/* Layer Items List */}
+          {/* Layer Items List — Grouped by Category */}
           <div className="layer-items-list">
-            {LAYER_CONFIGS.map((layer) => {
-              const IconComp = layer.icon;
-              const isActive = activeLayers.has(layer.id);
+            {(() => {
+              const groups = {};
+              LAYER_CONFIGS.forEach((layer) => {
+                if (!groups[layer.category]) groups[layer.category] = [];
+                groups[layer.category].push(layer);
+              });
+              return Object.entries(groups).map(([category, layers]) => (
+                <div key={category} className="layer-category-group">
+                  <div className="layer-category-header">{category}</div>
+                  {layers.map((layer) => {
+                    const IconComp = layer.icon;
+                    const isActive = activeLayers.has(layer.id);
+                    return (
+                      <div
+                        key={layer.id}
+                        className={`layer-item-row ${isActive ? 'is-active' : 'is-inactive'}`}
+                        onClick={() => onToggleLayer && onToggleLayer(layer.id)}
+                      >
+                        <div className="layer-item-left">
+                          <div
+                            className="layer-item-icon-box"
+                            style={{
+                              color: isActive ? layer.accentColor : '#64748b',
+                              borderColor: isActive ? `${layer.accentColor}55` : 'rgba(255,255,255,0.06)',
+                              background: isActive ? `${layer.accentColor}15` : 'rgba(255,255,255,0.02)',
+                              boxShadow: isActive ? `0 0 10px ${layer.accentColor}33` : 'none',
+                            }}
+                          >
+                            <IconComp size={13} />
+                          </div>
+                          <div className="layer-item-info">
+                            <span className="layer-item-name">{layer.label}</span>
+                            <span className="layer-item-meta">
+                              <strong style={{ color: isActive ? '#e2e8f0' : '#64748b' }}>{layer.count}</strong> éléments
+                            </span>
+                          </div>
+                        </div>
 
-              return (
-                <div
-                  key={layer.id}
-                  className={`layer-item-row ${isActive ? 'is-active' : 'is-inactive'}`}
-                  onClick={() => onToggleLayer && onToggleLayer(layer.id)}
-                >
-                  <div className="layer-item-left">
-                    <div
-                      className="layer-item-icon-box"
-                      style={{
-                        color: isActive ? layer.accentColor : '#64748b',
-                        borderColor: isActive ? `${layer.accentColor}55` : 'rgba(255,255,255,0.06)',
-                        background: isActive ? `${layer.accentColor}15` : 'rgba(255,255,255,0.02)',
-                        boxShadow: isActive ? `0 0 10px ${layer.accentColor}33` : 'none',
-                      }}
-                    >
-                      <IconComp size={13} />
-                    </div>
-
-                    <div className="layer-item-info">
-                      <span className="layer-item-name">{layer.label}</span>
-                      <span className="layer-item-meta">
-                        {layer.category} • <strong style={{ color: isActive ? '#e2e8f0' : '#64748b' }}>{layer.count}</strong>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Cybernetic Switch Pill */}
-                  <div
-                    className={`cyber-switch ${isActive ? 'on' : 'off'}`}
-                    style={{
-                      borderColor: isActive ? layer.accentColor : 'rgba(255,255,255,0.12)',
-                      background: isActive ? `${layer.accentColor}25` : 'rgba(0,0,0,0.4)',
-                    }}
-                  >
-                    <span
-                      className="cyber-switch-thumb"
-                      style={{
-                        background: isActive ? layer.accentColor : '#475569',
-                        boxShadow: isActive ? `0 0 8px ${layer.accentColor}` : 'none',
-                      }}
-                    />
-                  </div>
+                        {/* Cybernetic Switch Pill */}
+                        <div
+                          className={`cyber-switch ${isActive ? 'on' : 'off'}`}
+                          style={{
+                            borderColor: isActive ? layer.accentColor : 'rgba(255,255,255,0.12)',
+                            background: isActive ? `${layer.accentColor}25` : 'rgba(0,0,0,0.4)',
+                          }}
+                        >
+                          <span
+                            className="cyber-switch-thumb"
+                            style={{
+                              background: isActive ? layer.accentColor : '#475569',
+                              boxShadow: isActive ? `0 0 8px ${layer.accentColor}` : 'none',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              ));
+            })()}
           </div>
         </div>
       )}

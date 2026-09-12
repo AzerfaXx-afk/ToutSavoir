@@ -64,7 +64,7 @@ export const LIVE_FLIGHTS = [
     heading: 284,
     squawk: '7312',
     progress: 0.46, // Initial progress along flight corridor (0.0 to 1.0)
-    cycleDurationSec: 360,
+    cycleDurationSec: 3600,
     corridorType: 'Transatlantique Nord',
   },
   {
@@ -82,7 +82,7 @@ export const LIVE_FLIGHTS = [
     heading: 295,
     squawk: '4210',
     progress: 0.62,
-    cycleDurationSec: 420,
+    cycleDurationSec: 4500,
     corridorType: 'Route Polaire Transatlantique',
   },
   {
@@ -100,7 +100,7 @@ export const LIVE_FLIGHTS = [
     heading: 118,
     squawk: '6523',
     progress: 0.58,
-    cycleDurationSec: 450,
+    cycleDurationSec: 5400,
     corridorType: 'Eurasie Sud / Océan Indien',
   },
   {
@@ -118,7 +118,7 @@ export const LIVE_FLIGHTS = [
     heading: 132,
     squawk: '3145',
     progress: 0.38,
-    cycleDurationSec: 480,
+    cycleDurationSec: 5400,
     corridorType: 'Transocéan Indien Austral',
   },
   {
@@ -136,7 +136,7 @@ export const LIVE_FLIGHTS = [
     heading: 75,
     squawk: '1277',
     progress: 0.72,
-    cycleDurationSec: 400,
+    cycleDurationSec: 4200,
     corridorType: 'Transpacifique Jet Stream',
   },
   {
@@ -154,7 +154,7 @@ export const LIVE_FLIGHTS = [
     heading: 68,
     squawk: '5542',
     progress: 0.44,
-    cycleDurationSec: 390,
+    cycleDurationSec: 4200,
     corridorType: 'Route Transpacifique Nord',
   },
   {
@@ -172,7 +172,7 @@ export const LIVE_FLIGHTS = [
     heading: 310,
     squawk: '6712',
     progress: 0.51,
-    cycleDurationSec: 460,
+    cycleDurationSec: 5100,
     corridorType: 'Route Continentale Asie-Europe',
   },
   {
@@ -190,7 +190,7 @@ export const LIVE_FLIGHTS = [
     heading: 242,
     squawk: '2104',
     progress: 0.65,
-    cycleDurationSec: 510,
+    cycleDurationSec: 5400,
     corridorType: 'Moyen-Orient / Amérique du Sud',
   },
   {
@@ -208,7 +208,7 @@ export const LIVE_FLIGHTS = [
     heading: 35,
     squawk: '7100',
     progress: 0.54,
-    cycleDurationSec: 540,
+    cycleDurationSec: 7200,
     corridorType: 'Ultra Long-Courrier Polaire (18h45)',
   },
   {
@@ -226,7 +226,7 @@ export const LIVE_FLIGHTS = [
     heading: 312,
     squawk: '4502',
     progress: 0.40,
-    cycleDurationSec: 530,
+    cycleDurationSec: 6600,
     corridorType: 'Océan Indien Direct (Projet Sunrise)',
   },
   {
@@ -244,7 +244,7 @@ export const LIVE_FLIGHTS = [
     heading: 88,
     squawk: '7777',
     progress: 0.78,
-    cycleDurationSec: 300,
+    cycleDurationSec: 2400,
     corridorType: 'Surveillance Radar Flanc Est OTAN',
   },
   {
@@ -262,7 +262,7 @@ export const LIVE_FLIGHTS = [
     heading: 65,
     squawk: '1400',
     progress: 0.85,
-    cycleDurationSec: 320,
+    cycleDurationSec: 2700,
     corridorType: 'Reconnaissance Haute Altitude HALE',
   },
   {
@@ -280,7 +280,7 @@ export const LIVE_FLIGHTS = [
     heading: 155,
     squawk: '3318',
     progress: 0.52,
-    cycleDurationSec: 280,
+    cycleDurationSec: 1800,
     corridorType: 'Moyen-Courrier Nord-Sud USA',
   },
   {
@@ -298,7 +298,7 @@ export const LIVE_FLIGHTS = [
     heading: 85,
     squawk: '2714',
     progress: 0.63,
-    cycleDurationSec: 240,
+    cycleDurationSec: 1500,
     corridorType: 'Transméditerranéen Ouest-Est',
   },
   {
@@ -316,7 +316,7 @@ export const LIVE_FLIGHTS = [
     heading: 5,
     squawk: '4019',
     progress: 0.48,
-    cycleDurationSec: 410,
+    cycleDurationSec: 3900,
     corridorType: 'Transafricain Méridien',
   },
 ];
@@ -370,7 +370,7 @@ export const LIVE_VESSELS = [
     speedKts: 16.4,
     heading: 142,
     progress: 0.52,
-    cycleDurationSec: 2800,
+    cycleDurationSec: 21600,
     chokepoint: 'Canal de Suez / Mer Rouge',
   },
   {
@@ -423,7 +423,7 @@ export const LIVE_VESSELS = [
     speedKts: 18.2,
     heading: 345,
     progress: 0.65,
-    cycleDurationSec: 3200,
+    cycleDurationSec: 28800,
     chokepoint: 'Cap de Bonne-Espérance (Contournement Afrique)',
   },
   {
@@ -462,7 +462,7 @@ export const LIVE_VESSELS = [
     speedKts: 14.8,
     heading: 105,
     progress: 0.28,
-    cycleDurationSec: 2900,
+    cycleDurationSec: 18000,
     chokepoint: 'Détroit d’Ormuz & Malacca',
   },
   {
@@ -496,7 +496,7 @@ export const LIVE_VESSELS = [
     speedKts: 15.5,
     heading: 235,
     progress: 0.48,
-    cycleDurationSec: 2500,
+    cycleDurationSec: 14400,
     chokepoint: 'Route Maritime du Nord (Arctique)',
   },
   {
@@ -541,7 +541,7 @@ export const LIVE_VESSELS = [
     speedKts: 19.1,
     heading: 112,
     progress: 0.38,
-    cycleDurationSec: 3000,
+    cycleDurationSec: 25200,
     chokepoint: 'Canal de Suez & Malacca',
   },
   {
@@ -576,7 +576,7 @@ export const LIVE_VESSELS = [
     speedKts: 12.8,
     heading: 15,
     progress: 0.52,
-    cycleDurationSec: 2600,
+    cycleDurationSec: 14400,
     chokepoint: 'Détroit de Lombok & Makassar',
   },
   {
@@ -613,7 +613,7 @@ export const LIVE_VESSELS = [
     speedKts: 14.1,
     heading: 195,
     progress: 0.46,
-    cycleDurationSec: 2700,
+    cycleDurationSec: 18000,
     chokepoint: 'Canal de Panama (Écluses)',
   },
   {
@@ -644,7 +644,7 @@ export const LIVE_VESSELS = [
     speedKts: 13.6,
     heading: 215,
     progress: 0.60,
-    cycleDurationSec: 2400,
+    cycleDurationSec: 10800,
     chokepoint: 'Passe du Cap Nord',
   },
 ];
@@ -655,7 +655,7 @@ export function getLiveTransitPositions(timestampMs = Date.now()) {
 
   // 1. Aircraft positions
   const flights = LIVE_FLIGHTS.map((flight) => {
-    const cycle = flight.cycleDurationSec || 360;
+    const cycle = flight.cycleDurationSec || 3600;
     const t = (timeSeconds % cycle) / cycle;
     const progress = (flight.progress + t) % 1.0;
 
@@ -685,7 +685,7 @@ export function getLiveTransitPositions(timestampMs = Date.now()) {
 
   // 2. Maritime vessel positions
   const vessels = LIVE_VESSELS.map((vessel) => {
-    const cycle = vessel.cycleDurationSec || 720;
+    const cycle = vessel.cycleDurationSec || 14400;
     const t = (timeSeconds % cycle) / cycle;
     const progress = (vessel.progress + t) % 1.0;
 

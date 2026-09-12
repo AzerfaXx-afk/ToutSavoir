@@ -21,12 +21,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 14px;
+  padding: 9px 16px;
   background: linear-gradient(135deg, rgba(10, 16, 26, 0.94) 0%, rgba(4, 8, 16, 0.97) 100%);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
   border: 1px solid rgba(0, 242, 254, 0.28);
-  border-radius: 12px;
+  border-radius: 14px;
   color: #e2e8f0;
   cursor: pointer;
   box-shadow: 
@@ -34,6 +34,24 @@
     0 0 16px rgba(0, 242, 254, 0.08),
     inset 0 1px 1px rgba(255, 255, 255, 0.1);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.layer-toggles-header::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.5), transparent);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.layer-toggles-header:hover::before {
+  opacity: 1;
 }
 
 .layer-toggles-header:hover {
@@ -54,9 +72,9 @@
 
 .layer-header-icon-wrap {
   position: relative;
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   background: rgba(0, 242, 254, 0.1);
   border: 1px solid rgba(0, 242, 254, 0.25);
   display: flex;
@@ -73,8 +91,8 @@
   position: absolute;
   top: -2px;
   right: -2px;
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: #00f5a0;
   box-shadow: 0 0 6px #00f5a0;
@@ -90,13 +108,13 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1px;
+  gap: 2px;
 }
 
 .header-title {
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   color: #ffffff;
 }
 
@@ -112,7 +130,7 @@
   display: flex;
   align-items: center;
   margin-left: 6px;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .layer-toggles-header:hover .header-right {
@@ -122,15 +140,15 @@
 /* Expandable Layer Panel Dropdown */
 .layer-toggles-dropdown {
   position: absolute;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 10px);
   left: 0;
-  width: 275px;
-  background: linear-gradient(175deg, rgba(8, 14, 24, 0.96) 0%, rgba(4, 7, 14, 0.98) 100%);
+  width: 290px;
+  background: linear-gradient(175deg, rgba(8, 14, 24, 0.97) 0%, rgba(4, 7, 14, 0.99) 100%);
   backdrop-filter: blur(36px) saturate(200%);
   -webkit-backdrop-filter: blur(36px) saturate(200%);
   border: 1px solid rgba(0, 242, 254, 0.22);
-  border-radius: 14px;
-  padding: 10px 10px 8px;
+  border-radius: 16px;
+  padding: 12px 12px 10px;
   box-shadow: 
     0 16px 48px rgba(0, 0, 0, 0.9),
     0 0 24px rgba(0, 242, 254, 0.1),
@@ -138,7 +156,7 @@
   animation: panelSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 @keyframes panelSlideUp {
@@ -157,7 +175,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 4px 6px;
+  padding: 2px 4px 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -173,10 +191,10 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 8px;
+  padding: 4px 10px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
+  border-radius: 7px;
   color: #cbd5e1;
   font-size: 9px;
   font-weight: 600;
@@ -190,12 +208,38 @@
   color: #00f2fe;
 }
 
+/* Layer Category Group Divider */
+.layer-category-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.layer-category-header {
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #475569;
+  padding: 6px 8px 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.layer-category-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
 /* Layer Items List */
 .layer-items-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  max-height: 380px;
+  gap: 3px;
+  max-height: 400px;
   overflow-y: auto;
   padding-right: 2px;
 }
@@ -213,45 +257,50 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 8px;
-  border-radius: 8px;
+  padding: 7px 10px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.015);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .layer-item-row:hover {
   background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  transform: translateX(2px);
 }
 
 .layer-item-row.is-active {
-  background: rgba(255, 255, 255, 0.025);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.layer-item-row.is-active:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .layer-item-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .layer-item-icon-box {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
   border: 1px solid;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .layer-item-info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1px;
+  gap: 2px;
 }
 
 .layer-item-name {
@@ -276,30 +325,50 @@
   letter-spacing: 0.5px;
 }
 
-/* Cybernetic Switch Pill */
+/* Cybernetic Switch Pill with Glow */
 .cyber-switch {
-  width: 28px;
-  height: 15px;
+  width: 30px;
+  height: 16px;
   border-radius: 999px;
   border: 1px solid;
   position: relative;
   display: flex;
   align-items: center;
-  padding: 1px;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 1.5px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
 }
 
 .cyber-switch-thumb {
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .cyber-switch.on .cyber-switch-thumb {
-  transform: translateX(13px);
+  transform: translateX(14px);
 }
 
 .cyber-switch.off .cyber-switch-thumb {
   transform: translateX(0);
+}
+
+/* Active Switch Glow Pulse */
+.cyber-switch.on::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  animation: switchGlowPulse 2.5s infinite ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes switchGlowPulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(0, 242, 254, 0.2); }
+  50% { box-shadow: 0 0 12px rgba(0, 242, 254, 0.35); }
 }
