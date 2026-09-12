@@ -8,7 +8,8 @@ import { TimelineWheel } from './components/TimelineWheel';
 import { LayerPillsBar } from './components/LayerPillsBar';
 import { GlobalSpotlightModal } from './components/GlobalSpotlightModal';
 import { CCTVLiveMonitor } from './components/CCTVLiveMonitor';
-import { Play, Pause, Search } from 'lucide-react';
+import { TacticalShortcutsModal } from './components/TacticalShortcutsModal';
+import { Play, Pause, Search, VolumeX, Maximize2, Minimize2, HelpCircle } from 'lucide-react';
 import { sound } from './utils/soundFX';
 import './App.css';
 
@@ -26,6 +27,15 @@ export default function App() {
   // Global search spotlight modal state
   const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
 
+  // Keyboard shortcuts modal state
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+
+  // Audio mute state
+  const [isMuted, setIsMuted] = useState(() => sound.isMuted());
+
+  // Fullscreen state
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   // Live CCTV PiP stream monitor state
   const [activeCCTV, setActiveCCTV] = useState(null);
 
@@ -39,9 +49,40 @@ export default function App() {
   // Target Location for smooth cinematic flyTo / rotate
   const [targetLocation, setTargetLocation] = useState(null);
 
+  // Sound Mute Toggle Handler
+  const handleToggleMute = useCallback(() => {
+    const next = sound.toggleMute();
+    setIsMuted(next);
+    if (!next) {
+      sound.click();
+      if (is3D) sound.startSpaceMusic();
+    }
+  }, [is3D]);
+
+  // Fullscreen Toggle Handler
+  const handleToggleFullscreen = useCallback(() => {
+    sound.click();
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen?.().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen?.().catch(() => {});
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  // Sync fullscreen change listener
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
   // Space background music (space.mp3) lifecycle - strictly active in 3D
   useEffect(() => {
-    if (is3D) {
+    if (is3D && !isMuted) {
       sound.startSpaceMusic();
     } else {
       sound.stopSpaceMusic();
@@ -50,7 +91,7 @@ export default function App() {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         sound.stopSpaceMusic();
-      } else if (is3D) {
+      } else if (is3D && !sound.isMuted()) {
         sound.startSpaceMusic();
       }
     };
@@ -67,21 +108,72 @@ export default function App() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [is3D]);
+  }, [is3D, isMuted]);
 
-  // Universal Cmd+K / Ctrl+K keyboard shortcut listener
+  // Universal keyboard shortcuts listener
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // 1. Universal Cmd+K / Ctrl+K
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         sound.click();
         setIsSpotlightOpen((prev) => !prev);
+        return;
+      }
+
+      // If user is typing inside an input field, textarea, or contentEditable, don't intercept keys
+      const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+      const isInput = activeTag === 'input' || activeTag === 'textarea' || document.activeElement?.isContentEditable;
+      if (isInput) return;
+
+      // 2. Escape: close modals / PiP / drawer hierarchically
+      if (e.key === 'Escape') {
+        if (isShortcutsOpen) {
+          setIsShortcutsOpen(false);
+        } else if (isSpotlightOpen) {
+          setIsSpotlightOpen(false);
+        } else if (activeCCTV) {
+          setActiveCCTV(null);
+        } else if (isDrawerOpen) {
+          setIsDrawerOpen(false);
+        }
+        return;
+      }
+
+      // 3. 'T' toggles drawer
+      if (e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        sound.click();
+        setIsDrawerOpen((prev) => !prev);
+        return;
+      }
+
+      // 4. 'M' toggles sound
+      if (e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        handleToggleMute();
+        return;
+      }
+
+      // 5. 'F' toggles fullscreen
+      if (e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        handleToggleFullscreen();
+        return;
+      }
+
+      // 6. '?' toggles tactical shortcuts helper modal
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        sound.click();
+        setIsShortcutsOpen((prev) => !prev);
+        return;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isShortcutsOpen, isSpotlightOpen, activeCCTV, isDrawerOpen, handleToggleMute, handleToggleFullscreen]);
 
   // Layer toggle handler
   const handleToggleLayer = useCallback((layerId) => {
@@ -129,7 +221,7 @@ export default function App() {
 
   return (
     <div className="aegis-app-root">
-      {/* Centered Top Controls: 2D/3D Switch, Spotlight Button, Rotation Toggle & Layer Pills Deck */}
+      {/* Centered Top Controls: 2D/3D Switch, Spotlight Button, Audio Equalizer, Fullscreen, Rotation & Pills Deck */}
       <div className="top-center-dock">
         <div className="top-mode-row">
           <Switch3D
@@ -168,6 +260,54 @@ export default function App() {
               {autoRotate ? <Pause size={15} strokeWidth={1.8} /> : <Play size={15} strokeWidth={1.8} />}
             </button>
           )}
+
+          {/* Sound / Equalizer Toggle Button (M) */}
+          <button
+            type="button"
+            className={`top-tactical-icon-btn ${isMuted ? 'is-muted' : 'is-active'}`}
+            onMouseEnter={() => sound.hover()}
+            onClick={handleToggleMute}
+            title={isMuted ? 'Activer le son (M)' : 'Couper le son (M)'}
+            aria-label="Contrôle audio"
+          >
+            {isMuted ? (
+              <VolumeX size={15} strokeWidth={1.8} />
+            ) : (
+              <div className="top-audio-equalizer">
+                <span className="audio-bar bar-1" />
+                <span className="audio-bar bar-2" />
+                <span className="audio-bar bar-3" />
+                <span className="audio-bar bar-4" />
+              </div>
+            )}
+          </button>
+
+          {/* Fullscreen Toggle Button (F) */}
+          <button
+            type="button"
+            className="top-tactical-icon-btn"
+            onMouseEnter={() => sound.hover()}
+            onClick={handleToggleFullscreen}
+            title={isFullscreen ? 'Quitter plein écran (F)' : 'Mode plein écran immersif (F)'}
+            aria-label="Plein écran"
+          >
+            {isFullscreen ? <Minimize2 size={15} strokeWidth={1.8} /> : <Maximize2 size={15} strokeWidth={1.8} />}
+          </button>
+
+          {/* Help / Shortcuts Button (?) */}
+          <button
+            type="button"
+            className="top-tactical-icon-btn"
+            onMouseEnter={() => sound.hover()}
+            onClick={() => {
+              sound.click();
+              setIsShortcutsOpen(true);
+            }}
+            title="Commandes et raccourcis (?)"
+            aria-label="Aide raccourcis"
+          >
+            <HelpCircle size={15} strokeWidth={1.8} />
+          </button>
         </div>
 
         {/* Tactical Multi-Toggle Layer Pills Bar */}
@@ -241,6 +381,13 @@ export default function App() {
         onClose={() => setActiveCCTV(null)}
         onSelectCamera={setActiveCCTV}
       />
+
+      {/* Tactical Keyboard Shortcuts Help Modal */}
+      <TacticalShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
+      />
     </div>
   );
 }
+

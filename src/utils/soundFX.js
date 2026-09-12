@@ -10,11 +10,31 @@ class SoundFX {
     this.lastWooshTime = 0;
     this.isInitialized = false;
     this.unlocked = false;
+    this.muted = false;
 
     // Auto-setup when running in browser
     if (typeof window !== 'undefined') {
       this.setupAutoUnlock();
       this.setupGlobalInteractions();
+    }
+  }
+
+  isMuted() {
+    return this.muted;
+  }
+
+  toggleMute() {
+    this.muted = !this.muted;
+    if (this.muted) {
+      this.stopSpaceMusic();
+    }
+    return this.muted;
+  }
+
+  setMuted(val) {
+    this.muted = !!val;
+    if (this.muted) {
+      this.stopSpaceMusic();
     }
   }
 
@@ -91,6 +111,7 @@ class SoundFX {
 
   // Ultra-fast playback: Web Audio buffer preferred, fallback to HTML5 Audio pool
   playSound(name, url, volume = 0.5, pitchVar = 0.0) {
+    if (this.muted) return;
     this.init();
 
     // 1. High-speed Web Audio Buffer (0 ms latency, no browser element throttle)
@@ -243,6 +264,7 @@ class SoundFX {
 
   // 5b. Ultra-crisp mechanical notch tick for timeline jog dial
   notchTick(freq = 1400) {
+    if (this.muted) return;
     this.init();
     if (!this.ctx || this.ctx.state !== 'running') return;
     try {
@@ -265,6 +287,7 @@ class SoundFX {
 
   // 6. 3D Ambient Space BGM (space.mp3) - Seamless loop in background only during 3D view
   startSpaceMusic() {
+    if (this.muted) return;
     try {
       this.init();
       if (!this.spaceAudio) {

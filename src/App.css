@@ -1523,7 +1523,100 @@ body.is-grabbing *,
   font-weight: 700;
 }
 
+/* Tactical Compact Icon Buttons (Sound, Fullscreen, Help, Rotation) */
+.top-tactical-icon-btn,
+.top-rotation-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(10, 16, 26, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+}
+
+.top-tactical-icon-btn:hover,
+.top-rotation-icon-btn:hover {
+  color: #ffffff;
+  border-color: rgba(0, 242, 254, 0.5);
+  background: rgba(16, 26, 42, 0.95);
+  box-shadow: 0 4px 18px rgba(0, 242, 254, 0.3);
+  transform: translateY(-1px);
+}
+
+.top-tactical-icon-btn.is-muted {
+  color: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.top-tactical-icon-btn.is-muted:hover {
+  color: #ff5555;
+  border-color: rgba(255, 85, 85, 0.4);
+}
+
+/* Animated Audio Equalizer Bars */
+.top-audio-equalizer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  width: 14px;
+  height: 12px;
+}
+
+.audio-bar {
+  width: 2px;
+  background: var(--cyan-bright, #00f2fe);
+  border-radius: 1px;
+  animation: eqBounce 0.8s ease-in-out infinite alternate;
+}
+
+.audio-bar.bar-1 {
+  height: 4px;
+  animation-duration: 0.75s;
+  animation-delay: 0.1s;
+}
+
+.audio-bar.bar-2 {
+  height: 11px;
+  animation-duration: 0.55s;
+  animation-delay: 0.25s;
+}
+
+.audio-bar.bar-3 {
+  height: 7px;
+  animation-duration: 0.85s;
+  animation-delay: 0.05s;
+}
+
+.audio-bar.bar-4 {
+  height: 9px;
+  animation-duration: 0.65s;
+  animation-delay: 0.3s;
+}
+
+@keyframes eqBounce {
+  0% {
+    height: 3px;
+    opacity: 0.4;
+  }
+  100% {
+    height: 12px;
+    opacity: 1;
+    box-shadow: 0 0 6px var(--cyan-bright, #00f2fe);
+  }
+}
+
 @keyframes fadeInFast {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
