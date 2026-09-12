@@ -439,18 +439,18 @@ export const METRIC_DEFINITIONS = [
   },
 ];
 
-// Helper to calculate current live snapshot for all metrics
-export function computeWorldometerMetrics(yearMultiplier = 1) {
-  const now = new Date();
-  const year = now.getUTCFullYear();
+// Helper to calculate current live snapshot or historical date snapshot for all metrics
+export function computeWorldometerMetrics(yearMultiplier = 1, referenceDate = null) {
+  const dateObj = referenceDate ? new Date(referenceDate) : new Date();
+  const year = dateObj.getUTCFullYear();
 
-  // Start of UTC day
-  const startOfDay = new Date(Date.UTC(year, now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
-  const secondsToday = Math.max(0, (now.getTime() - startOfDay.getTime()) / 1000);
+  // Start of UTC day for the specified date
+  const startOfDay = new Date(Date.UTC(year, dateObj.getUTCMonth(), dateObj.getUTCDate(), 0, 0, 0));
+  const secondsToday = Math.max(0, (dateObj.getTime() - startOfDay.getTime()) / 1000);
 
-  // Start of UTC year
+  // Start of UTC year for the specified date
   const startOfYear = new Date(Date.UTC(year, 0, 1, 0, 0, 0));
-  const secondsYear = Math.max(0, (now.getTime() - startOfYear.getTime()) / 1000);
+  const secondsYear = Math.max(0, (dateObj.getTime() - startOfYear.getTime()) / 1000);
 
   const results = {};
 
@@ -472,3 +472,4 @@ export function computeWorldometerMetrics(yearMultiplier = 1) {
 
   return results;
 }
+

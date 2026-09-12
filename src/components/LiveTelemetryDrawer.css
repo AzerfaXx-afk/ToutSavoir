@@ -40,15 +40,15 @@
   overflow: hidden;
 }
 
-/* ── 2. Centered Clock Header ─────────────────────────────────────── */
+/* ── 2. Centered Cockpit Chronometer Header ───────────────────────── */
 .drawer-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 22px 20px 18px;
+  padding: 16px 14px 14px;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.025) 0%,
     rgba(255, 255, 255, 0.005) 100%
   );
   border-bottom: 1px solid var(--neo-border-light);
@@ -59,84 +59,334 @@
   content: '';
   position: absolute;
   bottom: -1px;
-  left: 20%;
-  right: 20%;
+  left: 15%;
+  right: 15%;
   height: 1px;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(0, 242, 254, 0.25),
+    rgba(0, 242, 254, 0.35),
     transparent
   );
 }
 
-.drawer-clock-center {
+/* Digital Cockpit Bezel Frame */
+.drawer-chrono-frame {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 8px;
+  background: linear-gradient(180deg, rgba(14, 20, 32, 0.92) 0%, rgba(8, 12, 20, 0.98) 100%);
+  border: 1px solid rgba(0, 242, 254, 0.22);
+  border-radius: 14px;
+  padding: 12px 14px 10px;
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.1),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.8),
+    0 10px 30px rgba(0, 0, 0, 0.65),
+    0 0 15px rgba(0, 242, 254, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.drawer-chrono-frame::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.5), transparent);
+}
+
+/* Status Row: Live/Archive Badge | Zone | Action Button */
+.chrono-status-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 2px;
+}
+
+.chrono-badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(0, 245, 160, 0.1);
+  border: 1px solid rgba(0, 245, 160, 0.3);
+}
+
+.chrono-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00f5a0;
+  box-shadow: 0 0 8px #00f5a0;
+  animation: livePulseDot 1.4s infinite ease-in-out;
+}
+
+@keyframes livePulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.8); }
+}
+
+.chrono-status-text {
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #00f5a0;
+}
+
+.chrono-badge-archive {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.chrono-archive-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 8px #f59e0b;
+}
+
+.chrono-badge-archive .chrono-status-text {
+  color: #f59e0b;
+}
+
+.chrono-zone-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--neo-text-muted);
+}
+
+.chrono-zone-tag .zone-icon {
+  color: var(--neo-cyan);
+}
+
+.chrono-mini-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--neo-border-subtle);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--neo-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chrono-mini-btn:hover {
+  color: var(--neo-cyan);
+  border-color: var(--neo-cyan);
+  background: rgba(0, 242, 254, 0.1);
+  transform: scale(1.05);
+}
+
+.chrono-mini-btn.is-spinning svg {
+  animation: spinRefresh 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chrono-reset-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(0, 245, 160, 0.15);
+  border: 1px solid rgba(0, 245, 160, 0.45);
+  color: #00f5a0;
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 10px rgba(0, 245, 160, 0.2);
+}
+
+.chrono-reset-pill-btn:hover {
+  background: rgba(0, 245, 160, 0.25);
+  box-shadow: 0 0 16px rgba(0, 245, 160, 0.4);
+  transform: scale(1.04);
+}
+
+/* Big Monospace Time Display */
+.drawer-time-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 0;
 }
 
 .drawer-time-big {
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 800;
   color: #ffffff;
-  letter-spacing: 3px;
+  letter-spacing: 4px;
   line-height: 1;
-  text-shadow: 0 0 20px rgba(0, 242, 254, 0.35),
-    0 0 40px rgba(0, 242, 254, 0.1);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 20px rgba(0, 242, 254, 0.4), 0 0 40px rgba(0, 242, 254, 0.15);
 }
 
-.drawer-date-text {
-  font-family: var(--font-mono, monospace);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--neo-text-secondary);
-}
-
-.drawer-tz-row {
+/* Date Stepper Bar */
+.chrono-date-stepper-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 4px;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
 }
 
-.drawer-tz-name {
-  font-family: var(--font-mono, monospace);
-  font-size: 8px;
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  color: var(--neo-text-muted);
-  text-transform: uppercase;
-}
-
-.drawer-refresh-btn {
+.chrono-stepper-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 24px;
   height: 24px;
-  border-radius: 8px;
-  border: 1px solid var(--neo-border-subtle);
-  background: var(--neo-surface-2);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--neo-text-secondary);
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 2px 2px 6px var(--neo-shadow-dark),
-    -1px -1px 4px var(--neo-shadow-light);
+  transition: all 0.2s ease;
 }
 
-.drawer-refresh-btn:hover {
-  color: var(--neo-cyan);
-  border-color: var(--neo-border-active);
-  box-shadow: 0 0 12px rgba(0, 242, 254, 0.2);
-  transform: scale(1.1);
+.chrono-stepper-btn:hover {
+  color: #00f2fe;
+  background: rgba(0, 242, 254, 0.1);
+  border-color: rgba(0, 242, 254, 0.35);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
 }
 
-.drawer-refresh-btn.is-spinning svg {
-  animation: spinRefresh 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+.chrono-date-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 7px;
+  background: rgba(0, 242, 254, 0.04);
+  border: 1px solid rgba(0, 242, 254, 0.2);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.chrono-date-trigger:hover {
+  background: rgba(0, 242, 254, 0.12);
+  border-color: rgba(0, 242, 254, 0.4);
+  box-shadow: 0 0 14px rgba(0, 242, 254, 0.18);
+}
+
+.chrono-calendar-icon {
+  color: #00f2fe;
+}
+
+.drawer-date-text {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #e2e8f0;
+  user-select: none;
+}
+
+.chrono-hidden-date-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Quick Temporal Presets */
+.chrono-presets-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.chrono-preset-chip {
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 600;
+  color: var(--neo-text-muted);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chrono-preset-chip:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.chrono-preset-chip.is-active {
+  color: #00f5a0;
+  background: rgba(0, 245, 160, 0.12);
+  border-color: rgba(0, 245, 160, 0.4);
+  font-weight: 700;
+}
+
+/* Return to Live Banner */
+.chrono-return-live-bar {
+  width: 100%;
+  margin-top: 3px;
+}
+
+.chrono-return-live-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 6px 12px;
+  border-radius: 7px;
+  background: linear-gradient(90deg, rgba(0, 245, 160, 0.15), rgba(0, 242, 254, 0.15));
+  border: 1px solid rgba(0, 245, 160, 0.4);
+  color: #00f5a0;
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(0, 245, 160, 0.2);
+  transition: all 0.25s ease;
+}
+
+.chrono-return-live-btn:hover {
+  background: linear-gradient(90deg, rgba(0, 245, 160, 0.25), rgba(0, 242, 254, 0.25));
+  box-shadow: 0 0 20px rgba(0, 245, 160, 0.4);
+  transform: translateY(-1px);
+}
+
+.spin-live-icon {
+  animation: spinRefresh 3s infinite linear;
 }
 
 @keyframes spinRefresh {
@@ -147,6 +397,7 @@
     transform: rotate(360deg);
   }
 }
+
 
 /* ── 3. Category Navigation with Scroll Arrows ───────────────────── */
 .drawer-categories-nav {
@@ -565,6 +816,32 @@
   letter-spacing: 1px;
   z-index: 2;
   pointer-events: none;
+}
+
+.cctv-pip-expand-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: all 0.2s ease;
+}
+
+.cctv-pip-expand-btn:hover {
+  color: var(--neo-cyan);
+  border-color: var(--neo-cyan);
+  background: rgba(0, 242, 254, 0.15);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+  transform: scale(1.05);
 }
 
 .cctv-rec-dot {

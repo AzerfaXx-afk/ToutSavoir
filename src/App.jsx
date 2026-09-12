@@ -317,6 +317,7 @@ export default function App() {
       {/* Responsive Right-Side Unified Intelligence Drawer */}
       <LiveTelemetryDrawer
         selectedYear={selectedYear}
+        onYearChange={setSelectedYear}
         isOpen={isDrawerOpen}
         onToggleOpen={setIsDrawerOpen}
         activeTab={drawerTab}

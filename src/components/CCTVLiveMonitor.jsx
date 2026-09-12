@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Maximize2, RefreshCw } from 'lucide-react';
 import { sound } from '../utils/soundFX';
 import { CCTV_FEEDS } from '../data/osirisStreams';
 import './CCTVLiveMonitor.css';
@@ -7,6 +7,8 @@ import './CCTVLiveMonitor.css';
 export function CCTVLiveMonitor({ camera, onClose, onSelectCamera }) {
   const [timecode, setTimecode] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Live UTC timecode ticking
   useEffect(() => {
@@ -40,6 +42,13 @@ export function CCTVLiveMonitor({ camera, onClose, onSelectCamera }) {
     if (onClose) onClose();
   };
 
+  const handleReload = () => {
+    sound.click(0.4);
+    setIsRefreshing(true);
+    setReloadKey((k) => k + 1);
+    setTimeout(() => setIsRefreshing(false), 800);
+  };
+
   return (
     <div
       className={`cctv-monitor-pip ${isFullscreen ? 'is-fullscreen' : ''}`}
@@ -65,6 +74,14 @@ export function CCTVLiveMonitor({ camera, onClose, onSelectCamera }) {
         </div>
 
         <div className="cctv-header-actions">
+          <button
+            type="button"
+            className={`cctv-icon-btn ${isRefreshing ? 'is-spinning' : ''}`}
+            onClick={handleReload}
+            title="Actualiser le flux vidéo"
+          >
+            <RefreshCw size={12} />
+          </button>
           <button
             type="button"
             className="cctv-icon-btn"
@@ -107,10 +124,12 @@ export function CCTVLiveMonitor({ camera, onClose, onSelectCamera }) {
       >
         {camera.embedUrl ? (
           <iframe
+            key={`${camera.id}-${reloadKey}`}
             className="cctv-iframe"
             src={camera.embedUrl}
             title={camera.name}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
             loading="lazy"
           />
         ) : (
@@ -132,7 +151,7 @@ export function CCTVLiveMonitor({ camera, onClose, onSelectCamera }) {
       {/* Metadata Bottom Card */}
       <div className="cctv-info-bar">
         <div className="cctv-name-row">
-          <span className="cctv-title">{camera.name}</span>
+          <span className="cctv-title" title={camera.name}>{camera.name}</span>
           <span className="cctv-category-badge">{camera.category}</span>
         </div>
         <span className="cctv-location">
@@ -145,3 +164,4 @@ export function CCTVLiveMonitor({ camera, onClose, onSelectCamera }) {
     </div>
   );
 }
+

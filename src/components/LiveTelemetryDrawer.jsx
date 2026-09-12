@@ -26,6 +26,9 @@ import {
   Crosshair,
   Video,
   ShieldAlert,
+  Calendar,
+  Maximize2,
+  RotateCcw,
 } from 'lucide-react';
 import './LiveTelemetryDrawer.css';
 
@@ -67,6 +70,7 @@ const SCOPE_LABELS_FR = {
 /* ── Component ───────────────────────────────────────────────────── */
 export function LiveTelemetryDrawer({
   selectedYear = 2026,
+  onYearChange,
   isOpen: propIsOpen,
   onToggleOpen,
   activeTab,
@@ -88,54 +92,91 @@ export function LiveTelemetryDrawer({
   const [localDate, setLocalDate] = useState('');
   const [timezoneName, setTimezoneName] = useState('');
   const categoryScrollRef = useRef(null);
+  const dateInputRef = useRef(null);
 
-  /* ── Live Clock ────────────────────────────────────────────────── */
+  /* ── Temporal State (Live vs Custom Historical / Future Date) ──── */
+  const [customDate, setCustomDate] = useState(null); // null = Live Realtime Mode
+  const isLive = customDate === null;
+
+  // Active year & year multiplier
+  const activeYear = useMemo(() => {
+    if (customDate) return customDate.getFullYear();
+    return selectedYear || new Date().getFullYear();
+  }, [customDate, selectedYear]);
+
+  const yearMultiplier = useMemo(
+    () => getEstimatedPopulationForYear(activeYear) / 8185420000,
+    [activeYear]
+  );
+
+  /* ── Live Clock & Date Display Engine ──────────────────────────── */
   useEffect(() => {
     const update = () => {
-      const now = new Date();
-      setLocalTime(
-        now.toLocaleTimeString('fr-FR', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: false,
-        })
-      );
-      setLocalDate(
-        now
-          .toLocaleDateString('fr-FR', {
-            weekday: 'short',
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
+      if (isLive) {
+        const now = new Date();
+        setLocalTime(
+          now.toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
           })
-          .toUpperCase()
-      );
+        );
+        setLocalDate(
+          now
+            .toLocaleDateString('fr-FR', {
+              weekday: 'short',
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })
+            .toUpperCase()
+        );
+      } else {
+        setLocalTime(
+          customDate.toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+          })
+        );
+        setLocalDate(
+          customDate
+            .toLocaleDateString('fr-FR', {
+              weekday: 'short',
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })
+            .toUpperCase()
+        );
+      }
+
       try {
         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        setTimezoneName(tz ? tz.split('/').pop().replace(/_/g, ' ') : 'Local');
+        setTimezoneName(tz ? tz.split('/').pop().replace(/_/g, ' ') : 'Paris');
       } catch {
-        setTimezoneName('Local');
+        setTimezoneName('Paris');
       }
     };
+
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [isLive, customDate]);
 
-  /* ── Year multiplier for demographic scaling ───────────────────── */
-  const yearMultiplier = useMemo(
-    () => getEstimatedPopulationForYear(selectedYear) / 8185420000,
-    [selectedYear]
-  );
-
-  /* ── High-frequency metrics ticker ─────────────────────────────── */
+  /* ── Metrics Ticker (ticking live or exact date snapshot) ──────── */
   useEffect(() => {
-    const tick = () => setMetrics(computeWorldometerMetrics(yearMultiplier));
+    const tick = () => {
+      setMetrics(computeWorldometerMetrics(yearMultiplier, customDate));
+    };
     tick();
-    const id = setInterval(tick, 500);
-    return () => clearInterval(id);
-  }, [yearMultiplier]);
+    if (isLive) {
+      const id = setInterval(tick, 500);
+      return () => clearInterval(id);
+    }
+  }, [yearMultiplier, customDate, isLive]);
 
   /* ── Realtime stream (keep subscription alive) ─────────────────── */
   useEffect(() => realtimeStream.subscribe(() => {}), []);
@@ -200,7 +241,75 @@ export function LiveTelemetryDrawer({
     );
   }, [selectedCountry]);
 
-  /* ── Handlers ──────────────────────────────────────────────────── */
+  /* ── Temporal Handlers ─────────────────────────────────────────── */
+  const currentIsoDate = useMemo(() => {
+    const d = customDate || new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }, [customDate]);
+
+  const handlePrevDay = () => {
+    sound.click(0.4);
+    const base = customDate ? new Date(customDate) : new Date();
+    base.setDate(base.getDate() - 1);
+    setCustomDate(base);
+    if (onYearChange && base.getFullYear() !== selectedYear) {
+      onYearChange(base.getFullYear());
+    }
+  };
+
+  const handleNextDay = () => {
+    sound.click(0.4);
+    const base = customDate ? new Date(customDate) : new Date();
+    base.setDate(base.getDate() + 1);
+    setCustomDate(base);
+    if (onYearChange && base.getFullYear() !== selectedYear) {
+      onYearChange(base.getFullYear());
+    }
+  };
+
+  const handleSelectDateInput = (e) => {
+    const val = e.target.value;
+    if (!val) return;
+    const [y, m, d] = val.split('-').map(Number);
+    const newDate = new Date();
+    newDate.setFullYear(y, m - 1, d);
+    setCustomDate(newDate);
+    if (onYearChange && y !== selectedYear) {
+      onYearChange(y);
+    }
+    sound.click(0.5);
+  };
+
+  const handleResetToLive = useCallback(() => {
+    sound.tick();
+    setCustomDate(null);
+    const realYear = new Date().getFullYear();
+    if (onYearChange && selectedYear !== realYear) {
+      onYearChange(realYear);
+    }
+    setIsRefreshing(true);
+    setMetrics(computeWorldometerMetrics(1, null));
+    setTimeout(() => setIsRefreshing(false), 800);
+  }, [onYearChange, selectedYear]);
+
+  const handleQuickJump = (daysOffset, targetYear = null) => {
+    sound.click(0.45);
+    if (targetYear !== null) {
+      const d = new Date();
+      d.setFullYear(targetYear, 0, 1);
+      setCustomDate(d);
+      if (onYearChange) onYearChange(targetYear);
+    } else {
+      const d = new Date();
+      d.setDate(d.getDate() + daysOffset);
+      setCustomDate(d);
+      if (onYearChange) onYearChange(d.getFullYear());
+    }
+  };
+
   const toggleOpen = () => {
     sound.tick();
     if (onToggleOpen) onToggleOpen(!isOpen);
@@ -215,10 +324,10 @@ export function LiveTelemetryDrawer({
 
   const handleRefresh = useCallback(() => {
     setIsRefreshing(true);
-    setMetrics(computeWorldometerMetrics(yearMultiplier));
+    setMetrics(computeWorldometerMetrics(yearMultiplier, customDate));
     sound.click(0.5);
     setTimeout(() => setIsRefreshing(false), 800);
-  }, [yearMultiplier]);
+  }, [yearMultiplier, customDate]);
 
   const scrollCategories = (dir) => {
     if (categoryScrollRef.current) {
@@ -229,7 +338,13 @@ export function LiveTelemetryDrawer({
     }
   };
 
-  const getPlayableUrl = (url) => url.replace('controls=0', 'controls=1');
+  const getPlayableUrl = (url) => {
+    if (!url) return '';
+    let res = url.replace('controls=0', 'controls=1');
+    if (!res.includes('playsinline=1')) res += '&playsinline=1';
+    if (!res.includes('rel=0')) res += '&rel=0';
+    return res;
+  };
 
   /* ── Content count for search indicator ────────────────────────── */
   const contentCount = useMemo(() => {
@@ -260,22 +375,165 @@ export function LiveTelemetryDrawer({
 
       {/* Drawer Inner Panel */}
       <div className="drawer-panel-inner">
-        {/* ─── Centered Clock Header ─── */}
+        {/* ─── Centered Cockpit Chronometer Header ─── */}
         <div className="drawer-header">
-          <div className="drawer-clock-center">
-            <span className="drawer-time-big">{localTime}</span>
-            <span className="drawer-date-text">{localDate}</span>
-            <div className="drawer-tz-row">
-              <span className="drawer-tz-name">{timezoneName}</span>
+          <div className="drawer-chrono-frame">
+            {/* Top Status Bar: Live vs Archive status & Zone */}
+            <div className="chrono-status-row">
+              {isLive ? (
+                <div className="chrono-badge-live" title="Flux télémétrique mondial en direct">
+                  <span className="chrono-pulse-dot" />
+                  <span className="chrono-status-text">EN DIRECT</span>
+                </div>
+              ) : (
+                <div className="chrono-badge-archive" title="Mode temporel différé">
+                  <span className="chrono-archive-dot" />
+                  <span className="chrono-status-text">DIFFÉRÉ</span>
+                </div>
+              )}
+
+              <div className="chrono-zone-tag">
+                <Globe size={11} className="zone-icon" />
+                <span>{timezoneName.toUpperCase()}</span>
+              </div>
+
+              {isLive ? (
+                <button
+                  type="button"
+                  className={`chrono-mini-btn ${isRefreshing ? 'is-spinning' : ''}`}
+                  onClick={handleRefresh}
+                  title="Actualiser les indicateurs"
+                  aria-label="Actualiser"
+                >
+                  <RefreshCw size={11} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="chrono-reset-pill-btn"
+                  onClick={handleResetToLive}
+                  title="Revenir au direct"
+                  aria-label="Revenir au direct"
+                >
+                  <RotateCcw size={10} />
+                  <span>DIRECT</span>
+                </button>
+              )}
+            </div>
+
+            {/* Big Centered Digital Time Display */}
+            <div className="drawer-time-display">
+              <span className="drawer-time-big">{localTime}</span>
+            </div>
+
+            {/* Centered Date Stepper & Picker Bar */}
+            <div className="chrono-date-stepper-bar">
               <button
                 type="button"
-                className={`drawer-refresh-btn ${isRefreshing ? 'is-spinning' : ''}`}
-                onClick={handleRefresh}
-                title="Actualiser les données"
+                className="chrono-stepper-btn"
+                onClick={handlePrevDay}
+                title="Jour précédent (-1 jour)"
+                aria-label="Jour précédent"
               >
-                <RefreshCw size={12} />
+                <ChevronLeft size={13} />
+              </button>
+
+              <div
+                className="chrono-date-trigger"
+                onClick={() => {
+                  sound.click();
+                  if (dateInputRef.current) {
+                    if (typeof dateInputRef.current.showPicker === 'function') {
+                      dateInputRef.current.showPicker();
+                    } else {
+                      dateInputRef.current.focus();
+                    }
+                  }
+                }}
+                title="Cliquer pour choisir une date spécifique dans le calendrier"
+              >
+                <Calendar size={12} className="chrono-calendar-icon" />
+                <span className="drawer-date-text">{localDate}</span>
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  className="chrono-hidden-date-input"
+                  value={currentIsoDate}
+                  onChange={handleSelectDateInput}
+                  aria-label="Sélectionner une date"
+                />
+              </div>
+
+              <button
+                type="button"
+                className="chrono-stepper-btn"
+                onClick={handleNextDay}
+                title="Jour suivant (+1 jour)"
+                aria-label="Jour suivant"
+              >
+                <ChevronRight size={13} />
               </button>
             </div>
+
+            {/* Quick Temporal Presets Row */}
+            <div className="chrono-presets-row">
+              <button
+                type="button"
+                className={`chrono-preset-chip ${isLive ? 'is-active' : ''}`}
+                onClick={handleResetToLive}
+              >
+                Direct
+              </button>
+              <button
+                type="button"
+                className="chrono-preset-chip"
+                onClick={() => handleQuickJump(-1)}
+              >
+                Hier
+              </button>
+              <button
+                type="button"
+                className="chrono-preset-chip"
+                onClick={() => handleQuickJump(-7)}
+              >
+                -7j
+              </button>
+              <button
+                type="button"
+                className="chrono-preset-chip"
+                onClick={() => handleQuickJump(-30)}
+              >
+                -30j
+              </button>
+              <button
+                type="button"
+                className="chrono-preset-chip"
+                onClick={() => handleQuickJump(0, 2025)}
+              >
+                2025
+              </button>
+              <button
+                type="button"
+                className="chrono-preset-chip"
+                onClick={() => handleQuickJump(0, 2020)}
+              >
+                2020
+              </button>
+            </div>
+
+            {/* Return to Live Banner if in past/future */}
+            {!isLive && (
+              <div className="chrono-return-live-bar">
+                <button
+                  type="button"
+                  className="chrono-return-live-btn"
+                  onClick={handleResetToLive}
+                >
+                  <RefreshCw size={12} className="spin-live-icon" />
+                  <span>RÉINITIALISER AU DIRECT (TEMPS RÉEL)</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -417,7 +675,7 @@ export function LiveTelemetryDrawer({
                         <iframe
                           src={getPlayableUrl(cam.embedUrl)}
                           title={cam.name}
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                           allowFullScreen
                           loading="lazy"
                         />
@@ -425,6 +683,17 @@ export function LiveTelemetryDrawer({
                           <span className="cctv-rec-dot" />
                           <span>EN DIRECT</span>
                         </div>
+                        <button
+                          type="button"
+                          className="cctv-pip-expand-btn"
+                          onClick={() => {
+                            sound.click();
+                            if (onSelectCCTV) onSelectCCTV(cam);
+                          }}
+                          title="Ouvrir dans le moniteur de surveillance PiP"
+                        >
+                          <Maximize2 size={11} />
+                        </button>
                       </div>
                       <div className="cctv-live-info">
                         <div className="cctv-live-title">{cam.name}</div>
