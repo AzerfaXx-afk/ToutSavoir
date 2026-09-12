@@ -28,6 +28,8 @@ import {
   ShieldAlert,
   Search,
   Crosshair,
+  X,
+  Clock,
 } from 'lucide-react';
 import './LiveTelemetryDrawer.css';
 
@@ -65,13 +67,40 @@ export function LiveTelemetryDrawer({
     netGrowthToday: 0,
     recentEarthquakes: [],
   });
-  const [utcTime, setUtcTime] = useState('');
+  const [localTime, setLocalTime] = useState('');
+  const [localDate, setLocalDate] = useState('');
+  const [timezoneName, setTimezoneName] = useState('');
 
-  // Live UTC Clock
+  // Live Local Time Clock (exact local time of user location)
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      setUtcTime(now.toUTCString().slice(17, 25) + ' UTC');
+      const timeStr = now.toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      });
+      const dateStr = now.toLocaleDateString('fr-FR', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }).toUpperCase();
+
+      let tzStr = 'LOCAL';
+      try {
+        const resolved = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (resolved) {
+          tzStr = resolved.split('/').pop().replace(/_/g, ' ');
+        }
+      } catch {
+        tzStr = 'LOCAL';
+      }
+
+      setLocalTime(timeStr);
+      setLocalDate(dateStr);
+      setTimezoneName(tzStr);
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
@@ -136,7 +165,8 @@ export function LiveTelemetryDrawer({
       const matchesSearch =
         !searchQuery ||
         def.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        def.unit.toLowerCase().includes(searchQuery.toLowerCase());
+        def.unit.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        def.cat.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCat && matchesSearch;
     });
   }, [activeCategory, searchQuery]);
@@ -177,26 +207,24 @@ export function LiveTelemetryDrawer({
 
       {/* Drawer Inner Content */}
       <div className="drawer-panel-inner">
-        {/* Main Header */}
+        {/* Minimalist Awwwards Header: Exact Local Time & Live Status Only */}
         <div className="drawer-header">
           <div className="drawer-header-left">
-            <Radio size={13} className="text-cyan animate-pulse" />
-            <h2 className="drawer-title">AEGIS // GLOBAL WAR ROOM</h2>
+            <div className="drawer-live-pulse">
+              <span className="live-pulse-dot" />
+              <span className="live-pulse-label">TÉLÉMÉTRIE EN DIRECT</span>
+            </div>
+            <span className="drawer-timezone-tag">{timezoneName}</span>
           </div>
           <div className="drawer-header-right">
-            <span className="drawer-clock-badge">{utcTime}</span>
-            <button
-              type="button"
-              className="drawer-close-icon-btn"
-              onClick={toggleOpen}
-              title="Fermer"
-            >
-              <ChevronRight size={15} />
-            </button>
+            <div className="drawer-time-lockup">
+              <span className="drawer-local-time">{localTime}</span>
+              <span className="drawer-local-date">{localDate}</span>
+            </div>
           </div>
         </div>
 
-        {/* 5 Primary Intelligence Tabs */}
+        {/* 5 Primary Intelligence Tabs (Neumorphic) */}
         <div className="drawer-primary-tabs">
           {DRAWER_TABS.map((tab) => {
             const Icon = tab.icon;
@@ -218,30 +246,41 @@ export function LiveTelemetryDrawer({
         {/* TAB 1: WORLDOMETER LIVE */}
         {currentTab === 'worldometer' && (
           <div className="drawer-scroll-area">
-            {/* Demographic Ticker Card */}
+            {/* Hero Demographic Card (Neumorphic) */}
             <div className="hero-counter-card">
               <div className="hero-counter-top">
-                <Globe size={13} className="text-cyan" />
-                <span className="hero-counter-tag">
-                  {selectedYear !== 2026
-                    ? `POPULATION ESTIMÉE // ${selectedYear}`
-                    : 'POPULATION MONDIALE EN DIRECT'}
-                </span>
+                <div className="hero-tag-badge">
+                  <Globe size={11} className="text-cyan" />
+                  <span>
+                    {selectedYear !== 2026
+                      ? `ESTIMATION // ANNÉE ${selectedYear}`
+                      : 'HORLOGE DÉMOGRAPHIQUE MONDIALE'}
+                  </span>
+                </div>
+                <span className="hero-live-badge">TEMPS RÉEL</span>
               </div>
               <div className="hero-counter-val">
                 {selectedYear !== 2026
                   ? getEstimatedPopulationForYear(selectedYear).toLocaleString('fr-FR')
                   : (metrics.world_pop || stats.worldPopulation).toLocaleString('fr-FR')}
               </div>
-              <span className="hero-counter-sub">
-                HORLOGE DÉMOGRAPHIQUE UN / WORLDOMETER (TEMPS RÉEL)
-              </span>
+              <div className="hero-counter-bottom">
+                <span className="hero-counter-sub">
+                  HABITANTS SUR TERRE // SOURCE ONU & WORLDOMETER
+                </span>
+                <span className="hero-counter-growth">
+                  +4.2 / sec
+                </span>
+              </div>
             </div>
 
-            {/* Category Chips Scroll */}
-            <div className="category-chips-scroll" style={{ padding: '8px 16px' }}>
+            {/* Category Filter Chips (Neumorphic Horizontal Scroll) */}
+            <div className="category-chips-scroll">
               {WORLDOMETER_CATEGORIES.map((cat) => {
                 const isActive = activeCategory === cat.id;
+                const count = cat.id === 'all'
+                  ? METRIC_DEFINITIONS.length
+                  : METRIC_DEFINITIONS.filter((m) => m.cat === cat.id).length;
                 return (
                   <button
                     key={cat.id}
@@ -252,46 +291,64 @@ export function LiveTelemetryDrawer({
                       setActiveCategory(cat.id);
                     }}
                   >
-                    {cat.shortLabel}
+                    <span>{cat.shortLabel}</span>
+                    <span className="chip-count">{count}</span>
                   </button>
                 );
               })}
             </div>
 
-            {/* Metrics Search Filter */}
-            <div className="drawer-search-row" style={{ margin: '0 16px 12px 16px' }}>
-              <Search size={11} className="text-muted" />
-              <input
-                type="text"
-                className="drawer-search-input"
-                placeholder="Filtrer parmi les indicateurs..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            {/* Metrics Search Filter (Neumorphic Inset) */}
+            <div className="drawer-search-row">
+              <div className="drawer-search-box">
+                <Search size={13} className="search-icon" />
+                <input
+                  type="text"
+                  className="drawer-search-input"
+                  placeholder="Rechercher un indicateur (ex: naissances, CO2, PIB, pétrole)..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="search-clear-btn"
+                    onClick={() => setSearchQuery('')}
+                    title="Effacer la recherche"
+                  >
+                    <X size={11} />
+                  </button>
+                )}
+              </div>
+              <span className="search-results-count">
+                {filteredMetrics.length} / {METRIC_DEFINITIONS.length}
+              </span>
             </div>
 
-            {/* Worldometer Metrics Cards Grid */}
+            {/* Worldometer Metrics Cards Grid (Neumorphic Tiles) */}
             <div className="metrics-grid">
               {filteredMetrics.map((def) => {
                 const val = metrics[def.id] !== undefined ? metrics[def.id] : 0;
+                const formattedVal = Number(val).toLocaleString('fr-FR');
                 return (
                   <div key={def.id} className="metric-card">
                     <div className="metric-card-header">
-                      <span className="metric-category-tag">{def.cat.toUpperCase()}</span>
-                      <span className="metric-scope-badge">
+                      <span className={`metric-category-tag cat-${def.cat}`}>
+                        {def.cat.toUpperCase()}
+                      </span>
+                      <span className={`metric-scope-badge scope-${def.scope}`}>
                         {def.scope === 'day'
                           ? 'AUJOURD’HUI'
                           : def.scope === 'year'
-                          ? 'CETTE ANNÉE'
-                          : 'INSTANTANÉ'}
+                          ? 'ANNUEL'
+                          : 'EN DIRECT'}
                       </span>
                     </div>
                     <div
                       className="metric-value-num"
                       style={{ color: def.color || 'var(--cyan-bright)' }}
                     >
-                      {def.prefix || ''}
-                      {Number(val).toLocaleString('fr-FR')}
+                      {def.prefix || ''}{formattedVal}
                     </div>
                     <div className="metric-label-text">{def.label}</div>
                     <div className="metric-unit-text">{def.unit}</div>
