@@ -73,9 +73,9 @@ export function TacticalMap2D({
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
-    // Hard Geographic Bounds: Locks the map between 85°N and 85°S (Impossible to drag into void!)
-    const southWest = L.latLng(-85, -180);
-    const northEast = L.latLng(85, 180);
+    // Hard Geographic Bounds: Locks the map between 82°N and 82°S (Prevents polar overflow)
+    const southWest = L.latLng(-82, -180);
+    const northEast = L.latLng(82, 180);
     const worldBounds = L.latLngBounds(southWest, northEast);
 
     const map = L.map(mapContainerRef.current, {
@@ -187,13 +187,16 @@ export function TacticalMap2D({
     map.on('click', (e) => {
       if (e.originalEvent.target.classList.contains('leaflet-container')) {
         sound.click();
-        if (selectedLayerRef.current && geoJsonLayerRef.current) {
-          if (selectedLayerRef.current._path) {
-            selectedLayerRef.current._path.classList.remove('country-path-selected');
-          }
-          geoJsonLayerRef.current.resetStyle(selectedLayerRef.current);
-          selectedLayerRef.current = null;
+        if (geoJsonLayerRef.current) {
+          geoJsonLayerRef.current.eachLayer((l) => {
+            geoJsonLayerRef.current.resetStyle(l);
+            if (l._path) {
+              l._path.classList.remove('country-path-selected');
+              l._path.classList.remove('country-path-elevated');
+            }
+          });
         }
+        selectedLayerRef.current = null;
         setSelectedTerritory(null);
       }
     });
@@ -466,15 +469,18 @@ export function TacticalMap2D({
 
                 const target = e.target;
 
-                // Reset previous selection
-                if (selectedLayerRef.current && selectedLayerRef.current !== target) {
-                  if (selectedLayerRef.current._path) {
-                    selectedLayerRef.current._path.classList.remove('country-path-selected');
+                // 1. Reset ALL other layers to ensure strictly ONE country is ever highlighted
+                geoLayer.eachLayer((l) => {
+                  if (l !== target) {
+                    geoLayer.resetStyle(l);
+                    if (l._path) {
+                      l._path.classList.remove('country-path-selected');
+                      l._path.classList.remove('country-path-elevated');
+                    }
                   }
-                  geoLayer.resetStyle(selectedLayerRef.current);
-                }
+                });
 
-                // Apply persistent glowing selected style
+                // 2. Apply persistent glowing selected style to target
                 selectedLayerRef.current = target;
                 target.setStyle(selectedStyle);
                 target.bringToFront();
@@ -485,13 +491,33 @@ export function TacticalMap2D({
                 const bounds = target.getBounds();
                 const center = bounds.getCenter();
 
-                // Smooth camera focus
-                map.fitBounds(bounds, {
-                  padding: [120, 120],
-                  maxZoom: 7.5,
-                  animate: true,
-                  duration: 1.2,
-                });
+                // 3. Antarctica & Extreme Polar Latitudes Camera Protection
+                // Antarctica spans -180 to 180 and down to -90, which crashes Mercator fitBounds and throws map off-screen.
+                const isAntarctica =
+                  rawName.toLowerCase().includes('antarct') ||
+                  displayName.toLowerCase().includes('antarct') ||
+                  bounds.getSouth() < -62;
+
+                if (isAntarctica) {
+                  // Beautiful, stable, safe camera view over Antarctica that never overflows the screen:
+                  map.flyTo([-72, 0], 2.8, {
+                    duration: 1.1,
+                  });
+                } else {
+                  // Clamp bounds between safe Mercator latitudes [-74, 76] to avoid screen overflow
+                  const south = Math.max(-74, bounds.getSouth());
+                  const north = Math.min(76, bounds.getNorth());
+                  const west = bounds.getWest();
+                  const east = bounds.getEast();
+                  const safeBounds = L.latLngBounds(L.latLng(south, west), L.latLng(north, east));
+
+                  map.fitBounds(safeBounds, {
+                    padding: [80, 80],
+                    maxZoom: 6.2,
+                    animate: true,
+                    duration: 1.1,
+                  });
+                }
 
                 setSelectedTerritory({
                   name: displayName,
@@ -584,12 +610,18 @@ export function TacticalMap2D({
 
   const handleResetView = () => {
     sound.click();
-    if (selectedLayerRef.current && geoJsonLayerRef.current) {
-      geoJsonLayerRef.current.resetStyle(selectedLayerRef.current);
-      selectedLayerRef.current = null;
+    if (geoJsonLayerRef.current) {
+      geoJsonLayerRef.current.eachLayer((l) => {
+        geoJsonLayerRef.current.resetStyle(l);
+        if (l._path) {
+          l._path.classList.remove('country-path-selected');
+          l._path.classList.remove('country-path-elevated');
+        }
+      });
     }
+    selectedLayerRef.current = null;
     setSelectedTerritory(null);
-    mapInstanceRef.current?.flyTo([20, 0], 2.6, { duration: 1.2 });
+    mapInstanceRef.current?.flyTo([20, 0], 2.6, { duration: 1.1 });
   };
 
   return (
