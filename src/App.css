@@ -729,27 +729,211 @@ body.is-grabbing *,
 }
 
 /* ==========================================================================
-   LEFT-SIDE CIRCULAR ARC TIMELINE DIAL (AWWWARDS RADIAL 1950 - 2100)
+   TIMELINE CHRONO-SPHÈRE // COLLAPSIBLE AWWWARDS MENU (1950 - 2100)
    ========================================================================== */
-.timeline-arc-container {
+
+.timeline-widget-wrapper {
   position: fixed;
-  left: 16px;
+  left: 24px;
   top: 50%;
   transform: translateY(-50%);
-  width: 220px;
-  height: 520px;
   z-index: 95;
+  pointer-events: auto;
+  user-select: none;
+}
+
+/* 1. Closed Pill Button */
+.timeline-trigger-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  background: rgba(10, 16, 26, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(0, 242, 254, 0.32);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 14px rgba(0, 242, 254, 0.15);
+  cursor: pointer;
+  color: #ffffff;
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+  font-weight: 600;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.timeline-trigger-pill:hover {
+  border-color: var(--cyan-bright, #00f2fe);
+  background: rgba(14, 24, 38, 0.95);
+  box-shadow: 0 8px 26px rgba(0, 242, 254, 0.32);
+  transform: translateY(-1px);
+}
+
+.timeline-trigger-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cyan-bright, #00f2fe);
+  box-shadow: 0 0 8px var(--cyan-bright, #00f2fe);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+.timeline-trigger-year {
+  color: var(--cyan-bright, #00f2fe);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.6px;
+}
+
+.timeline-trigger-sep {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.timeline-trigger-label {
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 1px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.timeline-trigger-chevron {
+  color: var(--cyan-bright, #00f2fe);
+  transition: transform 0.2s ease;
+}
+
+.timeline-trigger-pill:hover .timeline-trigger-chevron {
+  transform: translateX(2px);
+}
+
+/* 2. Unfolded Glass Menu */
+.timeline-unfold-menu {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 250px;
+  background: linear-gradient(180deg, rgba(10, 16, 26, 0.96) 0%, rgba(5, 9, 15, 0.98) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 30px rgba(0, 242, 254, 0.12);
+  padding: 14px 10px 14px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  animation: timelineMenuPop 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+@keyframes timelineMenuPop {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-16px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0) scale(1);
+  }
+}
+
+.timeline-menu-header {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0 10px 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.timeline-menu-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.timeline-menu-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.timeline-menu-sub {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--cyan-bright, #00f2fe);
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.timeline-menu-badge {
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.timeline-menu-year-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.timeline-menu-year-big {
+  font-family: var(--font-mono, monospace);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--cyan-bright, #00f2fe);
+  letter-spacing: 1px;
+  text-shadow: 0 0 16px rgba(0, 242, 254, 0.6);
+}
+
+.timeline-menu-era-tag {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.65);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+}
+
+.timeline-menu-close-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.timeline-menu-close-btn:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Arc Wheel Inside Menu */
+.timeline-arc-container {
+  position: relative;
+  width: 220px;
+  height: 440px;
   display: block;
   background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border: none !important;
-  box-shadow: none !important;
   pointer-events: auto;
   user-select: none;
   cursor: grab;
   touch-action: none;
-  overflow: visible;
 }
 
 .timeline-arc-container.is-dragging {
@@ -774,63 +958,52 @@ body.is-grabbing *,
   transition: transform 0.15s ease-out;
 }
 
-.arc-dates-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
+/* Milestones Quick Jump Tags */
+.timeline-milestones-row {
   width: 100%;
-  height: 100%;
-  pointer-events: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 10px 8px 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.arc-year-item {
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: transparent !important;
-  border: none !important;
-  outline: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  box-sizing: border-box;
-  font-family: var(--font-mono);
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.8px;
-  line-height: 1 !important;
-  height: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  color: #94a3b8;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95), 0 2px 10px rgba(0, 0, 0, 0.95), 0 0 16px rgba(0, 0, 0, 0.9);
-  white-space: nowrap;
-  cursor: pointer;
-  pointer-events: auto;
-  user-select: none;
-  -webkit-user-select: none;
-  transition: color 0.15s ease, text-shadow 0.15s ease;
-  will-change: transform, opacity;
-  transform-origin: left center;
-}
-
-.arc-year-item:hover {
-  color: #ffffff;
-  text-shadow: 0 0 14px rgba(0, 242, 254, 0.85), 0 1px 4px rgba(0, 0, 0, 0.95);
-}
-
-.arc-year-item.is-decade {
+.milestone-pill {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px 0;
+  text-align: center;
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
   font-weight: 700;
-  color: #e2e8f0;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
 }
 
-.arc-year-item.is-active {
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  color: var(--cyan-bright);
-  text-shadow: 0 0 18px rgba(0, 242, 254, 0.95), 0 0 35px rgba(0, 242, 254, 0.5), 0 2px 8px rgba(0, 0, 0, 0.95);
-  z-index: 10;
+.milestone-pill:hover {
+  color: #ffffff;
+  border-color: rgba(0, 242, 254, 0.45);
+  background: rgba(0, 242, 254, 0.1);
+  transform: translateY(-1px);
 }
+
+.milestone-pill.is-active {
+  background: rgba(0, 242, 254, 0.18);
+  border-color: var(--cyan-bright, #00f2fe);
+  color: var(--cyan-bright, #00f2fe);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.35);
+}
+
+.milestone-pill.is-live {
+  border-color: rgba(0, 242, 254, 0.35);
+  color: var(--cyan-bright, #00f2fe);
+  background: rgba(0, 242, 254, 0.15);
+  box-shadow: 0 0 8px rgba(0, 242, 254, 0.35);
+}
+
 
 
 /* ==========================================================================

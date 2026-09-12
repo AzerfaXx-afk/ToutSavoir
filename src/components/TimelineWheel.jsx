@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { ChevronRight, X } from 'lucide-react';
 import { sound } from '../utils/soundFX';
 
 // UN Official Historical & Projected Population Benchmark Datapoints (1950 - 2100)
@@ -36,13 +37,12 @@ export function getEstimatedPopulationForYear(year) {
 
 // ARC OF CIRCLE GEOMETRY CONSTANTS
 const VIEW_WIDTH = 220;
-const VIEW_HEIGHT = 540;
-const CENTER_Y = 270; // Precise vertical midpoint
-const RADIUS = 480; // Radius of circular arc
-const APEX_X = 60; // Apex of arc (rightmost point of circle)
-const CENTER_X = APEX_X - RADIUS; // -420px: Center of circle off-screen to left
-const DEG_PER_YEAR = 4.8; // Spacing per year in degrees (~40.2px arc length)
-const PIXELS_PER_YEAR = (RADIUS * (DEG_PER_YEAR * Math.PI)) / 180; // ~40.2px
+const VIEW_HEIGHT = 440;
+const CENTER_Y = 220; // Precise vertical midpoint
+const RADIUS = 420; // Radius of circular arc
+const APEX_X = 55; // Apex of arc (rightmost point of circle)
+const CENTER_X = APEX_X - RADIUS; // -365px
+const DEG_PER_YEAR = 5.2; // Spacing per year in degrees
 
 const MIN_YEAR = 1950;
 const MAX_YEAR = 2100;
@@ -50,8 +50,9 @@ const MAX_YEAR = 2100;
 export function TimelineWheel({ currentYear = 2026, onYearChange }) {
   const [displayYear, setDisplayYear] = useState(currentYear);
   const [isDragging, setIsDragging] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  // References for physics and smooth lerping
+  const widgetRef = useRef(null);
   const targetYearRef = useRef(currentYear);
   const displayYearRef = useRef(currentYear);
   const lastSoundYear = useRef(currentYear);
@@ -192,16 +193,41 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
     window.addEventListener('pointerup', handlePointerUp);
   }, [setTargetYearClamped]);
 
+  // Outside click & Escape listener to close unfolded timeline menu
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    const handlePointerDownOutside = (e) => {
+      if (widgetRef.current && !widgetRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('pointerdown', handlePointerDownOutside);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('pointerdown', handlePointerDownOutside);
+    };
+  }, [isOpen]);
+
   // Direct click on any year label
   const handleSelectYear = useCallback((yr, e) => {
-    e.stopPropagation();
+    if (e && e.stopPropagation) e.stopPropagation();
     sound.click(0.4);
     setTargetYearClamped(yr);
   }, [setTargetYearClamped]);
 
   // Compute SVG arc path geometry
   const arcPathD = useMemo(() => {
-    const spanDeg = 32.2;
+    const spanDeg = 28.5;
     const startRad = (-spanDeg * Math.PI) / 180;
     const endRad = (spanDeg * Math.PI) / 180;
 
@@ -216,7 +242,7 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
   // Generate visible graduations and year numbers
   const centerInt = Math.round(displayYear);
   const items = [];
-  const range = 6; // ±6 years
+  const range = 5; // ±5 years
 
   for (let offset = -range; offset <= range; offset++) {
     const y = centerInt + offset;
@@ -256,8 +282,8 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
     const textX = tickEndX + gap * normX;
     const textY = tickEndY + gap * normY;
 
-    const opacity = Math.max(0, 1 - Math.pow(absDelta / 4.5, 1.4));
-    const showText = isDecade || absDelta <= 3.8;
+    const opacity = Math.max(0, 1 - Math.pow(absDelta / 4.2, 1.4));
+    const showText = isDecade || absDelta <= 3.5;
 
     // Stroke style
     let stroke = 'rgba(255, 255, 255, 0.25)';
@@ -323,123 +349,193 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
   }
 
   const roundedActive = Math.round(displayYear);
+  const currentBenchmark = UN_POPULATION_BENCHMARKS.find((b) => b.year === roundedActive);
 
   return (
     <div
-      className={`timeline-arc-container ${isDragging ? 'is-dragging' : ''}`}
-      onWheel={handleWheel}
-      onPointerDown={handlePointerDown}
-      role="slider"
-      aria-valuemin={MIN_YEAR}
-      aria-valuemax={MAX_YEAR}
-      aria-valuenow={roundedActive}
-      aria-label="Arc temporel Awwwards"
-      title="Faire défiler ou glisser le long de l’arc"
+      ref={widgetRef}
+      className={`timeline-widget-wrapper ${isOpen ? 'is-open' : 'is-collapsed'}`}
     >
-      <svg
-        className="timeline-arc-svg"
-        width={VIEW_WIDTH}
-        height={VIEW_HEIGHT}
-        viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-      >
-        <defs>
-          {/* Vertical gradient fading the arc line at the extremities */}
-          <linearGradient id="arcGlowGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#00f2fe" stopOpacity="0" />
-            <stop offset="20%" stopColor="#00f2fe" stopOpacity="0.18" />
-            <stop offset="50%" stopColor="#00f2fe" stopOpacity="0.75" />
-            <stop offset="80%" stopColor="#00f2fe" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="#00f2fe" stopOpacity="0" />
-          </linearGradient>
+      {/* 1. Closed Pill Button (Always visible when collapsed) */}
+      {!isOpen && (
+        <button
+          type="button"
+          className="timeline-trigger-pill"
+          onClick={() => {
+            sound.click();
+            setIsOpen(true);
+          }}
+          onMouseEnter={() => sound.hover()}
+          title="Ouvrir le sélecteur chronologique (1950 - 2100)"
+          aria-label="Ouvrir le menu chronologique"
+        >
+          <div className="timeline-trigger-pulse-dot" />
+          <span className="timeline-trigger-year">{roundedActive}</span>
+          <span className="timeline-trigger-sep">//</span>
+          <span className="timeline-trigger-label">ANNÉE</span>
+          <ChevronRight size={13} className="timeline-trigger-chevron" />
+        </button>
+      )}
 
-          {/* Reticle laser glow filter */}
-          <filter id="reticleGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2.5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
+      {/* 2. Unfolded Glass Menu */}
+      {isOpen && (
+        <div className="timeline-unfold-menu">
+          {/* Menu Header */}
+          <div className="timeline-menu-header">
+            <div className="timeline-menu-title-block">
+              <div className="timeline-menu-meta-row">
+                <span className="timeline-menu-sub">CHRONOLOGIE MONDIALE</span>
+                <span className="timeline-menu-badge">1950 — 2100</span>
+              </div>
+              <div className="timeline-menu-year-row">
+                <span className="timeline-menu-year-big">{roundedActive}</span>
+                <span className="timeline-menu-era-tag">
+                  {currentBenchmark ? currentBenchmark.label : 'ÉVOLUTION HISTORIQUE'}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="timeline-menu-close-btn"
+              onClick={() => {
+                sound.click();
+                setIsOpen(false);
+              }}
+              title="Fermer (Échap)"
+              aria-label="Fermer"
+            >
+              <X size={14} />
+            </button>
+          </div>
 
-        {/* 1. Seamless Circular Arc Track */}
-        <path
-          d={arcPathD}
-          fill="none"
-          stroke="url(#arcGlowGradient)"
-          strokeWidth="1.4"
-          className="arc-track-line"
-        />
+          {/* Interactive Wheel Arc (Scrollable & Draggable) */}
+          <div
+            className={`timeline-arc-container ${isDragging ? 'is-dragging' : ''}`}
+            onWheel={handleWheel}
+            onPointerDown={handlePointerDown}
+            role="slider"
+            aria-valuemin={MIN_YEAR}
+            aria-valuemax={MAX_YEAR}
+            aria-valuenow={roundedActive}
+            aria-label="Arc temporel interactif"
+            title="Faites défiler à la molette ou glissez pour changer d'année"
+          >
+            <svg
+              className="timeline-arc-svg"
+              width={VIEW_WIDTH}
+              height={VIEW_HEIGHT}
+              viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+            >
+              <defs>
+                <linearGradient id="arcGlowGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#00f2fe" stopOpacity="0" />
+                  <stop offset="20%" stopColor="#00f2fe" stopOpacity="0.2" />
+                  <stop offset="50%" stopColor="#00f2fe" stopOpacity="0.8" />
+                  <stop offset="80%" stopColor="#00f2fe" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="#00f2fe" stopOpacity="0" />
+                </linearGradient>
 
-        {/* 2. Precision Laser Arrow Indicator pointing directly at date along horizontal centerline (Y = 270) */}
-        <g className="arc-apex-reticle" filter="url(#reticleGlow)">
-          {/* Horizontal laser shaft */}
-          <line
-            x1={24}
-            y1={CENTER_Y}
-            x2={50}
-            y2={CENTER_Y}
-            stroke="#00f2fe"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-          {/* Sleek arrowhead aligned with date */}
-          <path
-            d={`M 48 ${CENTER_Y - 4.5} L 57 ${CENTER_Y} L 48 ${CENTER_Y + 4.5} Z`}
-            fill="#00f2fe"
-          />
-        </g>
+                <filter id="reticleGlow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="2.5" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
 
-        {/* 3. Graduations (Ticks) and Dates - 100% perfectly aligned */}
-        {items.map((item) => {
-          if (item.opacity <= 0.01) return null;
-
-          return (
-            <g key={`item-${item.year}`}>
-              {/* Tick (Tiret) */}
-              <line
-                x1={item.arcX.toFixed(1)}
-                y1={item.arcY.toFixed(1)}
-                x2={item.tickEndX.toFixed(1)}
-                y2={item.tickEndY.toFixed(1)}
-                stroke={item.stroke}
-                strokeWidth={item.strokeWidth}
-                strokeLinecap="round"
-                opacity={item.opacity}
-                filter={item.isActive ? 'url(#reticleGlow)' : undefined}
+              {/* Seamless Circular Arc Track */}
+              <path
+                d={arcPathD}
+                fill="none"
+                stroke="url(#arcGlowGradient)"
+                strokeWidth="1.4"
+                className="arc-track-line"
               />
 
-              {/* Date text placed strictly in front of the tiret */}
-              {item.showText && (
-                <text
-                  x={item.textX.toFixed(1)}
-                  y={item.textY.toFixed(1)}
-                  dominantBaseline="central"
-                  textAnchor="start"
-                  fill={item.textColor}
-                  fontSize={item.fontSize}
-                  fontWeight={item.fontWeight}
-                  fontFamily="var(--font-mono, monospace)"
-                  letterSpacing={item.letterSpacing}
-                  opacity={item.opacity}
-                  filter={item.isActive ? 'url(#reticleGlow)' : undefined}
-                  transform={`rotate(${item.deg.toFixed(2)}, ${item.textX.toFixed(1)}, ${item.textY.toFixed(1)})`}
-                  style={{
-                    cursor: 'pointer',
-                    pointerEvents: 'auto',
-                    userSelect: 'none',
-                    transition: 'fill 0.15s ease, opacity 0.1s ease',
-                  }}
-                  onClick={(e) => handleSelectYear(item.year, e)}
-                  onMouseEnter={() => sound.hover(0.3)}
-                >
-                  {item.year}
-                </text>
-              )}
-            </g>
-          );
-        })}
-      </svg>
+              {/* Precision Laser Arrow Indicator */}
+              <g className="arc-apex-reticle" filter="url(#reticleGlow)">
+                <line
+                  x1={20}
+                  y1={CENTER_Y}
+                  x2={46}
+                  y2={CENTER_Y}
+                  stroke="#00f2fe"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <path
+                  d={`M 44 ${CENTER_Y - 4.5} L 52 ${CENTER_Y} L 44 ${CENTER_Y + 4.5} Z`}
+                  fill="#00f2fe"
+                />
+              </g>
+
+              {/* Graduations (Ticks) and Dates */}
+              {items.map((item) => {
+                if (item.opacity <= 0.01) return null;
+
+                return (
+                  <g key={`item-${item.year}`}>
+                    <line
+                      x1={item.arcX.toFixed(1)}
+                      y1={item.arcY.toFixed(1)}
+                      x2={item.tickEndX.toFixed(1)}
+                      y2={item.tickEndY.toFixed(1)}
+                      stroke={item.stroke}
+                      strokeWidth={item.strokeWidth}
+                      strokeLinecap="round"
+                      opacity={item.opacity}
+                      filter={item.isActive ? 'url(#reticleGlow)' : undefined}
+                    />
+
+                    {item.showText && (
+                      <text
+                        x={item.textX.toFixed(1)}
+                        y={item.textY.toFixed(1)}
+                        dominantBaseline="central"
+                        textAnchor="start"
+                        fill={item.textColor}
+                        fontSize={item.fontSize}
+                        fontWeight={item.fontWeight}
+                        fontFamily="var(--font-mono, monospace)"
+                        letterSpacing={item.letterSpacing}
+                        opacity={item.opacity}
+                        filter={item.isActive ? 'url(#reticleGlow)' : undefined}
+                        transform={`rotate(${item.deg.toFixed(2)}, ${item.textX.toFixed(1)}, ${item.textY.toFixed(1)})`}
+                        style={{
+                          cursor: 'pointer',
+                          pointerEvents: 'auto',
+                          userSelect: 'none',
+                          transition: 'fill 0.15s ease, opacity 0.1s ease',
+                        }}
+                        onClick={(e) => handleSelectYear(item.year, e)}
+                        onMouseEnter={() => sound.hover(0.3)}
+                      >
+                        {item.year}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+
+          {/* Quick-Jump Milestone Tags */}
+          <div className="timeline-milestones-row">
+            {[1950, 1980, 2000, 2026, 2050, 2100].map((yr) => (
+              <button
+                key={yr}
+                type="button"
+                className={`milestone-pill ${roundedActive === yr ? 'is-active' : ''} ${yr === 2026 ? 'is-live' : ''}`}
+                onClick={(e) => handleSelectYear(yr, e)}
+                onMouseEnter={() => sound.hover(0.25)}
+              >
+                {yr === 2026 ? '2026 LIVE' : yr}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
