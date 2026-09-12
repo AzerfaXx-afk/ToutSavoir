@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { realtimeStream } from '../utils/realtimeEvents';
 import {
-  WORLDOMETER_CATEGORIES,
   METRIC_DEFINITIONS,
   computeWorldometerMetrics,
 } from '../utils/worldometerMetrics';
@@ -20,158 +19,170 @@ import { TERRITORY_NAMES_FR } from '../utils/countryData';
 import {
   ChevronRight,
   ChevronLeft,
-  Activity,
-  Radio,
-  Globe,
-  Video,
-  Satellite,
-  ShieldAlert,
+  RefreshCw,
   Search,
-  Crosshair,
   X,
-  Clock,
+  Globe,
+  Crosshair,
+  Video,
+  ShieldAlert,
 } from 'lucide-react';
 import './LiveTelemetryDrawer.css';
 
-const DRAWER_TABS = [
-  { id: 'worldometer', label: 'WORLDOMETER', icon: Activity },
-  { id: 'intel', label: 'OSIRIS INTEL', icon: ShieldAlert },
-  { id: 'cctv', label: 'CCTV LIVE', icon: Video },
-  { id: 'satellites', label: 'SATELLITES', icon: Satellite },
-  { id: 'country', label: 'FICHE PAYS', icon: Globe },
+/* ── Unified Category System (replaces old tabs) ─────────────────── */
+const UNIFIED_CATEGORIES = [
+  { id: 'all', label: 'Tout', type: 'metrics' },
+  { id: 'population', label: 'Démographie', type: 'metrics' },
+  { id: 'economy', label: 'Économie', type: 'metrics' },
+  { id: 'environment', label: 'Environnement', type: 'metrics' },
+  { id: 'health', label: 'Santé', type: 'metrics' },
+  { id: 'media', label: 'Médias & Tech', type: 'metrics' },
+  { id: 'energy', label: 'Énergie', type: 'metrics' },
+  { id: 'food', label: 'Alimentation', type: 'metrics' },
+  { id: 'water', label: 'Eau', type: 'metrics' },
+  { id: 'video', label: 'Vidéo en Direct', type: 'cctv' },
+  { id: 'satellites', label: 'Satellites', type: 'satellites' },
+  { id: 'intel', label: 'Renseignement', type: 'intel' },
+  { id: 'country', label: 'Fiche Pays', type: 'country' },
 ];
 
+const CAT_LABELS_FR = {
+  population: 'Démographie',
+  economy: 'Économie',
+  media: 'Médias',
+  environment: 'Environnement',
+  food: 'Alimentation',
+  water: 'Eau',
+  energy: 'Énergie',
+  health: 'Santé',
+};
+
+const SCOPE_LABELS_FR = {
+  day: "Aujourd'hui",
+  year: 'Cette année',
+  instant: 'En direct',
+  fixed_countdown: 'Compte à rebours',
+};
+
+/* ── Component ───────────────────────────────────────────────────── */
 export function LiveTelemetryDrawer({
   selectedYear = 2026,
   isOpen: propIsOpen,
   onToggleOpen,
-  activeTab = 'worldometer',
+  activeTab,
   onTabChange,
   onSelectCCTV,
   onSelectSatellite,
   onSelectLocation,
   selectedCountry = 'FR',
 }) {
+  /* ── State ─────────────────────────────────────────────────────── */
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = propIsOpen !== undefined ? propIsOpen : internalIsOpen;
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [internalTab, setInternalTab] = useState('worldometer');
-  const currentTab = activeTab || internalTab;
   const [metrics, setMetrics] = useState(() => computeWorldometerMetrics(1));
-  const [stats, setStats] = useState({
-    worldPopulation: 8185420000,
-    birthsToday: 0,
-    deathsToday: 0,
-    netGrowthToday: 0,
-    recentEarthquakes: [],
-  });
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [localTime, setLocalTime] = useState('');
   const [localDate, setLocalDate] = useState('');
   const [timezoneName, setTimezoneName] = useState('');
+  const categoryScrollRef = useRef(null);
 
-  // Live Local Time Clock (exact local time of user location)
+  /* ── Live Clock ────────────────────────────────────────────────── */
   useEffect(() => {
-    const updateTime = () => {
+    const update = () => {
       const now = new Date();
-      const timeStr = now.toLocaleTimeString('fr-FR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-      });
-      const dateStr = now.toLocaleDateString('fr-FR', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      }).toUpperCase();
-
-      let tzStr = 'LOCAL';
+      setLocalTime(
+        now.toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        })
+      );
+      setLocalDate(
+        now
+          .toLocaleDateString('fr-FR', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })
+          .toUpperCase()
+      );
       try {
-        const resolved = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        if (resolved) {
-          tzStr = resolved.split('/').pop().replace(/_/g, ' ');
-        }
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        setTimezoneName(tz ? tz.split('/').pop().replace(/_/g, ' ') : 'Local');
       } catch {
-        tzStr = 'LOCAL';
+        setTimezoneName('Local');
       }
-
-      setLocalTime(timeStr);
-      setLocalDate(dateStr);
-      setTimezoneName(tzStr);
     };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
   }, []);
 
-  // Compute demographic scaling based on selectedYear
-  const yearMultiplier = useMemo(() => {
-    const popSelected = getEstimatedPopulationForYear(selectedYear);
-    return popSelected / 8185420000;
-  }, [selectedYear]);
+  /* ── Year multiplier for demographic scaling ───────────────────── */
+  const yearMultiplier = useMemo(
+    () => getEstimatedPopulationForYear(selectedYear) / 8185420000,
+    [selectedYear]
+  );
 
-  // High-frequency metrics ticker
+  /* ── High-frequency metrics ticker ─────────────────────────────── */
   useEffect(() => {
-    const tick = () => {
-      setMetrics(computeWorldometerMetrics(yearMultiplier));
-    };
+    const tick = () => setMetrics(computeWorldometerMetrics(yearMultiplier));
     tick();
-    const interval = setInterval(tick, 500);
-    return () => clearInterval(interval);
+    const id = setInterval(tick, 500);
+    return () => clearInterval(id);
   }, [yearMultiplier]);
 
-  // Realtime stream subscription
-  useEffect(() => {
-    const unsubscribe = realtimeStream.subscribe((data) => {
-      if (data.stats) {
-        setStats((prev) => ({
-          ...prev,
-          ...data.stats,
-        }));
-      }
-      if (data.earthquakes) {
-        setStats((prev) => ({
-          ...prev,
-          recentEarthquakes: data.earthquakes,
-        }));
-      }
-    });
+  /* ── Realtime stream (keep subscription alive) ─────────────────── */
+  useEffect(() => realtimeStream.subscribe(() => {}), []);
 
-    return unsubscribe;
-  }, []);
+  /* ── Active category type ──────────────────────────────────────── */
+  const activeType = useMemo(() => {
+    const cat = UNIFIED_CATEGORIES.find((c) => c.id === activeCategory);
+    return cat ? cat.type : 'metrics';
+  }, [activeCategory]);
 
-  const toggleOpen = () => {
-    sound.tick();
-    if (onToggleOpen) {
-      onToggleOpen(!isOpen);
-    } else {
-      setInternalIsOpen(!internalIsOpen);
-    }
-  };
-
-  const handleTabClick = (tabId) => {
-    sound.click(0.45);
-    setInternalTab(tabId);
-    if (onTabChange) onTabChange(tabId);
-  };
-
-  // Filter metrics
+  /* ── Filtered data ─────────────────────────────────────────────── */
   const filteredMetrics = useMemo(() => {
     return METRIC_DEFINITIONS.filter((def) => {
       const matchesCat = activeCategory === 'all' || def.cat === activeCategory;
+      const q = searchQuery.toLowerCase();
       const matchesSearch =
-        !searchQuery ||
-        def.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        def.unit.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        def.cat.toLowerCase().includes(searchQuery.toLowerCase());
+        !q ||
+        def.label.toLowerCase().includes(q) ||
+        def.unit.toLowerCase().includes(q) ||
+        (CAT_LABELS_FR[def.cat] || '').toLowerCase().includes(q);
       return matchesCat && matchesSearch;
     });
   }, [activeCategory, searchQuery]);
 
-  // Country Data resolution
+  const filteredCCTV = useMemo(() => {
+    if (!searchQuery) return CCTV_FEEDS;
+    const q = searchQuery.toLowerCase();
+    return CCTV_FEEDS.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        c.city.toLowerCase().includes(q) ||
+        c.country.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
+
+  const filteredSatellites = useMemo(() => {
+    if (!searchQuery) return SATELLITES_DATA;
+    const q = searchQuery.toLowerCase();
+    return SATELLITES_DATA.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        s.code.toLowerCase().includes(q) ||
+        s.country.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
+
+  /* ── Country data ──────────────────────────────────────────────── */
   const countryData = useMemo(() => {
     const code = selectedCountry || 'FR';
     return (
@@ -184,405 +195,446 @@ export function LiveTelemetryDrawer({
         milBudget: 'N/A',
         nukes: 'N/A',
         activeAlerts: 0,
-        status: 'Données en cours d’acquisition satellite',
+        status: "Données en cours d'acquisition satellite",
       }
     );
   }, [selectedCountry]);
 
+  /* ── Handlers ──────────────────────────────────────────────────── */
+  const toggleOpen = () => {
+    sound.tick();
+    if (onToggleOpen) onToggleOpen(!isOpen);
+    else setInternalIsOpen(!internalIsOpen);
+  };
+
+  const handleCategoryClick = (catId) => {
+    sound.click(0.4);
+    setActiveCategory(catId);
+    if (onTabChange) onTabChange(catId);
+  };
+
+  const handleRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    setMetrics(computeWorldometerMetrics(yearMultiplier));
+    sound.click(0.5);
+    setTimeout(() => setIsRefreshing(false), 800);
+  }, [yearMultiplier]);
+
+  const scrollCategories = (dir) => {
+    if (categoryScrollRef.current) {
+      categoryScrollRef.current.scrollBy({
+        left: dir === 'right' ? 200 : -200,
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  const getPlayableUrl = (url) => url.replace('controls=0', 'controls=1');
+
+  /* ── Content count for search indicator ────────────────────────── */
+  const contentCount = useMemo(() => {
+    if (activeType === 'metrics') return filteredMetrics.length;
+    if (activeType === 'cctv') return filteredCCTV.length;
+    if (activeType === 'satellites') return filteredSatellites.length;
+    return null;
+  }, [activeType, filteredMetrics, filteredCCTV, filteredSatellites]);
+
+  /* ── Render ────────────────────────────────────────────────────── */
   return (
     <aside className={`live-telemetry-drawer ${isOpen ? 'is-open' : 'is-closed'}`}>
-      {/* Drawer Toggle Tab on Left Edge */}
+      {/* Toggle Tab on Left Edge */}
       <button
         type="button"
         className="drawer-toggle-tab"
         onClick={toggleOpen}
         onMouseEnter={() => sound.hover()}
-        title={isOpen ? 'Réduire le panneau' : 'Ouvrir le centre de renseignement & télémétrie'}
+        title={isOpen ? 'Réduire le panneau' : 'Ouvrir le centre de données'}
         aria-label={isOpen ? 'Fermer le panneau' : 'Ouvrir le panneau'}
       >
         {isOpen ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-        <span className="toggle-tab-text">{isOpen ? 'RÉDUIRE' : 'CHRONOS // INTEL'}</span>
+        <span className="toggle-tab-text">
+          {isOpen ? 'RÉDUIRE' : 'CHRONOS // INTEL'}
+        </span>
         <span className="toggle-tab-dot" />
       </button>
 
-      {/* Drawer Inner Content */}
+      {/* Drawer Inner Panel */}
       <div className="drawer-panel-inner">
-        {/* Minimalist Awwwards Header: Exact Local Time & Live Status Only */}
+        {/* ─── Centered Clock Header ─── */}
         <div className="drawer-header">
-          <div className="drawer-header-left">
-            <div className="drawer-live-pulse">
-              <span className="live-pulse-dot" />
-              <span className="live-pulse-label">TÉLÉMÉTRIE EN DIRECT</span>
-            </div>
-            <span className="drawer-timezone-tag">{timezoneName}</span>
-          </div>
-          <div className="drawer-header-right">
-            <div className="drawer-time-lockup">
-              <span className="drawer-local-time">{localTime}</span>
-              <span className="drawer-local-date">{localDate}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 5 Primary Intelligence Tabs (Neumorphic) */}
-        <div className="drawer-primary-tabs">
-          {DRAWER_TABS.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = currentTab === tab.id;
-            return (
+          <div className="drawer-clock-center">
+            <span className="drawer-time-big">{localTime}</span>
+            <span className="drawer-date-text">{localDate}</span>
+            <div className="drawer-tz-row">
+              <span className="drawer-tz-name">{timezoneName}</span>
               <button
-                key={tab.id}
                 type="button"
-                className={`drawer-tab-btn ${isActive ? 'is-active' : ''}`}
-                onClick={() => handleTabClick(tab.id)}
+                className={`drawer-refresh-btn ${isRefreshing ? 'is-spinning' : ''}`}
+                onClick={handleRefresh}
+                title="Actualiser les données"
               >
-                <Icon size={12} strokeWidth={isActive ? 2.4 : 1.8} />
-                <span>{tab.label}</span>
+                <RefreshCw size={12} />
               </button>
-            );
-          })}
-        </div>
-
-        {/* TAB 1: WORLDOMETER LIVE */}
-        {currentTab === 'worldometer' && (
-          <div className="drawer-scroll-area">
-            {/* Hero Demographic Card (Neumorphic) */}
-            <div className="hero-counter-card">
-              <div className="hero-counter-top">
-                <div className="hero-tag-badge">
-                  <Globe size={11} className="text-cyan" />
-                  <span>
-                    {selectedYear !== 2026
-                      ? `ESTIMATION // ANNÉE ${selectedYear}`
-                      : 'HORLOGE DÉMOGRAPHIQUE MONDIALE'}
-                  </span>
-                </div>
-                <span className="hero-live-badge">TEMPS RÉEL</span>
-              </div>
-              <div className="hero-counter-val">
-                {selectedYear !== 2026
-                  ? getEstimatedPopulationForYear(selectedYear).toLocaleString('fr-FR')
-                  : (metrics.world_pop || stats.worldPopulation).toLocaleString('fr-FR')}
-              </div>
-              <div className="hero-counter-bottom">
-                <span className="hero-counter-sub">
-                  HABITANTS SUR TERRE // SOURCE ONU & WORLDOMETER
-                </span>
-                <span className="hero-counter-growth">
-                  +4.2 / sec
-                </span>
-              </div>
-            </div>
-
-            {/* Category Filter Chips (Neumorphic Horizontal Scroll) */}
-            <div className="category-chips-scroll">
-              {WORLDOMETER_CATEGORIES.map((cat) => {
-                const isActive = activeCategory === cat.id;
-                const count = cat.id === 'all'
-                  ? METRIC_DEFINITIONS.length
-                  : METRIC_DEFINITIONS.filter((m) => m.cat === cat.id).length;
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    className={`category-chip-btn ${isActive ? 'is-active' : ''}`}
-                    onClick={() => {
-                      sound.click(0.4);
-                      setActiveCategory(cat.id);
-                    }}
-                  >
-                    <span>{cat.shortLabel}</span>
-                    <span className="chip-count">{count}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Metrics Search Filter (Neumorphic Inset) */}
-            <div className="drawer-search-row">
-              <div className="drawer-search-box">
-                <Search size={13} className="search-icon" />
-                <input
-                  type="text"
-                  className="drawer-search-input"
-                  placeholder="Rechercher un indicateur (ex: naissances, CO2, PIB, pétrole)..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    className="search-clear-btn"
-                    onClick={() => setSearchQuery('')}
-                    title="Effacer la recherche"
-                  >
-                    <X size={11} />
-                  </button>
-                )}
-              </div>
-              <span className="search-results-count">
-                {filteredMetrics.length} / {METRIC_DEFINITIONS.length}
-              </span>
-            </div>
-
-            {/* Worldometer Metrics Cards Grid (Neumorphic Tiles) */}
-            <div className="metrics-grid">
-              {filteredMetrics.map((def) => {
-                const val = metrics[def.id] !== undefined ? metrics[def.id] : 0;
-                const formattedVal = Number(val).toLocaleString('fr-FR');
-                return (
-                  <div key={def.id} className="metric-card">
-                    <div className="metric-card-header">
-                      <span className={`metric-category-tag cat-${def.cat}`}>
-                        {def.cat.toUpperCase()}
-                      </span>
-                      <span className={`metric-scope-badge scope-${def.scope}`}>
-                        {def.scope === 'day'
-                          ? 'AUJOURD’HUI'
-                          : def.scope === 'year'
-                          ? 'ANNUEL'
-                          : 'EN DIRECT'}
-                      </span>
-                    </div>
-                    <div
-                      className="metric-value-num"
-                      style={{ color: def.color || 'var(--cyan-bright)' }}
-                    >
-                      {def.prefix || ''}{formattedVal}
-                    </div>
-                    <div className="metric-label-text">{def.label}</div>
-                    <div className="metric-unit-text">{def.unit}</div>
-                  </div>
-                );
-              })}
             </div>
           </div>
-        )}
+        </div>
 
-        {/* TAB 2: OSIRIS INTEL FEED */}
-        {currentTab === 'intel' && (
-          <div className="drawer-scroll-area">
-            <div className="osiris-bulletins-list">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--cyan-bright)' }}>
-                  BULLETINS DE DÉFENSE & SITUATION
-                </span>
-                <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)' }}>
-                  {LIVE_BULLETINS.length} DÉPÊCHES
-                </span>
+        {/* ─── Category Navigation with Arrows ─── */}
+        <div className="drawer-categories-nav">
+          <button
+            type="button"
+            className="cat-arrow-btn"
+            onClick={() => scrollCategories('left')}
+            aria-label="Défiler vers la gauche"
+          >
+            <ChevronLeft size={14} />
+          </button>
+
+          <div className="cat-chips-container" ref={categoryScrollRef}>
+            {UNIFIED_CATEGORIES.map((cat) => {
+              const isActive = activeCategory === cat.id;
+              const count =
+                cat.type === 'metrics'
+                  ? cat.id === 'all'
+                    ? METRIC_DEFINITIONS.length
+                    : METRIC_DEFINITIONS.filter((m) => m.cat === cat.id).length
+                  : cat.type === 'cctv'
+                  ? CCTV_FEEDS.length
+                  : cat.type === 'satellites'
+                  ? SATELLITES_DATA.length
+                  : cat.type === 'intel'
+                  ? LIVE_BULLETINS.length + HOTSPOTS.length
+                  : null;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  className={`cat-chip ${isActive ? 'is-active' : ''}`}
+                  onClick={() => handleCategoryClick(cat.id)}
+                >
+                  <span className="cat-chip-label">{cat.label}</span>
+                  {count !== null && (
+                    <span className="cat-chip-count">{count}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            className="cat-arrow-btn"
+            onClick={() => scrollCategories('right')}
+            aria-label="Défiler vers la droite"
+          >
+            <ChevronRight size={14} />
+          </button>
+        </div>
+
+        {/* ─── Search Bar ─── */}
+        <div className="drawer-search-row">
+          <div className="drawer-search-box">
+            <Search size={13} className="search-icon" />
+            <input
+              type="text"
+              className="drawer-search-input"
+              placeholder="Rechercher..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="search-clear-btn"
+                onClick={() => setSearchQuery('')}
+                title="Effacer"
+              >
+                <X size={11} />
+              </button>
+            )}
+          </div>
+          {contentCount !== null && (
+            <span className="search-results-count">{contentCount}</span>
+          )}
+        </div>
+
+        {/* ─── Content Scroll Area ─── */}
+        <div className="drawer-scroll-area">
+          {/* ── METRICS ── */}
+          {activeType === 'metrics' && (
+            <>
+              {filteredMetrics.length === 0 ? (
+                <div className="empty-state">Aucun résultat trouvé.</div>
+              ) : (
+                <div className="metrics-grid">
+                  {filteredMetrics.map((def, i) => {
+                    const val = metrics[def.id] !== undefined ? metrics[def.id] : 0;
+                    return (
+                      <div
+                        key={def.id}
+                        className="metric-card"
+                        style={{ animationDelay: `${i * 0.03}s` }}
+                      >
+                        <div className="metric-card-header">
+                          <span className={`metric-cat-tag cat-${def.cat}`}>
+                            {CAT_LABELS_FR[def.cat] || def.cat}
+                          </span>
+                          <span className="metric-scope">
+                            {SCOPE_LABELS_FR[def.scope] || ''}
+                          </span>
+                        </div>
+                        <div
+                          className="metric-value"
+                          style={{ color: def.color || 'var(--cyan-bright)' }}
+                        >
+                          {def.prefix || ''}
+                          {Number(val).toLocaleString('fr-FR')}
+                        </div>
+                        <div className="metric-label">{def.label}</div>
+                        <div className="metric-unit">{def.unit}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── CCTV EN DIRECT ── */}
+          {activeType === 'cctv' && (
+            <>
+              {filteredCCTV.length === 0 ? (
+                <div className="empty-state">Aucun flux trouvé.</div>
+              ) : (
+                <div className="cctv-live-grid">
+                  {filteredCCTV.map((cam, i) => (
+                    <div
+                      key={cam.id}
+                      className="cctv-live-card"
+                      style={{ animationDelay: `${i * 0.06}s` }}
+                    >
+                      <div className="cctv-iframe-wrap">
+                        <iframe
+                          src={getPlayableUrl(cam.embedUrl)}
+                          title={cam.name}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          loading="lazy"
+                        />
+                        <div className="cctv-live-badge">
+                          <span className="cctv-rec-dot" />
+                          <span>EN DIRECT</span>
+                        </div>
+                      </div>
+                      <div className="cctv-live-info">
+                        <div className="cctv-live-title">{cam.name}</div>
+                        <div className="cctv-live-location">
+                          {cam.city}, {cam.country}
+                        </div>
+                        <div className="cctv-live-meta">
+                          <span>{cam.resolution}</span>
+                          <span className="cctv-category-tag">{cam.category}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── SATELLITES ── */}
+          {activeType === 'satellites' && (
+            <>
+              {filteredSatellites.length === 0 ? (
+                <div className="empty-state">Aucun satellite trouvé.</div>
+              ) : (
+                <div className="sat-grid">
+                  {filteredSatellites.map((sat, i) => (
+                    <div
+                      key={sat.id}
+                      className="sat-card"
+                      style={{ animationDelay: `${i * 0.04}s` }}
+                    >
+                      <div className="sat-card-top">
+                        <div className="sat-card-name">{sat.name}</div>
+                        <span className="sat-card-code">{sat.code}</span>
+                      </div>
+                      <div className="sat-card-type">
+                        {sat.type} — {sat.country}
+                      </div>
+                      <div className="sat-telemetry-row">
+                        <div className="sat-stat">
+                          <span className="sat-stat-label">Altitude</span>
+                          <span className="sat-stat-value">
+                            {sat.altitudeKm.toLocaleString('fr-FR')} km
+                          </span>
+                        </div>
+                        <div className="sat-stat">
+                          <span className="sat-stat-label">Vitesse</span>
+                          <span className="sat-stat-value">
+                            {sat.speedKmh.toLocaleString('fr-FR')} km/h
+                          </span>
+                        </div>
+                        <div className="sat-stat">
+                          <span className="sat-stat-label">Inclinaison</span>
+                          <span className="sat-stat-value">{sat.inclination}°</span>
+                        </div>
+                      </div>
+                      <div className="sat-card-bottom">
+                        <span className="sat-norad">
+                          NORAD {sat.noradId} • {sat.status}
+                        </span>
+                        <button
+                          type="button"
+                          className="sat-target-btn"
+                          onClick={() => {
+                            sound.click();
+                            if (onSelectSatellite) onSelectSatellite(sat);
+                          }}
+                        >
+                          <Crosshair size={10} />
+                          <span>Cibler</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── RENSEIGNEMENT ── */}
+          {activeType === 'intel' && (
+            <div className="intel-feed">
+              <div className="intel-section-title">
+                <ShieldAlert size={13} />
+                <span>Bulletins de situation</span>
+                <span className="intel-count">{LIVE_BULLETINS.length}</span>
               </div>
-
-              {LIVE_BULLETINS.map((b) => (
+              {LIVE_BULLETINS.map((b, i) => (
                 <div
                   key={b.id}
-                  className={`bulletin-card ${b.level === 'CRITICAL' || b.level === 'CRITIQUE' ? 'is-critical' : 'is-warning'}`}
+                  className={`bulletin-card ${
+                    b.level === 'CRITICAL' || b.level === 'CRITIQUE'
+                      ? 'is-critical'
+                      : 'is-info'
+                  }`}
+                  style={{ animationDelay: `${i * 0.04}s` }}
                 >
                   <div className="bulletin-header">
-                    <span className="bulletin-badge">{b.tag}</span>
+                    <span className="bulletin-tag">{b.tag}</span>
                     <span className="bulletin-time">{b.time}</span>
                   </div>
                   <div className="bulletin-title">{b.title}</div>
                   <div className="bulletin-body">{b.text}</div>
-                  <span style={{ fontSize: '8.5px', color: 'rgba(255,255,255,0.3)', marginTop: '2px' }}>
-                    SOURCE // {b.origin}
-                  </span>
+                  <span className="bulletin-source">Source : {b.origin}</span>
                 </div>
               ))}
 
-              <div style={{ marginTop: '16px', fontSize: '11px', fontWeight: 700, color: '#ff3366', padding: '0 4px' }}>
-                POINTS CHAUDS GÉOPOLITIQUES CRITIQUES
+              <div className="intel-section-title intel-section-gap">
+                <Globe size={13} />
+                <span>Points chauds géopolitiques</span>
+                <span className="intel-count">{HOTSPOTS.length}</span>
               </div>
-
-              {HOTSPOTS.map((spot) => (
+              {HOTSPOTS.map((spot, i) => (
                 <div
                   key={spot.id}
-                  className="bulletin-card is-critical"
-                  style={{ cursor: 'pointer' }}
+                  className="bulletin-card is-critical is-clickable"
+                  style={{
+                    animationDelay: `${(LIVE_BULLETINS.length + i) * 0.04}s`,
+                  }}
                   onClick={() => {
                     sound.click();
                     if (onSelectLocation) onSelectLocation(spot.lat, spot.lng, 6);
                   }}
                 >
                   <div className="bulletin-header">
-                    <span className="bulletin-badge">{spot.level}</span>
+                    <span className="bulletin-tag">{spot.level}</span>
                     <span className="bulletin-time">{spot.lastUpdate}</span>
                   </div>
                   <div className="bulletin-title">{spot.name}</div>
-                  <div className="bulletin-body">{spot.status} — {spot.details}</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-                    <span style={{ fontSize: '8.5px', color: '#ff3366', fontWeight: 700 }}>
-                      MISSILES ACTIFS: {spot.activeMissiles}
+                  <div className="bulletin-body">
+                    {spot.status} — {spot.details}
+                  </div>
+                  <div className="bulletin-actions">
+                    <span className="bulletin-missiles">
+                      Missiles actifs : {spot.activeMissiles}
                     </span>
-                    <span style={{ fontSize: '8.5px', color: 'var(--cyan-bright)', textDecoration: 'underline' }}>
-                      Cibler sur la carte ➔
+                    <span className="bulletin-target-link">
+                      Cibler sur la carte →
                     </span>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* TAB 3: CCTV LIVE FEEDS */}
-        {currentTab === 'cctv' && (
-          <div className="drawer-scroll-area">
-            <div className="cctv-cards-grid">
-              {CCTV_FEEDS.map((cam) => (
-                <div
-                  key={cam.id}
-                  className="cctv-preview-card"
-                  onClick={() => {
-                    sound.click();
-                    if (onSelectCCTV) onSelectCCTV(cam);
-                  }}
-                >
-                  <div className="cctv-card-media">
-                    <img
-                      src={cam.thumbnail}
-                      alt={cam.name}
-                      className="cctv-card-img"
-                      loading="lazy"
-                    />
-                    <div className="cctv-card-badge">
-                      <span className="cctv-rec-dot" />
-                      <span>{cam.status}</span>
-                    </div>
-                    <div className="cctv-card-res">{cam.resolution}</div>
-                  </div>
-
-                  <div className="cctv-card-body">
-                    <div className="cctv-card-title">{cam.name}</div>
-                    <div className="cctv-card-sub">{cam.city}, {cam.country}</div>
-                    <button
-                      type="button"
-                      className="cctv-card-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        sound.click();
-                        if (onSelectCCTV) onSelectCCTV(cam);
-                      }}
-                    >
-                      <Video size={11} />
-                      <span>OUVRIR LE DIRECT</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 4: SATELLITES TRACKER */}
-        {currentTab === 'satellites' && (
-          <div className="drawer-scroll-area">
-            <div className="sat-cards-grid">
-              {SATELLITES_DATA.map((sat) => (
-                <div key={sat.id} className="sat-card">
-                  <div className="sat-card-top">
-                    <div className="sat-card-name">{sat.name}</div>
-                    <span className="sat-card-tag">{sat.code}</span>
-                  </div>
-
-                  <span style={{ fontSize: '9.5px', color: 'rgba(255,255,255,0.5)' }}>
-                    {sat.type} // {sat.country}
-                  </span>
-
-                  <div className="sat-telemetry-row">
-                    <div className="sat-stat-box">
-                      <span className="sat-stat-k">Altitude</span>
-                      <span className="sat-stat-v">{sat.altitudeKm} km</span>
-                    </div>
-                    <div className="sat-stat-box">
-                      <span className="sat-stat-k">Vitesse</span>
-                      <span className="sat-stat-v">{sat.speedKmh.toLocaleString()} km/h</span>
-                    </div>
-                    <div className="sat-stat-box">
-                      <span className="sat-stat-k">Inclinaison</span>
-                      <span className="sat-stat-v">{sat.inclination}°</span>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
-                    <span style={{ fontSize: '9px', color: 'var(--cyan-bright)' }}>
-                      NORAD ID: {sat.noradId} • {sat.status}
-                    </span>
-                    <button
-                      type="button"
-                      className="cctv-card-btn"
-                      style={{ padding: '4px 8px', marginTop: 0 }}
-                      onClick={() => {
-                        sound.click();
-                        if (onSelectSatellite) onSelectSatellite(sat);
-                      }}
-                    >
-                      <Crosshair size={10} />
-                      <span>CIBLER</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 5: COUNTRY DOSSIER */}
-        {currentTab === 'country' && (
-          <div className="drawer-scroll-area">
-            <div className="country-dossier-view">
-              <div className="country-dossier-header">
-                <span style={{ fontSize: '9.5px', color: 'var(--cyan-bright)', fontFamily: 'var(--font-mono)' }}>
-                  FICHE DE SOUVERAINETÉ & GÉOPOLITIQUE
+          {/* ── FICHE PAYS ── */}
+          {activeType === 'country' && (
+            <div className="country-dossier">
+              <div className="country-header">
+                <span className="country-subtitle">
+                  Fiche de souveraineté & géopolitique
                 </span>
-                <div className="country-dossier-title">{countryData.name}</div>
-                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>
+                <div className="country-name">{countryData.name}</div>
+                <span className="country-capital">
                   Capitale : {countryData.capital}
                 </span>
               </div>
-
-              <div className="country-dossier-grid">
-                <div className="dossier-stat-card">
-                  <span className="dossier-stat-label">Niveau d'Alerte</span>
-                  <span className="dossier-stat-val" style={{ color: '#ff3366' }}>
-                    {countryData.defcon}
-                  </span>
-                </div>
-                <div className="dossier-stat-card">
-                  <span className="dossier-stat-label">Indice de Risque</span>
-                  <span className="dossier-stat-val">{countryData.riskIndex}</span>
-                </div>
-                <div className="dossier-stat-card">
-                  <span className="dossier-stat-label">Population</span>
-                  <span className="dossier-stat-val">{countryData.pop}</span>
-                </div>
-                <div className="dossier-stat-card">
-                  <span className="dossier-stat-label">Budget Défense</span>
-                  <span className="dossier-stat-val" style={{ color: '#ffb703' }}>
-                    {countryData.milBudget}
-                  </span>
-                </div>
-                <div className="dossier-stat-card">
-                  <span className="dossier-stat-label">Arsenal Nucléaire</span>
-                  <span className="dossier-stat-val" style={{ color: '#ff0055' }}>
-                    {countryData.nukes}
-                  </span>
-                </div>
-                <div className="dossier-stat-card">
-                  <span className="dossier-stat-label">Alertes Actives</span>
-                  <span className="dossier-stat-val">{countryData.activeAlerts}</span>
-                </div>
+              <div className="country-grid">
+                {[
+                  {
+                    label: "Niveau d'alerte",
+                    value: countryData.defcon,
+                    color: '#ef4444',
+                  },
+                  {
+                    label: 'Indice de risque',
+                    value: countryData.riskIndex,
+                    color: null,
+                  },
+                  {
+                    label: 'Population',
+                    value: countryData.pop,
+                    color: null,
+                  },
+                  {
+                    label: 'Budget défense',
+                    value: countryData.milBudget,
+                    color: '#f59e0b',
+                  },
+                  {
+                    label: 'Arsenal nucléaire',
+                    value: countryData.nukes,
+                    color: '#ef4444',
+                  },
+                  {
+                    label: 'Alertes actives',
+                    value: countryData.activeAlerts,
+                    color: null,
+                  },
+                ].map((item) => (
+                  <div key={item.label} className="country-stat">
+                    <span className="country-stat-label">{item.label}</span>
+                    <span
+                      className="country-stat-value"
+                      style={item.color ? { color: item.color } : undefined}
+                    >
+                      {item.value}
+                    </span>
+                  </div>
+                ))}
               </div>
-
-              <div className="bulletin-card" style={{ marginTop: '8px' }}>
-                <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>
-                  STATUT OPÉRATIONNEL DES FORCES
+              <div className="country-status-card">
+                <span className="country-status-label">
+                  Statut opérationnel des forces
                 </span>
-                <div style={{ fontSize: '11px', color: '#ffffff', marginTop: '4px' }}>
-                  {countryData.status}
-                </div>
+                <div className="country-status-text">{countryData.status}</div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </aside>
   );
