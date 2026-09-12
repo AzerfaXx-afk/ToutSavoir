@@ -25,6 +25,7 @@ export function TacticalMap2D({
   const mapInstanceRef = useRef(null);
   const geoJsonLayerRef = useRef(null);
   const selectedLayerRef = useRef(null);
+  const hoveredLayerRef = useRef(null);
 
   const pulsesLayerRef = useRef(null);
   const aviationLayerRef = useRef(null);
@@ -167,7 +168,7 @@ export function TacticalMap2D({
       osm: osmLayer,
     };
 
-    // Track cursor GPS coordinates
+    // Track cursor GPS coordinates & reset hover if moving over ocean
     map.on('mousemove', (e) => {
       const clampedLat = Math.max(-85, Math.min(85, e.latlng.lat));
       const clampedLng = ((((e.latlng.lng + 180) % 360) + 360) % 360) - 180;
@@ -181,6 +182,57 @@ export function TacticalMap2D({
         x: e.originalEvent.clientX,
         y: e.originalEvent.clientY,
       });
+
+      // If cursor is moving over ocean or outside any country polygon, clear hovered country
+      const targetEl = e.originalEvent?.target;
+      const isOverCountry =
+        targetEl &&
+        targetEl.tagName === 'path' &&
+        (targetEl.classList.contains('country-path-base') ||
+          targetEl.classList.contains('country-path-elevated') ||
+          targetEl.classList.contains('country-path-selected'));
+
+      if (!isOverCountry && hoveredLayerRef.current) {
+        const prev = hoveredLayerRef.current;
+        if (prev !== selectedLayerRef.current && geoJsonLayerRef.current) {
+          geoJsonLayerRef.current.resetStyle(prev);
+          if (prev._path) {
+            prev._path.classList.remove('country-path-elevated');
+          }
+        }
+        hoveredLayerRef.current = null;
+        setHoveredCountry(null);
+      }
+    });
+
+    // Reset hover when dragging/panning the map
+    map.on('dragstart', () => {
+      if (hoveredLayerRef.current) {
+        const prev = hoveredLayerRef.current;
+        if (prev !== selectedLayerRef.current && geoJsonLayerRef.current) {
+          geoJsonLayerRef.current.resetStyle(prev);
+          if (prev._path) {
+            prev._path.classList.remove('country-path-elevated');
+          }
+        }
+        hoveredLayerRef.current = null;
+        setHoveredCountry(null);
+      }
+    });
+
+    // Reset hover when mouse leaves the map
+    map.on('mouseout', () => {
+      if (hoveredLayerRef.current) {
+        const prev = hoveredLayerRef.current;
+        if (prev !== selectedLayerRef.current && geoJsonLayerRef.current) {
+          geoJsonLayerRef.current.resetStyle(prev);
+          if (prev._path) {
+            prev._path.classList.remove('country-path-elevated');
+          }
+        }
+        hoveredLayerRef.current = null;
+        setHoveredCountry(null);
+      }
     });
 
     // Close selected card & unhighlight when clicking empty ocean
@@ -196,6 +248,8 @@ export function TacticalMap2D({
             }
           });
         }
+        hoveredLayerRef.current = null;
+        setHoveredCountry(null);
         selectedLayerRef.current = null;
         setSelectedTerritory(null);
       }
@@ -422,13 +476,32 @@ export function TacticalMap2D({
             layer.on({
               mouseover: (e) => {
                 const target = e.target;
-                // Only change style if not currently selected
+
+                // 1. Strictly single-country hover: if another layer was hovered, reset it immediately!
+                if (hoveredLayerRef.current && hoveredLayerRef.current !== target) {
+                  const prev = hoveredLayerRef.current;
+                  if (prev !== selectedLayerRef.current) {
+                    geoLayer.resetStyle(prev);
+                    if (prev._path) {
+                      prev._path.classList.remove('country-path-elevated');
+                    }
+                  }
+                }
+
+                // 2. Set this target as the unique hovered layer
+                hoveredLayerRef.current = target;
+
+                // 3. Elevate only if not currently selected
                 if (target !== selectedLayerRef.current) {
                   target.setStyle(hoverStyle);
-                  target.bringToFront();
                   if (target._path) {
                     target._path.classList.add('country-path-elevated');
                   }
+                }
+
+                // Ensure selected layer remains visually on top
+                if (selectedLayerRef.current && selectedLayerRef.current !== target) {
+                  selectedLayerRef.current.bringToFront();
                 }
 
                 sound.hover();
@@ -448,18 +521,17 @@ export function TacticalMap2D({
                 // If this is the currently selected country, keep its selected style!
                 if (target === selectedLayerRef.current) {
                   target.setStyle(selectedStyle);
-                  target.bringToFront();
                   if (target._path) {
                     target._path.classList.add('country-path-selected');
                   }
                 } else {
                   geoLayer.resetStyle(target);
-                  // Ensure selected layer remains on top
-                  if (selectedLayerRef.current) {
-                    selectedLayerRef.current.bringToFront();
-                  }
                 }
-                setHoveredCountry(null);
+
+                if (hoveredLayerRef.current === target) {
+                  hoveredLayerRef.current = null;
+                  setHoveredCountry(null);
+                }
               },
               click: (e) => {
                 // Only left click selects
@@ -480,12 +552,14 @@ export function TacticalMap2D({
                   }
                 });
 
-                // 2. Apply persistent glowing selected style to target
+                // 2. Clear hover and apply persistent glowing selected style to target
+                hoveredLayerRef.current = null;
                 selectedLayerRef.current = target;
                 target.setStyle(selectedStyle);
                 target.bringToFront();
                 if (target._path) {
                   target._path.classList.add('country-path-selected');
+                  target._path.classList.remove('country-path-elevated');
                 }
 
                 const bounds = target.getBounds();
