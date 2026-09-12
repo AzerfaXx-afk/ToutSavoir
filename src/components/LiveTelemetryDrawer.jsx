@@ -9,6 +9,7 @@ import { sound } from '../utils/soundFX';
 import {
   SATELLITES_DATA,
   CCTV_FEEDS,
+  DEFENSE_COMMODITIES_MARKETS,
 } from '../data/osirisStreams';
 import {
   LIVE_BULLETINS,
@@ -28,43 +29,111 @@ import {
   Calendar,
   Maximize2,
   BookOpen,
+  Globe,
+  TrendingUp,
+  TrendingDown,
+  Terminal,
+  ShieldCheck,
+  Activity,
+  Database,
+  Server,
+  Zap,
 } from 'lucide-react';
 import { ChronoJournalTab } from './ChronoJournalTab';
 import './LiveTelemetryDrawer.css';
 
-/* ── Unified Category System (replaces old tabs) ─────────────────── */
+/* ── Unified Category System (Worldometer 64-Metrics & Osiris Feeds) ── */
 const UNIFIED_CATEGORIES = [
   { id: 'all', label: 'Tout', type: 'metrics' },
   { id: 'population', label: 'Démographie', type: 'metrics' },
-  { id: 'economy', label: 'Économie', type: 'metrics' },
+  { id: 'economy', label: 'Économie & Gouv', type: 'metrics' },
+  { id: 'media', label: 'Société & Médias', type: 'metrics' },
   { id: 'environment', label: 'Environnement', type: 'metrics' },
-  { id: 'health', label: 'Santé', type: 'metrics' },
-  { id: 'media', label: 'Médias & Tech', type: 'metrics' },
-  { id: 'energy', label: 'Énergie', type: 'metrics' },
   { id: 'food', label: 'Alimentation', type: 'metrics' },
-  { id: 'water', label: 'Eau', type: 'metrics' },
+  { id: 'water', label: 'Eau Potable', type: 'metrics' },
+  { id: 'energy', label: 'Énergie & Réserves', type: 'metrics' },
+  { id: 'health', label: 'Santé Publique', type: 'metrics' },
+  { id: 'defense_markets', label: 'Marchés & Défense', type: 'markets' },
   { id: 'video', label: 'Vidéo en Direct', type: 'cctv' },
   { id: 'satellites', label: 'Satellites', type: 'satellites' },
+  { id: 'osint', label: 'OSINT Recon', type: 'osint' },
   { id: 'intel', label: 'Renseignement', type: 'intel' },
   { id: 'country', label: 'Fiche Pays', type: 'country' },
 ];
 
 const CAT_LABELS_FR = {
   population: 'Démographie',
-  economy: 'Économie',
-  media: 'Médias',
+  economy: 'Économie & Gouv',
+  media: 'Société & Médias',
   environment: 'Environnement',
   food: 'Alimentation',
-  water: 'Eau',
-  energy: 'Énergie',
-  health: 'Santé',
+  water: 'Eau Potable',
+  energy: 'Énergie & Réserves',
+  health: 'Santé Publique',
 };
 
 const SCOPE_LABELS_FR = {
   day: "Aujourd'hui",
   year: 'Cette année',
   instant: 'En direct',
-  fixed_countdown: 'Compte à rebours',
+  resource_countdown: 'Réserves mondiales',
+  fixed_countdown: 'Épuisement estimé',
+};
+
+/* ── OSINT Recon Intelligence Records (Osiris Parity) ────────────── */
+const OSINT_DOSSIERS = {
+  '8.8.8.8': {
+    target: '8.8.8.8 (Google Public DNS)',
+    type: 'Anycast DNS Resolver',
+    asn: 'AS15169 GOOGLE',
+    org: 'Google LLC',
+    country: 'États-Unis (Global Anycast)',
+    reverseDns: 'dns.google',
+    threatScore: '0 / 100 (Sûr)',
+    threatLevel: 'safe',
+    ports: '53/UDP (DNS), 853/TCP (DoT), 443/TCP (DoH)',
+    status: 'Opérationnel // 100% SLA',
+    description: 'Nœud DNS primaire mondial avec filtrage DNSSEC et protection DDoS BGP Anycast.',
+  },
+  '1.1.1.1': {
+    target: '1.1.1.1 (Cloudflare DNS)',
+    type: 'Privacy-First DNS Anycast',
+    asn: 'AS13335 CLOUDFLARENET',
+    org: 'Cloudflare Inc. / APNIC',
+    country: 'Australie / Global Anycast',
+    reverseDns: 'one.one.one.one',
+    threatScore: '0 / 100 (Sûr)',
+    threatLevel: 'safe',
+    ports: '53/UDP, 853/TCP (DoT), 443/TCP (DoH/WARP)',
+    status: 'Opérationnel // Latence < 12ms',
+    description: 'Infrastructure résolveur ultra-rapide axée sur la confidentialité sans journalisation d’adresses IP.',
+  },
+  'CVE-2024-3094': {
+    target: 'CVE-2024-3094 (XZ Utils Backdoor)',
+    type: 'Supply Chain Compromise',
+    asn: 'N/A (Cible OpenSSH / Liblzma)',
+    org: 'Malicious Upstream Infiltration',
+    country: 'Global Unix Ecosystem',
+    reverseDns: 'N/A',
+    threatScore: '100 / 100 (CRITIQUE ABSOLU)',
+    threatLevel: 'danger',
+    ports: '22/TCP (SSH Authentication Bypass)',
+    status: 'CORRIGÉ // SURVEILLANCE ACTIVE',
+    description: 'Backdoor insérée dans liblzma 5.6.0/5.6.1 permettant l’exécution de code arbitraire non authentifié via SSH.',
+  },
+  'CVE-2024-6387': {
+    target: 'CVE-2024-6387 (regreSSHion)',
+    type: 'Remote Code Execution (RCE)',
+    asn: 'N/A (Serveurs Linux Glibc)',
+    org: 'OpenSSH Project',
+    country: 'Global Infrastructure',
+    reverseDns: 'N/A',
+    threatScore: '92 / 100 (SÉVÈRE)',
+    threatLevel: 'danger',
+    ports: '22/TCP (Signal Handler Race Condition)',
+    status: 'PATCH RECOMMANDÉ IMMÉDIAT',
+    description: 'Vulnérabilité critique de concurrence dans le gestionnaire de signaux SIGALRM d’OpenSSH permettant l’élévation root.',
+  },
 };
 
 /* ── Component ───────────────────────────────────────────────────── */
@@ -87,6 +156,7 @@ export function LiveTelemetryDrawer({
   const [activeCategory, setActiveCategory] = useState('all');
   const [drawerMode, setDrawerMode] = useState('metrics'); // 'metrics' | 'journal'
   const [cctvFilter, setCctvFilter] = useState('all');
+  const [osintTarget, setOsintTarget] = useState('8.8.8.8');
   const [searchQuery, setSearchQuery] = useState('');
   const [metrics, setMetrics] = useState(() => computeWorldometerMetrics(1));
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -444,8 +514,10 @@ export function LiveTelemetryDrawer({
   /* ── Content count for search indicator ────────────────────────── */
   const contentCount = useMemo(() => {
     if (activeType === 'metrics') return filteredMetrics.length;
+    if (activeType === 'markets') return DEFENSE_COMMODITIES_MARKETS.length;
     if (activeType === 'cctv') return filteredCCTV.length;
     if (activeType === 'satellites') return filteredSatellites.length;
+    if (activeType === 'osint') return Object.keys(OSINT_DOSSIERS).length;
     return null;
   }, [activeType, filteredMetrics, filteredCCTV, filteredSatellites]);
 
@@ -649,10 +721,14 @@ export function LiveTelemetryDrawer({
                       ? cat.id === 'all'
                         ? METRIC_DEFINITIONS.length
                         : METRIC_DEFINITIONS.filter((m) => m.cat === cat.id).length
+                      : cat.type === 'markets'
+                      ? DEFENSE_COMMODITIES_MARKETS.length
                       : cat.type === 'cctv'
                       ? CCTV_FEEDS.length
                       : cat.type === 'satellites'
                       ? SATELLITES_DATA.length
+                      : cat.type === 'osint'
+                      ? Object.keys(OSINT_DOSSIERS).length
                       : cat.type === 'intel'
                       ? LIVE_BULLETINS.length + HOTSPOTS.length
                       : null;
@@ -749,6 +825,39 @@ export function LiveTelemetryDrawer({
                 </div>
               )}
             </>
+          )}
+
+          {/* ── MARCHÉS & MATIÈRES PREMIÈRES (OSIRIS PARITY) ── */}
+          {activeType === 'markets' && (
+            <div className="markets-grid">
+              {DEFENSE_COMMODITIES_MARKETS.filter((item) => {
+                const q = searchQuery.toLowerCase();
+                return !q || item.name.toLowerCase().includes(q) || item.symbol.toLowerCase().includes(q);
+              }).map((m, i) => (
+                <div
+                  key={m.id}
+                  className="market-card"
+                  style={{ animationDelay: `${i * 0.04}s` }}
+                >
+                  <div className="market-card-header">
+                    <span className="market-symbol-tag">{m.symbol}</span>
+                    <span className={`market-change-badge ${m.positive ? 'positive' : 'negative'}`}>
+                      {m.positive ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                      {m.change}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="market-price-val">{m.price}</span>
+                    <span className="market-price-unit">{m.unit}</span>
+                  </div>
+                  <div className="market-name-label">{m.name}</div>
+                  <div className="market-status-footer">
+                    <span>COTATION SPOT</span>
+                    <span style={{ color: '#00f5a0' }}>● DIRECT LIVE</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
 
           {/* ── CCTV EN DIRECT ── */}
@@ -916,6 +1025,96 @@ export function LiveTelemetryDrawer({
                 </div>
               )}
             </>
+          )}
+
+          {/* ── OSINT RECON TOOLKIT (OSIRIS PARITY) ── */}
+          {activeType === 'osint' && (
+            <div className="osint-recon-wrapper">
+              <div className="osint-preset-chips">
+                {Object.keys(OSINT_DOSSIERS).map((targetKey) => (
+                  <button
+                    key={targetKey}
+                    type="button"
+                    className={`osint-preset-btn ${osintTarget === targetKey ? 'is-active' : ''}`}
+                    onClick={() => {
+                      sound.click(0.4);
+                      setOsintTarget(targetKey);
+                    }}
+                  >
+                    <Terminal size={10} style={{ display: 'inline', marginRight: 4 }} />
+                    {targetKey}
+                  </button>
+                ))}
+              </div>
+
+              {(() => {
+                const dossier = OSINT_DOSSIERS[osintTarget] || OSINT_DOSSIERS['8.8.8.8'];
+                return (
+                  <div className="osint-terminal-card">
+                    <div className="osint-terminal-header">
+                      <div className="osint-term-title">
+                        <Terminal size={13} />
+                        <span>DOSSIER // {dossier.target}</span>
+                      </div>
+                      <span className={`osint-score-pill ${dossier.threatLevel}`}>
+                        {dossier.threatScore}
+                      </span>
+                    </div>
+
+                    <div className="osint-row">
+                      <span className="osint-key">Vecteur / Type</span>
+                      <span className="osint-val cyan">{dossier.type}</span>
+                    </div>
+                    <div className="osint-row">
+                      <span className="osint-key">ASN / Réseau</span>
+                      <span className="osint-val">{dossier.asn}</span>
+                    </div>
+                    <div className="osint-row">
+                      <span className="osint-key">Entité / Opérateur</span>
+                      <span className="osint-val">{dossier.org}</span>
+                    </div>
+                    <div className="osint-row">
+                      <span className="osint-key">Juridiction</span>
+                      <span className="osint-val">{dossier.country}</span>
+                    </div>
+                    {dossier.reverseDns !== 'N/A' && (
+                      <div className="osint-row">
+                        <span className="osint-key">Reverse DNS</span>
+                        <span className="osint-val cyan">{dossier.reverseDns}</span>
+                      </div>
+                    )}
+                    <div className="osint-row">
+                      <span className="osint-key">Ports & Protocoles</span>
+                      <span className="osint-val">{dossier.ports}</span>
+                    </div>
+                    <div className="osint-row">
+                      <span className="osint-key">Statut Global</span>
+                      <span
+                        className="osint-val"
+                        style={{
+                          color: dossier.threatLevel === 'danger' ? '#ff3366' : '#00f5a0',
+                        }}
+                      >
+                        {dossier.status}
+                      </span>
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 12,
+                        paddingTop: 10,
+                        borderTop: '1px solid rgba(255,255,255,0.06)',
+                        fontSize: 10.5,
+                        color: '#94a3b8',
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      {dossier.description}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
           )}
 
           {/* ── RENSEIGNEMENT ── */}

@@ -12,6 +12,7 @@ import {
   SUBMARINE_CABLES,
   THERMAL_ANOMALIES,
   WEATHER_SYSTEMS,
+  STRATEGIC_NUCLEAR_SITES,
 } from '../data/osirisStreams';
 import { LIVE_FLIGHTS, LIVE_VESSELS } from '../data/liveTransits';
 import { TacticalInspectionCard } from './TacticalInspectionCard';
@@ -994,6 +995,45 @@ export function OrbitView3D({
       weatherMeshes.push(mesh);
     });
 
+    // 11k. Strategic Nuclear & Critical Infrastructure Layer (3D Glowing Atomic Beacons)
+    const nuclearGroup = new THREE.Group();
+    earthGroup.add(nuclearGroup);
+    const nuclearMeshes = [];
+    const nuclearClickMeshes = [];
+
+    STRATEGIC_NUCLEAR_SITES.forEach((site) => {
+      const [x, y, z] = coordsToVector(site.lng, site.lat, R_EARTH + 0.008);
+      const pos = new THREE.Vector3(x, y, z);
+
+      const beaconGroup = new THREE.Group();
+      beaconGroup.position.copy(pos);
+      beaconGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), pos.clone().normalize());
+
+      // Glowing yellow atomic outer ring
+      const ringGeom = new THREE.RingGeometry(0.012, 0.028, 24);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: 0xeab308,
+        transparent: true,
+        opacity: 0.85,
+        side: THREE.DoubleSide,
+      });
+      const ringMesh = new THREE.Mesh(ringGeom, ringMat);
+      beaconGroup.add(ringMesh);
+
+      // Center nuclear reactor core pin
+      const coreGeom = new THREE.SphereGeometry(0.012, 12, 12);
+      const coreMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+      const coreMesh = new THREE.Mesh(coreGeom, coreMat);
+      coreMesh.position.z = 0.012;
+      coreMesh.userData = { nuclear: site };
+      beaconGroup.add(coreMesh);
+
+      beaconGroup.userData = { nuclear: site };
+      nuclearGroup.add(beaconGroup);
+      nuclearMeshes.push(ringMesh);
+      nuclearClickMeshes.push(coreMesh);
+    });
+
     // 12. GPS Raycasting & Unified Left-Click Select / Right-Click Grab
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
@@ -1117,6 +1157,17 @@ export function OrbitView3D({
           if (hitVes) {
             sound.click();
             setInspectedTarget({ type: 'vessel', ...hitVes });
+            return;
+          }
+        }
+
+        // 5. Check Strategic Nuclear Infrastructure click
+        const nuclearHits = raycaster.intersectObjects(nuclearClickMeshes, true);
+        if (nuclearHits.length > 0) {
+          const hitNuc = nuclearHits[0].object.userData?.nuclear;
+          if (hitNuc) {
+            sound.click();
+            setInspectedTarget({ type: 'nuclear', ...hitNuc });
             return;
           }
         }
@@ -1425,6 +1476,15 @@ export function OrbitView3D({
         earthquakeMeshes.forEach((eq, idx) => {
           const pulse = 1.0 + 0.25 * Math.sin(frameCount * 0.1 + idx);
           eq.mesh.scale.set(pulse, pulse, pulse);
+        });
+      }
+
+      // Animate Strategic Nuclear Infrastructure
+      nuclearGroup.visible = layers.has('nuclear');
+      if (nuclearGroup.visible) {
+        nuclearMeshes.forEach((ring, idx) => {
+          const pulse = 1.0 + 0.22 * Math.sin(frameCount * 0.08 + idx);
+          ring.scale.set(pulse, pulse, pulse);
         });
       }
 

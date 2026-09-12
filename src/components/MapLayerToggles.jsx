@@ -10,6 +10,7 @@ import {
   Activity,
   Shield,
   CloudLightning,
+  Radiation,
   ChevronDown,
   ChevronUp,
   Eye,
@@ -17,7 +18,13 @@ import {
 } from 'lucide-react';
 import { LIVE_FLIGHTS } from '../data/liveTransits';
 import { LIVE_VESSELS } from '../data/liveTransits';
-import { CCTV_FEEDS, SATELLITES_DATA, SUBMARINE_CABLES, WEATHER_SYSTEMS } from '../data/osirisStreams';
+import {
+  CCTV_FEEDS,
+  SATELLITES_DATA,
+  SUBMARINE_CABLES,
+  WEATHER_SYSTEMS,
+  STRATEGIC_NUCLEAR_SITES,
+} from '../data/osirisStreams';
 import { GEOPOLITICAL_ZONES, CYBER_ATTACK_VECTORS, AVIATION_ROUTES } from '../data/tacticalStreams';
 import { sound } from '../utils/soundFX';
 import './MapLayerToggles.css';
@@ -103,6 +110,15 @@ export const LAYER_CONFIGS = [
     count: WEATHER_SYSTEMS.length,
     accentColor: '#06b6d4',
     category: 'NATURE',
+  },
+  {
+    id: 'nuclear',
+    label: 'Sites Nucléaires & Infra',
+    shortLabel: 'Nucléaire',
+    icon: Radiation,
+    count: STRATEGIC_NUCLEAR_SITES.length,
+    accentColor: '#eab308',
+    category: 'INFRA',
   },
 ];
 

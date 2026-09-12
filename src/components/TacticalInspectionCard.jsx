@@ -10,6 +10,7 @@ import {
   ExternalLink,
   LocateFixed,
   Navigation,
+  Radiation,
 } from 'lucide-react';
 import { sound } from '../utils/soundFX';
 import './TacticalInspectionCard.css';
@@ -43,6 +44,7 @@ export function TacticalInspectionCard({
   const isFlight = target.type === 'flight' || target.aircraft || target.callsign;
   const isVessel = target.type === 'vessel' || target.imo || target.mmsi;
   const isSatellite = target.type === 'satellite' || target.noradId;
+  const isNuclear = target.type === 'nuclear' || target.capacityMwe;
 
   const handleClose = () => {
     sound.tick();
@@ -76,11 +78,13 @@ export function TacticalInspectionCard({
           {isFlight && <Plane size={13} className="tic-icon flight" />}
           {isVessel && <Anchor size={13} className="tic-icon vessel" />}
           {isSatellite && <Radio size={13} className="tic-icon sat" />}
+          {isNuclear && <Radiation size={13} className="tic-icon nuclear" style={{ color: '#eab308' }} />}
           <span className="tic-type-label">
             {isCCTV && (target.code || 'CAM // DIRECT OPTIQUE')}
             {isFlight && `VOL // ${target.callsign || target.flightNum}`}
             {isVessel && `NAVIRE // ${target.name}`}
             {isSatellite && `ORBITE // ${target.code || target.name}`}
+            {isNuclear && 'INFRA // NUCLÉAIRE STRATÉGIQUE'}
           </span>
         </div>
 
@@ -108,6 +112,7 @@ export function TacticalInspectionCard({
           {isFlight && `${target.airline} • ${target.aircraft} (${target.corridorType})`}
           {isVessel && `${target.flagEmoji || '⚓'} Pavillon : ${target.flag} • ${target.type}`}
           {isSatellite && `${target.country} • NORAD ${target.noradId}`}
+          {isNuclear && `${target.region}, ${target.country} • ${target.securityLevel}`}
         </p>
       </div>
 
@@ -254,6 +259,37 @@ export function TacticalInspectionCard({
               <span className="tic-label">VITESSE TÉLÉMÉTRIQUE</span>
               <span className="tic-val">{target.speedKmh?.toLocaleString('fr-FR')} km/h</span>
             </div>
+          </>
+        )}
+
+        {isNuclear && (
+          <>
+            <div className="tic-metric-cell">
+              <span className="tic-label">CAPACITÉ INSTALLÉE</span>
+              <span className="tic-val cyan" style={{ color: '#eab308' }}>
+                {target.capacityMwe ? target.capacityMwe.toLocaleString('fr-FR') : '--'} MWe
+              </span>
+            </div>
+            <div className="tic-metric-cell">
+              <span className="tic-label">TECHNOLOGIE RÉACTEUR</span>
+              <span className="tic-val">{target.type}</span>
+            </div>
+            <div className="tic-metric-cell">
+              <span className="tic-label">EXPLOITANT / OPÉRATEUR</span>
+              <span className="tic-val text-dim">{target.operator}</span>
+            </div>
+            <div className="tic-metric-cell">
+              <span className="tic-label">SURVEILLANCE & STATUT</span>
+              <span className="tic-val" style={{ color: target.status?.includes('GUERRE') ? '#ff3366' : '#eab308' }}>
+                {target.status}
+              </span>
+            </div>
+            {target.description && (
+              <div className="tic-metric-cell full-width">
+                <span className="tic-label">NOTE STRATÉGIQUE</span>
+                <span className="tic-val text-dim">{target.description}</span>
+              </div>
+            )}
           </>
         )}
       </div>

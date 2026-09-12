@@ -18,9 +18,9 @@ export default function App() {
   const [autoRotate, setAutoRotate] = useState(true);
   const [selectedYear, setSelectedYear] = useState(2026);
 
-  // Multi-toggle active layers set (all 9 strategic layers active by default)
+  // Multi-toggle active layers set (all 10 strategic layers active by default)
   const [activeLayers, setActiveLayers] = useState(
-    () => new Set(['aviation', 'maritime', 'cctv', 'satellites', 'cables', 'conflicts', 'telluric', 'cyber', 'weather'])
+    () => new Set(['aviation', 'maritime', 'cctv', 'satellites', 'cables', 'conflicts', 'telluric', 'cyber', 'weather', 'nuclear'])
   );
 
   const handleToggleLayer = useCallback((layerId) => {
@@ -40,7 +40,7 @@ export default function App() {
     sound.click(0.45);
     if (enableAll) {
       setActiveLayers(
-        new Set(['aviation', 'maritime', 'cctv', 'satellites', 'cables', 'conflicts', 'telluric', 'cyber', 'weather'])
+        new Set(['aviation', 'maritime', 'cctv', 'satellites', 'cables', 'conflicts', 'telluric', 'cyber', 'weather', 'nuclear'])
       );
     } else {
       setActiveLayers(new Set());

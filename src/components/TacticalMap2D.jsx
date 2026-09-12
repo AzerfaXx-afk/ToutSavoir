@@ -11,6 +11,7 @@ import {
   SUBMARINE_CABLES,
   THERMAL_ANOMALIES,
   WEATHER_SYSTEMS,
+  STRATEGIC_NUCLEAR_SITES,
 } from '../data/osirisStreams';
 import { LIVE_FLIGHTS, LIVE_VESSELS, getLiveTransitPositions, interpolateGreatCircle } from '../data/liveTransits';
 import { TacticalInspectionCard } from './TacticalInspectionCard';
@@ -40,6 +41,7 @@ export function TacticalMap2D({
   const cctvLayerRef = useRef(null);
   const cablesLayerRef = useRef(null);
   const weatherLayerRef = useRef(null);
+  const nuclearLayerRef = useRef(null);
   const inspectedRouteLayerRef = useRef(null);
 
   const [hoveredCountry, setHoveredCountry] = useState(null);
@@ -501,6 +503,26 @@ export function TacticalMap2D({
       circle.addTo(weatherLayer);
     });
 
+    // 10. Strategic & Nuclear Infrastructure Layer
+    const nuclearLayer = L.layerGroup();
+    nuclearLayerRef.current = nuclearLayer;
+    STRATEGIC_NUCLEAR_SITES.forEach((site) => {
+      const icon = L.divIcon({
+        className: 'nuclear-div-icon-wrapper',
+        html: `<div class="nuclear-div-marker" title="${site.name}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2.2"><circle cx="12" cy="12" r="2.5"/><path d="M12 2a10 10 0 0 0-8.66 5l3.46 2A6 6 0 0 1 12 6V2z"/><path d="M20.66 7a10 10 0 0 0-8.66-5v4a6 6 0 0 1 5.2 3l3.46-2z"/><path d="M3.34 17a10 10 0 0 0 8.66 5v-4a6 6 0 0 1-5.2-3l-3.46 2z"/><path d="M12 22a10 10 0 0 0 8.66-5l-3.46-2A6 6 0 0 1 12 18v4z"/></svg></div>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13],
+      });
+      const marker = L.marker([site.lat, site.lng], { icon, pane: 'transitsPane' });
+      marker.bindTooltip(`<b>☢️ ${site.name}</b><br/>${site.type} • Puissance: <b>${site.capacityMwe?.toLocaleString('fr-FR')} MWe</b><br/>Opérateur: ${site.operator}<br/>Statut: <span style="color:#eab308;">${site.status}</span><br/><i style="color:#00f5a0;">Cliquer pour fiche tactique</i>`);
+      marker.on('click', (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        sound.click();
+        setInspectedTarget({ type: 'nuclear', ...site });
+      });
+      marker.addTo(nuclearLayer);
+    });
+
     // Attach initial active layers
     pulsesLayer.addTo(map);
     if (activeLayers.has('aviation')) aviationLayer.addTo(map);
@@ -512,6 +534,7 @@ export function TacticalMap2D({
     if (activeLayers.has('cctv')) cctvLayer.addTo(map);
     if (activeLayers.has('cables')) cablesLayer.addTo(map);
     if (activeLayers.has('weather')) weatherLayer.addTo(map);
+    if (activeLayers.has('nuclear')) nuclearLayer.addTo(map);
 
     const unsubscribeStream = realtimeStream.subscribe((data) => {
       if (data.type === 'new_event' && data.event && mapInstanceRef.current) {
@@ -745,6 +768,7 @@ export function TacticalMap2D({
       cctv: cctvLayerRef.current,
       cables: cablesLayerRef.current,
       weather: weatherLayerRef.current,
+      nuclear: nuclearLayerRef.current,
     };
 
     Object.entries(layersMap).forEach(([layerKey, layer]) => {
