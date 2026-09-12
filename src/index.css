@@ -1,0 +1,58 @@
+:root {
+  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Palette - Deep Obsidian Luxury Defense */
+  --bg-deep: #030508;
+  --bg-surface: rgba(10, 15, 24, 0.75);
+  --bg-card: rgba(13, 20, 32, 0.65);
+  --bg-card-hover: rgba(20, 30, 48, 0.85);
+
+  /* Accents */
+  --cyan-bright: #00f2fe;
+  --cyan-dim: rgba(0, 242, 254, 0.2);
+  --crimson-alert: #ff3366;
+  --crimson-dim: rgba(255, 51, 102, 0.2);
+  --amber-warn: #ffb703;
+  --emerald-live: #00f5a0;
+  --purple-future: #a855f7;
+
+  /* Borders & Glass */
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-active: rgba(0, 242, 254, 0.4);
+  --glass-blur: blur(24px);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-deep);
+  color: #e2e8f0;
+  font-family: var(--font-display);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Tactical Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cyan-bright);
+}

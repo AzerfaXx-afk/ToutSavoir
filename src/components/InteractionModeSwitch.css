@@ -1,0 +1,59 @@
+/* ==========================================================================
+   INTERACTION MODE SWITCH (ICON ONLY: SÉLECTION / DÉPLACER)
+   ========================================================================== */
+
+.interaction-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(10, 15, 24, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(0, 242, 254, 0.22);
+  border-radius: 8px;
+  padding: 2px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  user-select: none;
+  transition: all 0.25s ease;
+}
+
+.mode-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 24px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mode-toggle-btn:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.mode-toggle-btn.active {
+  background: rgba(0, 242, 254, 0.15);
+  border-color: rgba(0, 242, 254, 0.4);
+  color: var(--cyan-bright);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.mode-icon {
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.mode-toggle-btn.active .mode-icon {
+  transform: scale(1.1);
+}
+
+.mode-divider {
+  width: 1px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.1);
+}

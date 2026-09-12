@@ -1,0 +1,205 @@
+/* ==========================================================================
+   ORBIT DROPDOWN COMPONENT - AWWWARDS GLASSMORPHISM 3D TELEMETRY DOCK
+   ========================================================================== */
+
+.orbit-dropdown-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  user-select: none;
+}
+
+/* Compact Trigger Button matching Switch3D exact width (77px / 5.5em) */
+.orbit-dropdown-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 77px;
+  height: 28px;
+  background: rgba(12, 17, 26, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 242, 254, 0.22);
+  border-radius: 8px;
+  color: #94a3b8;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0 8px;
+}
+
+.orbit-dropdown-btn:hover {
+  background: rgba(16, 24, 38, 0.95);
+  border-color: var(--cyan-bright);
+  color: #f1f5f9;
+  box-shadow: 0 0 16px rgba(0, 242, 254, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.orbit-dropdown-btn.active {
+  background: rgba(14, 22, 35, 0.98);
+  border-color: var(--cyan-bright);
+  color: var(--cyan-bright);
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.4), inset 0 1px 0 rgba(0, 242, 254, 0.2);
+}
+
+.orbit-dropdown-icon {
+  color: var(--cyan-bright);
+  flex-shrink: 0;
+}
+
+.orbit-dropdown-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+/* Glassmorphism Floating Menu Container */
+.orbit-menu-container {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  background: rgba(8, 12, 20, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8),
+              0 0 30px rgba(0, 242, 254, 0.15),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: orbitMenuSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes orbitMenuSlideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.orbit-menu-header {
+  padding: 6px 8px 4px 8px;
+}
+
+.orbit-menu-title {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.orbit-group-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #475569;
+  padding: 4px 8px 2px 8px;
+  text-transform: uppercase;
+}
+
+.orbit-menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 4px 0;
+}
+
+.orbit-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: #cbd5e1;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+}
+
+.orbit-menu-item:hover {
+  background: rgba(0, 242, 254, 0.08);
+  border-color: rgba(0, 242, 254, 0.2);
+  color: #ffffff;
+  transform: translateX(2px);
+}
+
+.orbit-menu-item.selected {
+  background: rgba(0, 242, 254, 0.14);
+  border-color: rgba(0, 242, 254, 0.35);
+  color: var(--cyan-bright);
+}
+
+.orbit-item-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #94a3b8;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.orbit-menu-item:hover .orbit-item-icon-box {
+  background: rgba(0, 242, 254, 0.15);
+  color: var(--cyan-bright);
+}
+
+.orbit-item-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.orbit-item-name {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.orbit-item-desc {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.orbit-item-check {
+  color: var(--cyan-bright);
+  flex-shrink: 0;
+}
+
+.reset-action:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.animate-spin-slow {
+  animation: spin 10s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

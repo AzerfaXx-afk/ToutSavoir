@@ -1,0 +1,363 @@
+/* ==========================================================================
+   LIVE TELEMETRY DRAWER - MULTI-TAB AWWWARDS STYLESHEET
+   ========================================================================== */
+
+/* Main Tab Bar inside Drawer Header */
+.drawer-primary-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  overflow-x: auto;
+}
+
+.drawer-primary-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.drawer-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-tab-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.drawer-tab-btn.is-active {
+  background: rgba(0, 242, 254, 0.12);
+  border-color: rgba(0, 242, 254, 0.35);
+  color: var(--cyan-bright, #00f2fe);
+  text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+}
+
+/* CCTV Cards Grid */
+.cctv-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+  padding: 16px;
+}
+
+.cctv-preview-card {
+  display: flex;
+  flex-direction: column;
+  background: rgba(12, 18, 28, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.cctv-preview-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--cyan-bright, #00f2fe);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px rgba(0, 242, 254, 0.25);
+}
+
+.cctv-card-media {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  background: #000;
+  overflow: hidden;
+}
+
+.cctv-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.85);
+  transition: transform 0.3s ease;
+}
+
+.cctv-preview-card:hover .cctv-card-img {
+  transform: scale(1.05);
+  filter: brightness(1);
+}
+
+.cctv-card-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 51, 102, 0.4);
+  border-radius: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 800;
+  color: #ff3366;
+}
+
+.cctv-card-res {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  padding: 1px 5px;
+  background: rgba(0, 0, 0, 0.75);
+  border-radius: 3px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  color: #ffffff;
+}
+
+.cctv-card-body {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cctv-card-title {
+  font-family: var(--font-display, sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cctv-card-sub {
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.cctv-card-btn {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px;
+  background: rgba(0, 242, 254, 0.08);
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  border-radius: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--cyan-bright, #00f2fe);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cctv-card-btn:hover {
+  background: var(--cyan-bright, #00f2fe);
+  color: #030508;
+  box-shadow: 0 0 12px var(--cyan-bright, #00f2fe);
+}
+
+/* Satellites Cards Grid */
+.sat-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+.sat-card {
+  background: rgba(12, 18, 28, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.sat-card:hover {
+  border-color: rgba(0, 242, 254, 0.4);
+  background: rgba(16, 24, 38, 0.85);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.sat-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sat-card-name {
+  font-family: var(--font-display, sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.sat-card-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 242, 254, 0.12);
+  color: var(--cyan-bright, #00f2fe);
+}
+
+.sat-telemetry-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+.sat-stat-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sat-stat-k {
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.sat-stat-v {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Bulletins & OSINT Feed */
+.osiris-bulletins-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+.bulletin-card {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(12, 18, 28, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.bulletin-card.is-critical {
+  border-left: 3px solid #ff3366;
+}
+
+.bulletin-card.is-warning {
+  border-left: 3px solid #ffb703;
+}
+
+.bulletin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bulletin-badge {
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 700;
+  background: rgba(255, 51, 102, 0.15);
+  color: #ff3366;
+}
+
+.bulletin-time {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.bulletin-title {
+  font-family: var(--font-display, sans-serif);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.bulletin-body {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+}
+
+/* Country Dossier View */
+.country-dossier-view {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.country-dossier-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 12px;
+}
+
+.country-dossier-title {
+  font-family: var(--font-display, sans-serif);
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.country-dossier-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.dossier-stat-card {
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dossier-stat-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+}
+
+.dossier-stat-val {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cyan-bright, #00f2fe);
+}
