@@ -356,7 +356,7 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
       ref={widgetRef}
       className={`timeline-awwwards-system ${isOpen ? 'is-open' : 'is-collapsed'}`}
     >
-      {/* 1. Solid Aerospace Arrow Trigger Emerging from the Wall */}
+      {/* 1. Pure Minimalist Awwwards Arrow Trigger (Open stroke, nothing behind) */}
       <button
         type="button"
         className={`timeline-awwwards-trigger ${isOpen ? 'is-open' : 'is-collapsed'}`}
@@ -368,88 +368,32 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
         title={isOpen ? 'Replier la chronologie (Échap)' : 'Ouvrir la chronologie'}
         aria-label={isOpen ? 'Replier la chronologie' : 'Ouvrir la chronologie'}
       >
-        {/* Wall Bezel Dock / Laser Emerge Slit */}
-        <div className="trigger-wall-dock">
-          <div className="dock-laser-line" />
-          <div className="dock-laser-pulse" />
-        </div>
-
-        {/* Solid Arrow Head Emerging From Wall */}
-        <div className="trigger-solid-arrow-wrap">
+        <div className="trigger-arrow-wrap">
           <svg
-            className="trigger-solid-arrow-svg"
-            width="32"
+            className="trigger-arrow-svg"
+            width="24"
             height="38"
-            viewBox="0 0 32 38"
+            viewBox="0 0 24 38"
             fill="none"
           >
-            <defs>
-              {/* Upper facet (illuminated cyber cyan to electric white) */}
-              <linearGradient id="solidArrowTopFacet" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#cffafe" />
-                <stop offset="35%" stopColor="#38bdf8" />
-                <stop offset="100%" stopColor="#00f2fe" />
-              </linearGradient>
-              {/* Lower facet (beveled deep cyan shadow) */}
-              <linearGradient id="solidArrowBottomFacet" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#0284c7" />
-                <stop offset="60%" stopColor="#0369a1" />
-                <stop offset="100%" stopColor="#082f49" />
-              </linearGradient>
-              {/* Perimeter bevel highlight */}
-              <linearGradient id="solidArrowRimGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
-                <stop offset="50%" stopColor="#00f2fe" stopOpacity="0.85" />
-                <stop offset="100%" stopColor="#0284c7" stopOpacity="0.4" />
-              </linearGradient>
-              <filter id="arrowSolidBloom" x="-40%" y="-40%" width="180%" height="180%">
-                <feDropShadow dx="0" dy="0" stdDeviation="3.5" floodColor="#00f2fe" floodOpacity="0.75" />
-              </filter>
-            </defs>
-
-            <g filter="url(#arrowSolidBloom)">
-              {/* Top Facet: (0, 7) -> (14, 7) -> (28, 19) -> (0, 19) */}
-              <polygon
-                points="0,7 14,7 28,19 0,19"
-                fill="url(#solidArrowTopFacet)"
-              />
-
-              {/* Bottom Facet: (0, 19) -> (28, 19) -> (14, 31) -> (0, 31) */}
-              <polygon
-                points="0,19 28,19 14,31 0,31"
-                fill="url(#solidArrowBottomFacet)"
-              />
-
-              {/* Razor White Laser Center Spine */}
-              <line
-                x1="2"
-                y1="19"
-                x2="27"
-                y2="19"
-                stroke="#ffffff"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-
-              {/* Inner Tactical Micro Chevron accent */}
-              <path
-                d="M 9 13 L 15 19 L 9 25"
-                stroke="#ffffff"
-                strokeWidth="1.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeOpacity="0.8"
-              />
-
-              {/* Outer Precision Bevel Rim */}
-              <polygon
-                points="0,7 14,7 28,19 14,31 0,31"
-                fill="none"
-                stroke="url(#solidArrowRimGrad)"
-                strokeWidth="1.2"
-                strokeLinejoin="round"
-              />
-            </g>
+            {/* Ambient subtle echo chevron on hover */}
+            <path
+              className="arrow-path-echo"
+              d="M 2 7 L 12 19 L 2 31"
+              stroke="#00f2fe"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Main Crisp Chevron Arrow */}
+            <path
+              className="arrow-path-main"
+              d="M 6 5 L 18 19 L 6 33"
+              stroke="#00f2fe"
+              strokeWidth="3.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
 

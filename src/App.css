@@ -743,112 +743,91 @@ body.is-grabbing *,
   user-select: none;
 }
 
-/* 1. Solid Awwwards Arrow Trigger Emerging from the Wall */
+/* 1. Pure Minimalist Awwwards Arrow Trigger (Open stroke, nothing behind) */
 .timeline-awwwards-trigger {
   position: fixed;
   left: 0;
   top: 50%;
+  transform: translateY(-50%) translateX(0);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background: transparent !important;
   border: none !important;
-  padding: 18px 18px 18px 0;
+  box-shadow: none !important;
+  padding: 18px 16px 18px 10px;
   cursor: pointer;
   color: var(--cyan-bright, #00f2fe);
   pointer-events: auto;
   z-index: 96;
-  /* At rest: arrow is nestled inside the left screen bezel / wall, with just the glowing arrow tip peeking */
-  transform: translateY(-50%) translateX(-14px);
-  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.35s ease;
-  filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.5));
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+  filter: drop-shadow(0 0 6px rgba(0, 242, 254, 0.6));
 }
 
-/* Hover: Glides smoothly OUT OF THE WALL into the viewport with spring overshoot */
+/* Hover: Glides smoothly forward with glowing bloom and kinetic trail */
 .timeline-awwwards-trigger:hover {
-  transform: translateY(-50%) translateX(16px);
-  filter: drop-shadow(0 0 16px rgba(0, 242, 254, 1)) drop-shadow(0 0 35px rgba(0, 242, 254, 0.75));
+  transform: translateY(-50%) translateX(8px);
+  filter: drop-shadow(0 0 16px rgba(0, 242, 254, 1)) drop-shadow(0 0 32px rgba(0, 242, 254, 0.7));
 }
 
 .timeline-awwwards-trigger.is-open {
-  transform: translateY(-50%) translateX(0);
+  transform: translateY(-50%) translateX(4px);
 }
 
 .timeline-awwwards-trigger.is-open:hover {
-  transform: translateY(-50%) translateX(-5px);
+  transform: translateY(-50%) translateX(0);
 }
 
-/* Wall Dock Slit / Screen Edge Socket */
-.trigger-wall-dock {
-  position: relative;
-  width: 3px;
-  height: 46px;
+/* Arrow Icon Wrap (Flips on open) */
+.trigger-arrow-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.dock-laser-line {
-  width: 2px;
-  height: 100%;
-  background: linear-gradient(180deg, transparent 0%, rgba(0, 242, 254, 0.7) 30%, #ffffff 50%, rgba(0, 242, 254, 0.7) 70%, transparent 100%);
-  box-shadow: 0 0 8px #00f2fe;
-  border-radius: 2px;
+.timeline-awwwards-trigger:hover .trigger-arrow-wrap {
+  transform: scale(1.1) translateX(2px);
 }
 
-.dock-laser-pulse {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 0 8px #00f2fe, 0 0 16px #00f2fe;
-  animation: pulseDot 2s infinite ease-in-out;
-}
-
-/* Solid Arrow Wrap (Emerges & Flips smoothly) */
-.trigger-solid-arrow-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.timeline-awwwards-trigger:hover .trigger-solid-arrow-wrap {
-  transform: scale(1.1) translateX(3px);
-}
-
-.timeline-awwwards-trigger.is-open .trigger-solid-arrow-wrap {
+.timeline-awwwards-trigger.is-open .trigger-arrow-wrap {
   transform: rotate(180deg);
 }
 
-.timeline-awwwards-trigger.is-open:hover .trigger-solid-arrow-wrap {
-  transform: rotate(180deg) scale(1.1) translateX(3px);
+.timeline-awwwards-trigger.is-open:hover .trigger-arrow-wrap {
+  transform: rotate(180deg) scale(1.1) translateX(2px);
 }
 
-/* Solid Arrow SVG & Dynamic Pulse */
-@keyframes arrowSolidGlowPulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 6px rgba(0, 242, 254, 0.65));
-  }
-  50% {
-    filter: drop-shadow(0 0 14px rgba(0, 242, 254, 0.95)) drop-shadow(0 0 24px rgba(0, 242, 254, 0.5));
-  }
-}
-
-.trigger-solid-arrow-svg {
+.trigger-arrow-svg {
   display: block;
   overflow: visible;
-  animation: arrowSolidGlowPulse 2.4s infinite ease-in-out;
-  transition: filter 0.3s ease;
 }
 
-.timeline-awwwards-trigger:hover .trigger-solid-arrow-svg {
-  animation: none;
-  filter: drop-shadow(0 0 14px rgba(0, 242, 254, 1)) drop-shadow(0 0 28px rgba(0, 242, 254, 0.8));
+/* Main Arrow Path */
+.arrow-path-main {
+  stroke: var(--cyan-bright, #00f2fe);
+  filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.8));
+  transition: stroke 0.25s ease, stroke-width 0.25s ease, filter 0.25s ease;
+}
+
+.timeline-awwwards-trigger:hover .arrow-path-main {
+  stroke: #ffffff;
+  stroke-width: 3.6px;
+  filter: drop-shadow(0 0 12px rgba(0, 242, 254, 1)) drop-shadow(0 0 20px rgba(0, 242, 254, 0.8));
+}
+
+/* Dynamic Ghost Echo Trail on Hover */
+.arrow-path-echo {
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.3s ease;
+}
+
+.timeline-awwwards-trigger:hover .arrow-path-echo {
+  opacity: 0.7;
+  transform: translateX(2px);
+  stroke: var(--cyan-bright, #00f2fe);
+  filter: drop-shadow(0 0 8px #00f2fe);
 }
 
 /* Info Lockup (Year + Label) */
@@ -857,19 +836,18 @@ body.is-grabbing *,
   flex-direction: column;
   align-items: flex-start;
   gap: 1px;
-  opacity: 0.8;
-  transform: translateX(-3px);
-  transition: opacity 0.3s ease, transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.82;
+  transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .timeline-awwwards-trigger:hover .trigger-info {
   opacity: 1;
-  transform: translateX(3px);
+  transform: translateX(4px);
 }
 
 .trigger-year {
   font-family: var(--font-mono, monospace);
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 800;
   color: #00f2fe;
   letter-spacing: 0.8px;
