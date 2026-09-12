@@ -58,18 +58,18 @@ body.is-grabbing *,
 }
 
 /* ==========================================================================
-   TOP CENTER DOCK (2D/3D SWITCH + COMPACT VUE BUTTON DIRECTLY BELOW)
+   TOP CENTER DOCK (PURE 2D/3D SWITCH + PLAY/PAUSE DIRECTLY BELOW)
    ========================================================================== */
 .top-center-dock {
   position: fixed;
-  top: 20px;
+  top: 24px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   pointer-events: auto;
 }
 
@@ -1619,4 +1619,70 @@ body.is-grabbing *,
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ==========================================================================
+   TOP-RIGHT DOCK (HELP / SHORTCUTS)
+   ========================================================================== */
+.top-right-dock {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+/* ==========================================================================
+   BOTTOM-RIGHT DOCK (SOUND EQUALIZER & FULLSCREEN)
+   ========================================================================== */
+.bottom-right-dock {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+/* Unified Floating Tactical Circular Dock Button (Awwwards Glass) */
+.tactical-dock-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(10, 16, 26, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+}
+
+.tactical-dock-btn:hover {
+  color: #ffffff;
+  border-color: rgba(0, 242, 254, 0.5);
+  background: rgba(16, 26, 42, 0.95);
+  box-shadow: 0 4px 18px rgba(0, 242, 254, 0.3);
+  transform: translateY(-1px);
+}
+
+.tactical-dock-btn.is-muted {
+  color: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.tactical-dock-btn.is-muted:hover {
+  color: #ff5555;
+  border-color: rgba(255, 85, 85, 0.4);
+}
+
 

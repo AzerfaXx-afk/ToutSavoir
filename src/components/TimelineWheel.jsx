@@ -237,30 +237,63 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
     const isDecade = y % 10 === 0;
     const isFiveYear = y % 5 === 0 && !isDecade;
 
+    // Continuous proximity to center reticle
+    const absDelta = Math.abs(delta);
+    const proximity = Math.max(0, 1 - absDelta);
+    const isActive = proximity > 0.55;
+
     // Graduation tick length
-    let tickLen = 5;
-    if (isDecade) tickLen = 13;
+    let tickLen = 6;
+    if (isActive) tickLen = 14;
+    else if (isDecade) tickLen = 12;
     else if (isFiveYear) tickLen = 8;
 
     const tickEndX = arcX + tickLen * normX;
     const tickEndY = arcY + tickLen * normY;
 
-    // Label position along normal vector
-    const textDist = 22;
-    const textX = arcX + textDist * normX;
-    const textY = arcY + textDist * normY;
+    // Label position strictly in front of tick end with exact gap
+    const gap = isActive ? 10 : 8;
+    const textX = tickEndX + gap * normX;
+    const textY = tickEndY + gap * normY;
 
-    // Continuous proximity to center reticle
-    const absDelta = Math.abs(delta);
-    const proximity = Math.max(0, 1 - absDelta);
-    const opacity = Math.max(0, 1 - Math.pow(absDelta / 4.8, 1.5));
-
-    // Show text within ±4 years or decade milestones
+    const opacity = Math.max(0, 1 - Math.pow(absDelta / 4.5, 1.4));
     const showText = isDecade || absDelta <= 3.8;
 
-    // Smooth continuous magnification scale (peaks at 1.40x at center)
-    const scale = 0.82 + proximity * 0.58;
-    const rotationDeg = deg * 0.45;
+    // Stroke style
+    let stroke = 'rgba(255, 255, 255, 0.25)';
+    let strokeWidth = 1;
+    if (isActive) {
+      stroke = '#00f2fe';
+      strokeWidth = 2.2;
+    } else if (isDecade) {
+      stroke = 'rgba(0, 242, 254, 0.65)';
+      strokeWidth = 1.5;
+    } else if (isFiveYear) {
+      stroke = 'rgba(255, 255, 255, 0.45)';
+      strokeWidth = 1.2;
+    }
+
+    // Text style
+    let textColor = '#8193a8';
+    let fontSize = 13;
+    let fontWeight = 500;
+    let letterSpacing = '0.5px';
+
+    if (isActive) {
+      textColor = '#00f2fe';
+      fontSize = 20;
+      fontWeight = 800;
+      letterSpacing = '1.5px';
+    } else if (isDecade) {
+      textColor = '#e2e8f0';
+      fontSize = 14;
+      fontWeight = 700;
+      letterSpacing = '0.8px';
+    } else if (absDelta <= 1.2) {
+      textColor = '#cbd5e1';
+      fontSize = 13.5;
+      fontWeight = 600;
+    }
 
     items.push({
       year: y,
@@ -275,12 +308,16 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
       tickEndY,
       textX,
       textY,
-      rotationDeg,
+      stroke,
+      strokeWidth,
+      textColor,
+      fontSize,
+      fontWeight,
+      letterSpacing,
       opacity,
       proximity,
-      scale,
+      isActive,
       isDecade,
-      isFiveYear,
       showText,
     });
   }
@@ -338,9 +375,9 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
         <g className="arc-apex-reticle" filter="url(#reticleGlow)">
           {/* Horizontal laser shaft */}
           <line
-            x1={28}
+            x1={24}
             y1={CENTER_Y}
-            x2={48}
+            x2={50}
             y2={CENTER_Y}
             stroke="#00f2fe"
             strokeWidth="2"
@@ -348,70 +385,61 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
           />
           {/* Sleek arrowhead aligned with date */}
           <path
-            d={`M 46 ${CENTER_Y - 4.5} L 54 ${CENTER_Y} L 46 ${CENTER_Y + 4.5} Z`}
+            d={`M 48 ${CENTER_Y - 4.5} L 57 ${CENTER_Y} L 48 ${CENTER_Y + 4.5} Z`}
             fill="#00f2fe"
           />
         </g>
 
-        {/* 3. Graduations (Ticks along the circle) */}
+        {/* 3. Graduations (Ticks) and Dates - 100% perfectly aligned */}
         {items.map((item) => {
           if (item.opacity <= 0.01) return null;
 
-          let stroke = 'rgba(255, 255, 255, 0.22)';
-          let strokeWidth = 1;
-
-          if (item.proximity > 0.6) {
-            stroke = '#00f2fe';
-            strokeWidth = 1.8;
-          } else if (item.isDecade) {
-            stroke = 'rgba(0, 242, 254, 0.65)';
-            strokeWidth = 1.4;
-          } else if (item.isFiveYear) {
-            stroke = 'rgba(255, 255, 255, 0.45)';
-            strokeWidth = 1.2;
-          }
-
           return (
-            <line
-              key={`tick-${item.year}`}
-              x1={item.arcX.toFixed(1)}
-              y1={item.arcY.toFixed(1)}
-              x2={item.tickEndX.toFixed(1)}
-              y2={item.tickEndY.toFixed(1)}
-              stroke={stroke}
-              strokeWidth={strokeWidth}
-              strokeLinecap="round"
-              opacity={item.opacity}
-            />
+            <g key={`item-${item.year}`}>
+              {/* Tick (Tiret) */}
+              <line
+                x1={item.arcX.toFixed(1)}
+                y1={item.arcY.toFixed(1)}
+                x2={item.tickEndX.toFixed(1)}
+                y2={item.tickEndY.toFixed(1)}
+                stroke={item.stroke}
+                strokeWidth={item.strokeWidth}
+                strokeLinecap="round"
+                opacity={item.opacity}
+                filter={item.isActive ? 'url(#reticleGlow)' : undefined}
+              />
+
+              {/* Date text placed strictly in front of the tiret */}
+              {item.showText && (
+                <text
+                  x={item.textX.toFixed(1)}
+                  y={item.textY.toFixed(1)}
+                  dominantBaseline="central"
+                  textAnchor="start"
+                  fill={item.textColor}
+                  fontSize={item.fontSize}
+                  fontWeight={item.fontWeight}
+                  fontFamily="var(--font-mono, monospace)"
+                  letterSpacing={item.letterSpacing}
+                  opacity={item.opacity}
+                  filter={item.isActive ? 'url(#reticleGlow)' : undefined}
+                  transform={`rotate(${item.deg.toFixed(2)}, ${item.textX.toFixed(1)}, ${item.textY.toFixed(1)})`}
+                  style={{
+                    cursor: 'pointer',
+                    pointerEvents: 'auto',
+                    userSelect: 'none',
+                    transition: 'fill 0.15s ease, opacity 0.1s ease',
+                  }}
+                  onClick={(e) => handleSelectYear(item.year, e)}
+                  onMouseEnter={() => sound.hover(0.3)}
+                >
+                  {item.year}
+                </text>
+              )}
+            </g>
           );
         })}
       </svg>
-
-      {/* 4. Dynamic Dates on Arc (100% Centered with line-height: 1) */}
-      <div className="arc-dates-overlay">
-        {items.map((item) => {
-          if (!item.showText || item.opacity <= 0.02) return null;
-
-          const isActive = item.proximity > 0.55;
-          const isDecade = item.isDecade;
-
-          return (
-            <button
-              key={`label-${item.year}`}
-              type="button"
-              className={`arc-year-item ${isActive ? 'is-active' : ''} ${isDecade ? 'is-decade' : ''}`}
-              style={{
-                transform: `translate3d(${item.textX.toFixed(1)}px, ${item.textY.toFixed(1)}px, 0) translateY(-50%) rotate(${item.rotationDeg.toFixed(1)}deg) scale(${item.scale.toFixed(3)})`,
-                opacity: item.opacity,
-              }}
-              onClick={(e) => handleSelectYear(item.year, e)}
-              title={`Année ${item.year}`}
-            >
-              {item.year}
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 }

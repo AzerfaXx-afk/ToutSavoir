@@ -2,14 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Switch3D } from './components/Switch3D';
 import { TacticalMap2D } from './components/TacticalMap2D';
 import { OrbitView3D } from './components/OrbitView3D';
-import { TacticalLegend } from './components/TacticalLegend';
 import { LiveTelemetryDrawer } from './components/LiveTelemetryDrawer';
 import { TimelineWheel } from './components/TimelineWheel';
-import { LayerPillsBar } from './components/LayerPillsBar';
 import { GlobalSpotlightModal } from './components/GlobalSpotlightModal';
 import { CCTVLiveMonitor } from './components/CCTVLiveMonitor';
 import { TacticalShortcutsModal } from './components/TacticalShortcutsModal';
-import { Play, Pause, Search, VolumeX, Maximize2, Minimize2, HelpCircle } from 'lucide-react';
+import { Play, Pause, VolumeX, Maximize2, Minimize2, HelpCircle } from 'lucide-react';
 import { sound } from './utils/soundFX';
 import './App.css';
 
@@ -19,9 +17,9 @@ export default function App() {
   const [autoRotate, setAutoRotate] = useState(true);
   const [selectedYear, setSelectedYear] = useState(2026);
 
-  // Multi-toggle active layers set
-  const [activeLayers, setActiveLayers] = useState(
-    () => new Set(['aviation', 'satellites', 'cctv', 'conflicts'])
+  // Multi-toggle active layers set (all layers active by default)
+  const [activeLayers] = useState(
+    () => new Set(['aviation', 'satellites', 'cctv', 'conflicts', 'cables', 'telluric', 'weather'])
   );
 
   // Global search spotlight modal state
@@ -175,19 +173,6 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isShortcutsOpen, isSpotlightOpen, activeCCTV, isDrawerOpen, handleToggleMute, handleToggleFullscreen]);
 
-  // Layer toggle handler
-  const handleToggleLayer = useCallback((layerId) => {
-    setActiveLayers((prev) => {
-      const next = new Set(prev);
-      if (next.has(layerId)) {
-        next.delete(layerId);
-      } else {
-        next.add(layerId);
-      }
-      return next;
-    });
-  }, []);
-
   // Country selection handler (from map, search or drawer)
   const handleSelectCountry = useCallback((countryCode) => {
     setSelectedCountry(countryCode);
@@ -221,101 +206,82 @@ export default function App() {
 
   return (
     <div className="aegis-app-root">
-      {/* Centered Top Controls: 2D/3D Switch, Spotlight Button, Audio Equalizer, Fullscreen, Rotation & Pills Deck */}
+      {/* Centered Top: Pure 2D/3D Switcher with Pause/Play directly below */}
       <div className="top-center-dock">
-        <div className="top-mode-row">
-          <Switch3D
-            is3D={is3D}
-            onToggle={setIs3D}
-          />
-
-          {/* Search Trigger Button (Cmd+K) */}
-          <button
-            type="button"
-            className="top-spotlight-btn"
-            onClick={() => {
-              sound.click();
-              setIsSpotlightOpen(true);
-            }}
-            title="Recherche universelle (Cmd + K)"
-          >
-            <Search size={13} />
-            <span>RECHERCHER</span>
-            <span className="top-spotlight-kbd">⌘K</span>
-          </button>
-
-          {/* In 3D: Minimalist Awwwards rotation play/pause toggle */}
-          {is3D && (
-            <button
-              type="button"
-              className="top-rotation-icon-btn"
-              onMouseEnter={() => sound.hover()}
-              onClick={() => {
-                sound.click();
-                setAutoRotate((prev) => !prev);
-              }}
-              title={autoRotate ? 'Pause (Espace)' : 'Lecture (Espace)'}
-              aria-label={autoRotate ? 'Pause rotation' : 'Reprendre rotation'}
-            >
-              {autoRotate ? <Pause size={15} strokeWidth={1.8} /> : <Play size={15} strokeWidth={1.8} />}
-            </button>
-          )}
-
-          {/* Sound / Equalizer Toggle Button (M) */}
-          <button
-            type="button"
-            className={`top-tactical-icon-btn ${isMuted ? 'is-muted' : 'is-active'}`}
-            onMouseEnter={() => sound.hover()}
-            onClick={handleToggleMute}
-            title={isMuted ? 'Activer le son (M)' : 'Couper le son (M)'}
-            aria-label="Contrôle audio"
-          >
-            {isMuted ? (
-              <VolumeX size={15} strokeWidth={1.8} />
-            ) : (
-              <div className="top-audio-equalizer">
-                <span className="audio-bar bar-1" />
-                <span className="audio-bar bar-2" />
-                <span className="audio-bar bar-3" />
-                <span className="audio-bar bar-4" />
-              </div>
-            )}
-          </button>
-
-          {/* Fullscreen Toggle Button (F) */}
-          <button
-            type="button"
-            className="top-tactical-icon-btn"
-            onMouseEnter={() => sound.hover()}
-            onClick={handleToggleFullscreen}
-            title={isFullscreen ? 'Quitter plein écran (F)' : 'Mode plein écran immersif (F)'}
-            aria-label="Plein écran"
-          >
-            {isFullscreen ? <Minimize2 size={15} strokeWidth={1.8} /> : <Maximize2 size={15} strokeWidth={1.8} />}
-          </button>
-
-          {/* Help / Shortcuts Button (?) */}
-          <button
-            type="button"
-            className="top-tactical-icon-btn"
-            onMouseEnter={() => sound.hover()}
-            onClick={() => {
-              sound.click();
-              setIsShortcutsOpen(true);
-            }}
-            title="Commandes et raccourcis (?)"
-            aria-label="Aide raccourcis"
-          >
-            <HelpCircle size={15} strokeWidth={1.8} />
-          </button>
-        </div>
-
-        {/* Tactical Multi-Toggle Layer Pills Bar */}
-        <LayerPillsBar
-          activeLayers={activeLayers}
-          onToggleLayer={handleToggleLayer}
-          onSetAllLayers={setActiveLayers}
+        <Switch3D
+          is3D={is3D}
+          onToggle={setIs3D}
         />
+
+        {/* In 3D: Minimalist Awwwards rotation play/pause toggle directly below */}
+        {is3D && (
+          <button
+            type="button"
+            className="top-rotation-icon-btn"
+            onMouseEnter={() => sound.hover()}
+            onClick={() => {
+              sound.click();
+              setAutoRotate((prev) => !prev);
+            }}
+            title={autoRotate ? 'Pause rotation (Espace)' : 'Reprendre rotation (Espace)'}
+            aria-label={autoRotate ? 'Pause rotation' : 'Reprendre rotation'}
+          >
+            {autoRotate ? <Pause size={14} strokeWidth={1.8} /> : <Play size={14} strokeWidth={1.8} />}
+          </button>
+        )}
+      </div>
+
+      {/* Top-Right: Shortcuts Help Button */}
+      <div className="top-right-dock">
+        <button
+          type="button"
+          className="tactical-dock-btn"
+          onMouseEnter={() => sound.hover()}
+          onClick={() => {
+            sound.click();
+            setIsShortcutsOpen(true);
+          }}
+          title="Commandes et raccourcis (?)"
+          aria-label="Aide raccourcis"
+        >
+          <HelpCircle size={15} strokeWidth={1.8} />
+        </button>
+      </div>
+
+      {/* Bottom-Right: Sound Equalizer & Fullscreen Controls */}
+      <div className="bottom-right-dock">
+        {/* Sound / Equalizer Toggle Button (M) */}
+        <button
+          type="button"
+          className={`tactical-dock-btn ${isMuted ? 'is-muted' : 'is-active'}`}
+          onMouseEnter={() => sound.hover()}
+          onClick={handleToggleMute}
+          title={isMuted ? 'Activer le son (M)' : 'Couper le son (M)'}
+          aria-label="Contrôle audio"
+        >
+          {isMuted ? (
+            <VolumeX size={15} strokeWidth={1.8} />
+          ) : (
+            <div className="top-audio-equalizer">
+              <span className="audio-bar bar-1" />
+              <span className="audio-bar bar-2" />
+              <span className="audio-bar bar-3" />
+              <span className="audio-bar bar-4" />
+            </div>
+          )}
+        </button>
+
+        {/* Fullscreen Toggle Button (F) */}
+        <button
+          type="button"
+          className="tactical-dock-btn"
+          onMouseEnter={() => sound.hover()}
+          onClick={handleToggleFullscreen}
+          title={isFullscreen ? 'Quitter plein écran (F)' : 'Mode plein écran immersif (F)'}
+          aria-label="Plein écran"
+        >
+          {isFullscreen ? <Minimize2 size={15} strokeWidth={1.8} /> : <Maximize2 size={15} strokeWidth={1.8} />}
+        </button>
       </div>
 
       {/* Left-Side Interactive Notched Wheel (Jog Dial 1950 - 2100) */}
@@ -347,9 +313,6 @@ export default function App() {
           />
         )}
       </main>
-
-      {/* Pure Typography Bottom-Left Legend (Awwwards - Zero background) */}
-      <TacticalLegend />
 
       {/* Responsive Right-Side Unified Intelligence Drawer */}
       <LiveTelemetryDrawer
