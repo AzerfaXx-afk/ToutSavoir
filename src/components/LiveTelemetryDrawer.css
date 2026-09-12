@@ -100,131 +100,105 @@
   background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.5), transparent);
 }
 
-/* Status Row: Live/Archive Badge | Zone | Action Button */
-.chrono-status-row {
+/* Top Bar with Single Live / Refresh Arrow Button */
+.chrono-top-bar {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding-bottom: 2px;
+  justify-content: flex-end;
+  height: 20px;
 }
 
-.chrono-badge-live {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 7px;
-  border-radius: 6px;
-  background: rgba(0, 245, 160, 0.1);
-  border: 1px solid rgba(0, 245, 160, 0.3);
-}
-
-.chrono-pulse-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #00f5a0;
-  box-shadow: 0 0 8px #00f5a0;
-  animation: livePulseDot 1.4s infinite ease-in-out;
-}
-
-@keyframes livePulseDot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.3; transform: scale(0.8); }
-}
-
-.chrono-status-text {
-  font-family: var(--font-mono, monospace);
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: #00f5a0;
-}
-
-.chrono-badge-archive {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 7px;
-  border-radius: 6px;
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-}
-
-.chrono-archive-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #f59e0b;
-  box-shadow: 0 0 8px #f59e0b;
-}
-
-.chrono-badge-archive .chrono-status-text {
-  color: #f59e0b;
-}
-
-.chrono-zone-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-family: var(--font-mono, monospace);
-  font-size: 8.5px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  color: var(--neo-text-muted);
-}
-
-.chrono-zone-tag .zone-icon {
-  color: var(--neo-cyan);
-}
-
-.chrono-mini-btn {
+.chrono-sync-arrow-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  border: 1px solid var(--neo-border-subtle);
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
   color: var(--neo-text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.chrono-mini-btn:hover {
-  color: var(--neo-cyan);
-  border-color: var(--neo-cyan);
-  background: rgba(0, 242, 254, 0.1);
-  transform: scale(1.05);
+.chrono-sync-arrow-btn:hover {
+  color: #00f2fe;
+  border-color: rgba(0, 242, 254, 0.4);
+  background: rgba(0, 242, 254, 0.12);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
+  transform: scale(1.08);
 }
 
-.chrono-mini-btn.is-spinning svg {
+.chrono-sync-arrow-btn:active {
+  transform: scale(0.94);
+}
+
+.chrono-sync-arrow-btn.is-shifted {
+  color: #00f5a0;
+  border-color: rgba(0, 245, 160, 0.45);
+  background: rgba(0, 245, 160, 0.12);
+  box-shadow: 0 0 14px rgba(0, 245, 160, 0.35);
+  animation: syncShiftPulse 2s infinite ease-in-out;
+}
+
+.chrono-sync-arrow-btn.is-shifted:hover {
+  color: #ffffff;
+  background: rgba(0, 245, 160, 0.25);
+  border-color: rgba(0, 245, 160, 0.7);
+  box-shadow: 0 0 20px rgba(0, 245, 160, 0.6);
+}
+
+@keyframes syncShiftPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(0, 245, 160, 0.25);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 18px rgba(0, 245, 160, 0.55);
+  }
+}
+
+.chrono-sync-arrow-btn.is-spinning svg {
   animation: spinRefresh 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.chrono-reset-pill-btn {
-  display: inline-flex;
+/* Time Display & Stepper Row */
+.chrono-time-stepper-row {
+  display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: rgba(0, 245, 160, 0.15);
-  border: 1px solid rgba(0, 245, 160, 0.45);
-  color: #00f5a0;
-  font-family: var(--font-mono, monospace);
-  font-size: 8.5px;
-  font-weight: 800;
-  letter-spacing: 0.8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 0 10px rgba(0, 245, 160, 0.2);
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  margin: 2px 0 4px;
 }
 
-.chrono-reset-pill-btn:hover {
-  background: rgba(0, 245, 160, 0.25);
-  box-shadow: 0 0 16px rgba(0, 245, 160, 0.4);
-  transform: scale(1.04);
+.chrono-time-stepper-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--neo-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chrono-time-stepper-btn:hover {
+  color: #00f2fe;
+  background: rgba(0, 242, 254, 0.12);
+  border-color: rgba(0, 242, 254, 0.4);
+  box-shadow: 0 0 14px rgba(0, 242, 254, 0.25);
+  transform: scale(1.08);
+}
+
+.chrono-time-stepper-btn:active {
+  transform: scale(0.93);
 }
 
 /* Big Monospace Time Display */
@@ -232,18 +206,35 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 0;
+  padding: 2px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.drawer-time-display:hover {
+  background: rgba(0, 242, 254, 0.05);
 }
 
 .drawer-time-big {
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 800;
   color: #ffffff;
   letter-spacing: 4px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 20px rgba(0, 242, 254, 0.4), 0 0 40px rgba(0, 242, 254, 0.15);
+  text-shadow: 0 0 20px rgba(0, 242, 254, 0.45), 0 0 45px rgba(0, 242, 254, 0.18);
+  user-select: none;
+}
+
+.chrono-hidden-time-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
 }
 
 /* Date Stepper Bar */
@@ -251,7 +242,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   width: 100%;
 }
 
@@ -280,8 +271,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 4px 12px;
+  gap: 7px;
+  padding: 4px 14px;
   border-radius: 7px;
   background: rgba(0, 242, 254, 0.04);
   border: 1px solid rgba(0, 242, 254, 0.2);
@@ -302,7 +293,7 @@
 
 .drawer-date-text {
   font-family: var(--font-mono, monospace);
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 2px;
   color: #e2e8f0;
@@ -315,74 +306,6 @@
   width: 0;
   height: 0;
   pointer-events: none;
-}
-
-/* Quick Temporal Presets */
-.chrono-presets-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.chrono-preset-chip {
-  padding: 2px 7px;
-  border-radius: 5px;
-  font-family: var(--font-mono, monospace);
-  font-size: 8.5px;
-  font-weight: 600;
-  color: var(--neo-text-muted);
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.chrono-preset-chip:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
-}
-
-.chrono-preset-chip.is-active {
-  color: #00f5a0;
-  background: rgba(0, 245, 160, 0.12);
-  border-color: rgba(0, 245, 160, 0.4);
-  font-weight: 700;
-}
-
-/* Return to Live Banner */
-.chrono-return-live-bar {
-  width: 100%;
-  margin-top: 3px;
-}
-
-.chrono-return-live-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  width: 100%;
-  padding: 6px 12px;
-  border-radius: 7px;
-  background: linear-gradient(90deg, rgba(0, 245, 160, 0.15), rgba(0, 242, 254, 0.15));
-  border: 1px solid rgba(0, 245, 160, 0.4);
-  color: #00f5a0;
-  font-family: var(--font-mono, monospace);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  cursor: pointer;
-  box-shadow: 0 0 14px rgba(0, 245, 160, 0.2);
-  transition: all 0.25s ease;
-}
-
-.chrono-return-live-btn:hover {
-  background: linear-gradient(90deg, rgba(0, 245, 160, 0.25), rgba(0, 242, 254, 0.25));
-  box-shadow: 0 0 20px rgba(0, 245, 160, 0.4);
-  transform: translateY(-1px);
 }
 
 .spin-live-icon {

@@ -22,13 +22,11 @@ import {
   RefreshCw,
   Search,
   X,
-  Globe,
   Crosshair,
   Video,
   ShieldAlert,
   Calendar,
   Maximize2,
-  RotateCcw,
 } from 'lucide-react';
 import './LiveTelemetryDrawer.css';
 
@@ -90,12 +88,13 @@ export function LiveTelemetryDrawer({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [localTime, setLocalTime] = useState('');
   const [localDate, setLocalDate] = useState('');
-  const [timezoneName, setTimezoneName] = useState('');
   const categoryScrollRef = useRef(null);
   const dateInputRef = useRef(null);
+  const timeInputRef = useRef(null);
 
-  /* ── Temporal State (Live vs Custom Historical / Future Date) ──── */
+  /* ── Temporal State (Live vs Custom Time & Date) ────────────────── */
   const [customDate, setCustomDate] = useState(null); // null = Live Realtime Mode
+  const customDateRef = useRef(customDate);
   const isLive = customDate === null;
 
   // Active year & year multiplier
@@ -109,62 +108,64 @@ export function LiveTelemetryDrawer({
     [activeYear]
   );
 
+  const updateCustomDate = useCallback((newDate) => {
+    customDateRef.current = newDate;
+    setCustomDate(newDate);
+    if (newDate) {
+      setLocalTime(
+        newDate.toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        })
+      );
+      setLocalDate(
+        newDate
+          .toLocaleDateString('fr-FR', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })
+          .toUpperCase()
+      );
+    }
+  }, []);
+
   /* ── Live Clock & Date Display Engine ──────────────────────────── */
   useEffect(() => {
     const update = () => {
-      if (isLive) {
-        const now = new Date();
-        setLocalTime(
-          now.toLocaleTimeString('fr-FR', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false,
+      const target = customDateRef.current || new Date();
+      setLocalTime(
+        target.toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        })
+      );
+      setLocalDate(
+        target
+          .toLocaleDateString('fr-FR', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
           })
-        );
-        setLocalDate(
-          now
-            .toLocaleDateString('fr-FR', {
-              weekday: 'short',
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })
-            .toUpperCase()
-        );
-      } else {
-        setLocalTime(
-          customDate.toLocaleTimeString('fr-FR', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false,
-          })
-        );
-        setLocalDate(
-          customDate
-            .toLocaleDateString('fr-FR', {
-              weekday: 'short',
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })
-            .toUpperCase()
-        );
-      }
-
-      try {
-        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        setTimezoneName(tz ? tz.split('/').pop().replace(/_/g, ' ') : 'Paris');
-      } catch {
-        setTimezoneName('Paris');
-      }
+          .toUpperCase()
+      );
     };
 
     update();
-    const id = setInterval(update, 1000);
+    const id = setInterval(() => {
+      if (customDateRef.current) {
+        customDateRef.current = new Date(customDateRef.current.getTime() + 1000);
+      }
+      update();
+    }, 1000);
     return () => clearInterval(id);
-  }, [isLive, customDate]);
+  }, []);
 
   /* ── Metrics Ticker (ticking live or exact date snapshot) ──────── */
   useEffect(() => {
@@ -250,11 +251,73 @@ export function LiveTelemetryDrawer({
     return `${yyyy}-${mm}-${dd}`;
   }, [customDate]);
 
+  const currentIsoTime = useMemo(() => {
+    const d = customDate || new Date();
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+    return `${hh}:${mm}:${ss}`;
+  }, [customDate, localTime]);
+
+  const handlePrevHour = (e) => {
+    if (e) e.stopPropagation();
+    sound.click(0.4);
+    const base = customDateRef.current ? new Date(customDateRef.current) : new Date();
+    base.setHours(base.getHours() - 1);
+    updateCustomDate(base);
+    if (onYearChange && base.getFullYear() !== selectedYear) {
+      onYearChange(base.getFullYear());
+    }
+  };
+
+  const handleNextHour = (e) => {
+    if (e) e.stopPropagation();
+    sound.click(0.4);
+    const base = customDateRef.current ? new Date(customDateRef.current) : new Date();
+    base.setHours(base.getHours() + 1);
+    updateCustomDate(base);
+    if (onYearChange && base.getFullYear() !== selectedYear) {
+      onYearChange(base.getFullYear());
+    }
+  };
+
+  const handleSelectTimeInput = (e) => {
+    const val = e.target.value;
+    if (!val) return;
+    const parts = val.split(':').map(Number);
+    const base = customDateRef.current ? new Date(customDateRef.current) : new Date();
+    if (parts.length >= 2) {
+      base.setHours(parts[0], parts[1], parts[2] || 0);
+      updateCustomDate(base);
+      sound.click(0.5);
+    }
+  };
+
+  const handleTimeWheel = (e) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      handleNextHour();
+    } else {
+      handlePrevHour();
+    }
+  };
+
+  const triggerTimePicker = () => {
+    sound.click(0.4);
+    if (timeInputRef.current) {
+      if (typeof timeInputRef.current.showPicker === 'function') {
+        timeInputRef.current.showPicker();
+      } else {
+        timeInputRef.current.focus();
+      }
+    }
+  };
+
   const handlePrevDay = () => {
     sound.click(0.4);
-    const base = customDate ? new Date(customDate) : new Date();
+    const base = customDateRef.current ? new Date(customDateRef.current) : new Date();
     base.setDate(base.getDate() - 1);
-    setCustomDate(base);
+    updateCustomDate(base);
     if (onYearChange && base.getFullYear() !== selectedYear) {
       onYearChange(base.getFullYear());
     }
@@ -262,9 +325,9 @@ export function LiveTelemetryDrawer({
 
   const handleNextDay = () => {
     sound.click(0.4);
-    const base = customDate ? new Date(customDate) : new Date();
+    const base = customDateRef.current ? new Date(customDateRef.current) : new Date();
     base.setDate(base.getDate() + 1);
-    setCustomDate(base);
+    updateCustomDate(base);
     if (onYearChange && base.getFullYear() !== selectedYear) {
       onYearChange(base.getFullYear());
     }
@@ -274,41 +337,29 @@ export function LiveTelemetryDrawer({
     const val = e.target.value;
     if (!val) return;
     const [y, m, d] = val.split('-').map(Number);
-    const newDate = new Date();
-    newDate.setFullYear(y, m - 1, d);
-    setCustomDate(newDate);
+    const base = customDateRef.current ? new Date(customDateRef.current) : new Date();
+    base.setFullYear(y, m - 1, d);
+    updateCustomDate(base);
     if (onYearChange && y !== selectedYear) {
       onYearChange(y);
     }
     sound.click(0.5);
   };
 
-  const handleResetToLive = useCallback(() => {
+  const handleTopRightArrowClick = useCallback(() => {
     sound.tick();
-    setCustomDate(null);
-    const realYear = new Date().getFullYear();
-    if (onYearChange && selectedYear !== realYear) {
-      onYearChange(realYear);
+    if (customDateRef.current !== null) {
+      customDateRef.current = null;
+      setCustomDate(null);
+      const realYear = new Date().getFullYear();
+      if (onYearChange && selectedYear !== realYear) {
+        onYearChange(realYear);
+      }
     }
     setIsRefreshing(true);
     setMetrics(computeWorldometerMetrics(1, null));
-    setTimeout(() => setIsRefreshing(false), 800);
+    setTimeout(() => setIsRefreshing(false), 600);
   }, [onYearChange, selectedYear]);
-
-  const handleQuickJump = (daysOffset, targetYear = null) => {
-    sound.click(0.45);
-    if (targetYear !== null) {
-      const d = new Date();
-      d.setFullYear(targetYear, 0, 1);
-      setCustomDate(d);
-      if (onYearChange) onYearChange(targetYear);
-    } else {
-      const d = new Date();
-      d.setDate(d.getDate() + daysOffset);
-      setCustomDate(d);
-      if (onYearChange) onYearChange(d.getFullYear());
-    }
-  };
 
   const toggleOpen = () => {
     sound.tick();
@@ -378,52 +429,58 @@ export function LiveTelemetryDrawer({
         {/* ─── Centered Cockpit Chronometer Header ─── */}
         <div className="drawer-header">
           <div className="drawer-chrono-frame">
-            {/* Top Status Bar: Live vs Archive status & Zone */}
-            <div className="chrono-status-row">
-              {isLive ? (
-                <div className="chrono-badge-live" title="Flux télémétrique mondial en direct">
-                  <span className="chrono-pulse-dot" />
-                  <span className="chrono-status-text">EN DIRECT</span>
-                </div>
-              ) : (
-                <div className="chrono-badge-archive" title="Mode temporel différé">
-                  <span className="chrono-archive-dot" />
-                  <span className="chrono-status-text">DIFFÉRÉ</span>
-                </div>
-              )}
-
-              <div className="chrono-zone-tag">
-                <Globe size={11} className="zone-icon" />
-                <span>{timezoneName.toUpperCase()}</span>
-              </div>
-
-              {isLive ? (
-                <button
-                  type="button"
-                  className={`chrono-mini-btn ${isRefreshing ? 'is-spinning' : ''}`}
-                  onClick={handleRefresh}
-                  title="Actualiser les indicateurs"
-                  aria-label="Actualiser"
-                >
-                  <RefreshCw size={11} />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="chrono-reset-pill-btn"
-                  onClick={handleResetToLive}
-                  title="Revenir au direct"
-                  aria-label="Revenir au direct"
-                >
-                  <RotateCcw size={10} />
-                  <span>DIRECT</span>
-                </button>
-              )}
+            {/* Top Bar with Single Live / Refresh Arrow Button */}
+            <div className="chrono-top-bar">
+              <button
+                type="button"
+                className={`chrono-sync-arrow-btn ${!isLive ? 'is-shifted' : ''} ${isRefreshing ? 'is-spinning' : ''}`}
+                onClick={handleTopRightArrowClick}
+                title={!isLive ? "Remettre en direct (Temps réel)" : "Actualiser les indicateurs"}
+                aria-label={!isLive ? "Remettre en direct" : "Actualiser"}
+              >
+                <RefreshCw size={13} />
+              </button>
             </div>
 
-            {/* Big Centered Digital Time Display */}
-            <div className="drawer-time-display">
-              <span className="drawer-time-big">{localTime}</span>
+            {/* Centered Digital Time Display with Stepper Arrows */}
+            <div className="chrono-time-stepper-row">
+              <button
+                type="button"
+                className="chrono-time-stepper-btn"
+                onClick={handlePrevHour}
+                title="Heure précédente (-1h)"
+                aria-label="Heure précédente"
+              >
+                <ChevronLeft size={16} />
+              </button>
+
+              <div
+                className="drawer-time-display"
+                onClick={triggerTimePicker}
+                onWheel={handleTimeWheel}
+                title="Cliquer pour régler l'heure ou utiliser la molette / flèches"
+              >
+                <span className="drawer-time-big">{localTime}</span>
+                <input
+                  ref={timeInputRef}
+                  type="time"
+                  step="1"
+                  className="chrono-hidden-time-input"
+                  value={currentIsoTime}
+                  onChange={handleSelectTimeInput}
+                  aria-label="Modifier l'heure"
+                />
+              </div>
+
+              <button
+                type="button"
+                className="chrono-time-stepper-btn"
+                onClick={handleNextHour}
+                title="Heure suivante (+1h)"
+                aria-label="Heure suivante"
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
 
             {/* Centered Date Stepper & Picker Bar */}
@@ -474,66 +531,6 @@ export function LiveTelemetryDrawer({
                 <ChevronRight size={13} />
               </button>
             </div>
-
-            {/* Quick Temporal Presets Row */}
-            <div className="chrono-presets-row">
-              <button
-                type="button"
-                className={`chrono-preset-chip ${isLive ? 'is-active' : ''}`}
-                onClick={handleResetToLive}
-              >
-                Direct
-              </button>
-              <button
-                type="button"
-                className="chrono-preset-chip"
-                onClick={() => handleQuickJump(-1)}
-              >
-                Hier
-              </button>
-              <button
-                type="button"
-                className="chrono-preset-chip"
-                onClick={() => handleQuickJump(-7)}
-              >
-                -7j
-              </button>
-              <button
-                type="button"
-                className="chrono-preset-chip"
-                onClick={() => handleQuickJump(-30)}
-              >
-                -30j
-              </button>
-              <button
-                type="button"
-                className="chrono-preset-chip"
-                onClick={() => handleQuickJump(0, 2025)}
-              >
-                2025
-              </button>
-              <button
-                type="button"
-                className="chrono-preset-chip"
-                onClick={() => handleQuickJump(0, 2020)}
-              >
-                2020
-              </button>
-            </div>
-
-            {/* Return to Live Banner if in past/future */}
-            {!isLive && (
-              <div className="chrono-return-live-bar">
-                <button
-                  type="button"
-                  className="chrono-return-live-btn"
-                  onClick={handleResetToLive}
-                >
-                  <RefreshCw size={12} className="spin-live-icon" />
-                  <span>RÉINITIALISER AU DIRECT (TEMPS RÉEL)</span>
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
