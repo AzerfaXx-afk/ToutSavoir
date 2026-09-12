@@ -892,13 +892,9 @@ body.is-grabbing *,
 /* Arc Wheel Inside Transparent Panel */
 .timeline-arc-container {
   position: relative;
-  width: 220px;
+  width: 200px;
   height: 440px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 8px 0;
+  display: block;
   background: transparent !important;
   pointer-events: auto;
   user-select: none;
@@ -914,65 +910,6 @@ body.timeline-scrubbing-active,
 body.timeline-scrubbing-active * {
   cursor: grabbing !important;
   user-select: none !important;
-}
-
-/* Continuous Hold Shuttle Chevrons (Top & Bottom) */
-.arc-shuttle-btn {
-  background: transparent;
-  border: none;
-  color: var(--cyan-bright, #00f2fe);
-  padding: 6px 14px;
-  margin-left: 42px;
-  cursor: pointer;
-  pointer-events: auto;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.55;
-  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease;
-}
-
-.arc-shuttle-btn:hover {
-  opacity: 1;
-  transform: scale(1.2);
-  filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.9));
-}
-
-.arc-shuttle-btn:active {
-  transform: scale(0.92);
-  filter: drop-shadow(0 0 16px rgba(0, 242, 254, 1));
-}
-
-.arc-shuttle-top {
-  align-self: flex-start;
-}
-
-.arc-shuttle-bottom {
-  align-self: flex-start;
-}
-
-/* Scrub HUD Hint Pill */
-.timeline-scrub-hint {
-  align-self: flex-start;
-  margin-left: 28px;
-  font-family: var(--font-mono, monospace);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  color: rgba(0, 242, 254, 0.5);
-  pointer-events: none;
-  transition: color 0.2s ease, text-shadow 0.2s ease, opacity 0.2s ease;
-  white-space: nowrap;
-}
-
-.timeline-arc-container:hover .timeline-scrub-hint {
-  color: rgba(0, 242, 254, 0.85);
-}
-
-.timeline-arc-container.is-dragging .timeline-scrub-hint {
-  color: #ffffff;
-  text-shadow: 0 0 10px rgba(0, 242, 254, 0.9);
 }
 
 .timeline-arc-svg {
@@ -992,10 +929,6 @@ body.timeline-scrubbing-active * {
 
 .timeline-arc-container.is-dragging .arc-track-line {
   filter: drop-shadow(0 0 14px rgba(0, 242, 254, 0.85));
-}
-
-.arc-apex-reticle {
-  transition: transform 0.15s ease-out;
 }
 
 

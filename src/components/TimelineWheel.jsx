@@ -230,43 +230,6 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
     window.addEventListener('pointercancel', handlePointerUp);
   }, [setTargetYearClamped]);
 
-  // Shuttle Hold-to-Unroll (Hold continuous scroll up / down)
-  const startShuttleHold = useCallback((direction, e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    isInteracting.current = true;
-    sound.click(0.35);
-
-    // Initial step
-    targetYearRef.current = Math.max(MIN_YEAR, Math.min(MAX_YEAR, targetYearRef.current + direction));
-
-    // Smooth accelerating auto-scrub
-    let speed = 5; // years per second
-    const startTime = performance.now();
-    autoScrubVelocity.current = direction * speed;
-
-    if (shuttleTimerRef.current) clearInterval(shuttleTimerRef.current);
-    shuttleTimerRef.current = setInterval(() => {
-      const elapsed = (performance.now() - startTime) / 1000;
-      if (elapsed > 0.8) {
-        speed = Math.min(18, 5 + (elapsed - 0.8) * 8);
-        autoScrubVelocity.current = direction * speed;
-      }
-    }, 80);
-  }, []);
-
-  const stopShuttleHold = useCallback(() => {
-    if (shuttleTimerRef.current) {
-      clearInterval(shuttleTimerRef.current);
-      shuttleTimerRef.current = null;
-    }
-    autoScrubVelocity.current = 0;
-    isInteracting.current = false;
-    targetYearRef.current = Math.round(targetYearRef.current);
-  }, []);
-
   // Outside click & Escape listener to close unfolded timeline menu
   useEffect(() => {
     if (!isOpen) return;
@@ -503,7 +466,7 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
       {/* 2. Pure Transparent Floating Wheel (No header, no milestone pills, no stray arrow) */}
       {isOpen && (
         <div className="timeline-transparent-panel">
-          {/* Interactive Wheel Arc (Scrollable, Draggable & Holdable) */}
+          {/* Interactive Wheel Arc (Scrollable & Draggable) */}
           <div
             className={`timeline-arc-container ${isDragging ? 'is-dragging' : ''}`}
             onWheel={handleWheel}
@@ -515,21 +478,6 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
             aria-label="Arc temporel interactif"
             title="Maintenez le clic et glissez ou utilisez la molette pour faire défiler"
           >
-            {/* Top Shuttle: Hold to continuous roll up/past */}
-            <button
-              type="button"
-              className="arc-shuttle-btn arc-shuttle-top"
-              onPointerDown={(e) => startShuttleHold(-1, e)}
-              onPointerUp={stopShuttleHold}
-              onPointerLeave={stopShuttleHold}
-              title="Maintenir enfoncé pour dérouler vers le passé"
-              aria-label="Dérouler vers le passé"
-            >
-              <svg width="18" height="10" viewBox="0 0 18 10" fill="none">
-                <path d="M 2 8 L 9 2 L 16 8" stroke="#00f2fe" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-
             <svg
               className="timeline-arc-svg"
               width={VIEW_WIDTH}
@@ -562,26 +510,6 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
                 strokeWidth={isDragging ? '2.4' : '1.6'}
                 className="arc-track-line"
               />
-
-              {/* Luminous Apex Focus Reticle at Center Line */}
-              <g className="arc-apex-reticle">
-                <path
-                  d={`M ${APEX_X - 11} ${CENTER_Y - 7} L ${APEX_X - 4} ${CENTER_Y} L ${APEX_X - 11} ${CENTER_Y + 7}`}
-                  fill="none"
-                  stroke="#00f2fe"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  filter="url(#reticleGlow)"
-                />
-                <circle
-                  cx={APEX_X - 15}
-                  cy={CENTER_Y}
-                  r="2"
-                  fill="#ffffff"
-                  filter="url(#reticleGlow)"
-                />
-              </g>
 
               {/* Graduations (Ticks) and Dates */}
               {items.map((item) => {
@@ -631,26 +559,6 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
                 );
               })}
             </svg>
-
-            {/* Bottom Shuttle: Hold to continuous roll down/future */}
-            <button
-              type="button"
-              className="arc-shuttle-btn arc-shuttle-bottom"
-              onPointerDown={(e) => startShuttleHold(1, e)}
-              onPointerUp={stopShuttleHold}
-              onPointerLeave={stopShuttleHold}
-              title="Maintenir enfoncé pour dérouler vers le futur"
-              aria-label="Dérouler vers le futur"
-            >
-              <svg width="18" height="10" viewBox="0 0 18 10" fill="none">
-                <path d="M 2 2 L 9 8 L 16 2" stroke="#00f2fe" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-
-            {/* Tactile Micro Scrub HUD Hint */}
-            <div className="timeline-scrub-hint">
-              {isDragging ? '● DÉROULEMENT ACTIF' : 'MAINTENIR // GLISSER'}
-            </div>
           </div>
         </div>
       )}
