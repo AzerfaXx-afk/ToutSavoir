@@ -649,9 +649,9 @@ export function OrbitView3D({
     const aviationGroup = new THREE.Group();
     earthGroup.add(aviationGroup);
 
-    // Build authentic Flightradar24 yellow airplane silhouette in 3D (identical to 2D icon)
+    // Build authentic Flightradar24 yellow airplane silhouette in 3D (prominently visible & aerodynamic)
     const planeShape = new THREE.Shape();
-    const s = 0.00085; // Perfect proportion, slender & elegant
+    const s = 0.0028; // Beautiful, crisp Flightradar24 yellow silhouette visible from orbit
     planeShape.moveTo(0, 10 * s);
     planeShape.bezierCurveTo(-0.7 * s, 10 * s, -1.4 * s, 9.2 * s, -1.4 * s, 7.8 * s);
     planeShape.lineTo(-1.4 * s, 2.5 * s);
@@ -671,7 +671,7 @@ export function OrbitView3D({
     planeShape.lineTo(1.4 * s, 2.5 * s);
     planeShape.bezierCurveTo(1.4 * s, 9.2 * s, 0.7 * s, 10 * s, 0, 10 * s);
 
-    const airplaneGeom = new THREE.ExtrudeGeometry(planeShape, { depth: 0.0016, bevelEnabled: false });
+    const airplaneGeom = new THREE.ExtrudeGeometry(planeShape, { depth: 0.0036, bevelEnabled: false });
     airplaneGeom.center();
 
     // Flightradar24 signature gold yellow with double-sided rendering
@@ -707,7 +707,9 @@ export function OrbitView3D({
 
       for (let i = 0; i < count; i++) {
         const fl = flightsList[i];
-        const [x, y, z] = coordsToVector(fl.lng, fl.lat, R_EARTH + 0.006 + ((fl.altitudeFt || 30000) / 60000) * 0.008);
+        // Elevate cleanly above cloud sphere (2.008) and borders into the stratosphere for crystal-clear visibility
+        const planeAlt = R_EARTH + 0.022 + ((fl.altitudeFt || 30000) / 60000) * 0.016;
+        const [x, y, z] = coordsToVector(fl.lng, fl.lat, planeAlt);
         scratchPos.set(x, y, z);
         scratchNormal.copy(scratchPos).normalize();
 
@@ -738,6 +740,11 @@ export function OrbitView3D({
 
       planesInstancedMesh.instanceMatrix.needsUpdate = true;
     };
+
+    // Immediate initial population so airplanes appear on the very first frame
+    if (flightRadarService.flights.length > 0) {
+      update3DPlanes(flightRadarService.flights);
+    }
 
     // Selected flight corridor line & airport pins
     let selectedFlightGroup = null;
@@ -787,6 +794,21 @@ export function OrbitView3D({
       const arrPin = new THREE.Mesh(arrGeom, arrMat);
       arrPin.position.copy(vTo);
       selectedFlightGroup.add(arrPin);
+
+      // Targeting Reticle on the selected aircraft itself (pulsing cyan ring)
+      const planeRadius = R_EARTH + 0.024 + ((fl.altitudeFt || 30000) / 60000) * 0.016;
+      const vPlane = new THREE.Vector3(...coordsToVector(fl.lng, fl.lat, planeRadius));
+      const targetRingGeom = new THREE.RingGeometry(0.018, 0.026, 32);
+      const targetRingMat = new THREE.MeshBasicMaterial({
+        color: 0x00ffff,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.95,
+      });
+      const targetRing = new THREE.Mesh(targetRingGeom, targetRingMat);
+      targetRing.position.copy(vPlane);
+      targetRing.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), vPlane.clone().normalize());
+      selectedFlightGroup.add(targetRing);
 
       aviationGroup.add(selectedFlightGroup);
     };
@@ -1646,10 +1668,10 @@ export function OrbitView3D({
           // Proximity fallback check for live planes in 3D (sélection immédiate et ergonomique sans pixel-hunting)
           if (activeLayersRef.current.has('aviation') && currentLiveFlights.length > 0) {
             let closestFl = null;
-            let minDistSq = 0.0038; // Rayon de tolérance ergonomique (~20px à l'écran)
+            let minDistSq = 0.008; // Rayon de tolérance étendu (~35px à l'écran pour un clic direct et facile)
             for (let k = 0; k < currentLiveFlights.length; k++) {
               const fl = currentLiveFlights[k];
-              const [px, py, pz] = coordsToVector(fl.lng, fl.lat, R_EARTH + 0.008);
+              const [px, py, pz] = coordsToVector(fl.lng, fl.lat, R_EARTH + 0.024);
               const dx = hitWorld.x - px;
               const dy = hitWorld.y - py;
               const dz = hitWorld.z - pz;
