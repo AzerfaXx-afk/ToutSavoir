@@ -161,8 +161,8 @@ export function OrbitView3D({
 
   // Build a true 3D elevated territory mesh with extruded vertical side walls
   const createTerritoryMesh = (feature, {
-    surfaceRadius = R_HOVER_SURFACE,
-    borderRadius = R_HOVER_BORDER,
+    surfaceRadius = R_SELECT,
+    borderRadius = R_SELECT + 0.003,
     baseRadius = R_HOVER_BASE,
     fillColor = 0x00f2fe,
     fillOpacity = 0.42,
@@ -701,44 +701,52 @@ export function OrbitView3D({
 
     const update3DPlanes = (flightsList) => {
       if (!planesInstancedMesh || !flightsList || flightsList.length === 0) return;
-      currentLiveFlights = flightsList;
-      const count = Math.min(6500, flightsList.length);
-      planesInstancedMesh.count = count;
+      try {
+        currentLiveFlights = flightsList;
+        const count = Math.min(6500, flightsList.length);
+        let validCount = 0;
 
-      for (let i = 0; i < count; i++) {
-        const fl = flightsList[i];
-        // Elevate cleanly above cloud sphere (2.008) and borders into the stratosphere for crystal-clear visibility
-        const planeAlt = R_EARTH + 0.022 + ((fl.altitudeFt || 30000) / 60000) * 0.016;
-        const [x, y, z] = coordsToVector(fl.lng, fl.lat, planeAlt);
-        scratchPos.set(x, y, z);
-        scratchNormal.copy(scratchPos).normalize();
+        for (let i = 0; i < count; i++) {
+          const fl = flightsList[i];
+          if (!fl || typeof fl.lat !== 'number' || typeof fl.lng !== 'number' || isNaN(fl.lat) || isNaN(fl.lng)) continue;
 
-        const normalDotUp = scratchNormal.dot(upWorldVector);
-        scratchNorth.copy(upWorldVector).addScaledVector(scratchNormal, -normalDotUp);
-        if (scratchNorth.lengthSq() < 0.0001) {
-          scratchNorth.set(0, 0, 1);
-        } else {
-          scratchNorth.normalize();
+          // Elevate cleanly above cloud sphere (2.008) and borders into the stratosphere for crystal-clear visibility
+          const planeAlt = R_EARTH + 0.022 + ((fl.altitudeFt || 30000) / 60000) * 0.016;
+          const [x, y, z] = coordsToVector(fl.lng, fl.lat, planeAlt);
+          scratchPos.set(x, y, z);
+          scratchNormal.copy(scratchPos).normalize();
+
+          const normalDotUp = scratchNormal.dot(upWorldVector);
+          scratchNorth.copy(upWorldVector).addScaledVector(scratchNormal, -normalDotUp);
+          if (scratchNorth.lengthSq() < 0.0001) {
+            scratchNorth.set(0, 0, 1);
+          } else {
+            scratchNorth.normalize();
+          }
+          scratchEast.crossVectors(scratchNormal, scratchNorth).normalize();
+
+          const rad = ((fl.track || fl.heading || 0) * Math.PI) / 180;
+          scratchHeading.copy(scratchNorth).multiplyScalar(Math.cos(rad)).addScaledVector(scratchEast, Math.sin(rad)).normalize();
+          scratchRight.crossVectors(scratchHeading, scratchNormal).normalize();
+
+          // Map shape: X -> right, Y -> heading (nose), Z -> normal (surface altitude)
+          scratchRotMatrix.makeBasis(scratchRight, scratchHeading, scratchNormal);
+          scratchQuat.setFromRotationMatrix(scratchRotMatrix);
+
+          const isWidebody = fl.aircraftCode?.startsWith('A38') || fl.aircraftCode?.startsWith('B77') || fl.aircraftCode?.startsWith('B74') || fl.aircraftCode?.startsWith('A35');
+          const sVal = isWidebody ? 1.25 : 1.0;
+          scratchScale.set(sVal, sVal, sVal);
+
+          dummyPlaneMatrix.compose(scratchPos, scratchQuat, scratchScale);
+          planesInstancedMesh.setMatrixAt(validCount, dummyPlaneMatrix);
+          validCount++;
         }
-        scratchEast.crossVectors(scratchNormal, scratchNorth).normalize();
 
-        const rad = ((fl.track || fl.heading || 0) * Math.PI) / 180;
-        scratchHeading.copy(scratchNorth).multiplyScalar(Math.cos(rad)).addScaledVector(scratchEast, Math.sin(rad)).normalize();
-        scratchRight.crossVectors(scratchHeading, scratchNormal).normalize();
-
-        // Map shape: X -> right, Y -> heading (nose), Z -> normal (surface altitude)
-        scratchRotMatrix.makeBasis(scratchRight, scratchHeading, scratchNormal);
-        scratchQuat.setFromRotationMatrix(scratchRotMatrix);
-
-        const isWidebody = fl.aircraftCode?.startsWith('A38') || fl.aircraftCode?.startsWith('B77') || fl.aircraftCode?.startsWith('B74') || fl.aircraftCode?.startsWith('A35');
-        const sVal = isWidebody ? 1.25 : 1.0;
-        scratchScale.set(sVal, sVal, sVal);
-
-        dummyPlaneMatrix.compose(scratchPos, scratchQuat, scratchScale);
-        planesInstancedMesh.setMatrixAt(i, dummyPlaneMatrix);
+        planesInstancedMesh.count = validCount;
+        planesInstancedMesh.instanceMatrix.needsUpdate = true;
+      } catch (err) {
+        console.warn('update3DPlanes error:', err);
       }
-
-      planesInstancedMesh.instanceMatrix.needsUpdate = true;
     };
 
     // Immediate initial population so airplanes appear on the very first frame
@@ -749,68 +757,80 @@ export function OrbitView3D({
     // Selected flight corridor line & airport pins
     let selectedFlightGroup = null;
     const updateSelectedFlightPath = (fl) => {
-      if (selectedFlightGroup) {
-        aviationGroup.remove(selectedFlightGroup);
-        selectedFlightGroup.traverse((child) => {
-          if (child.geometry) child.geometry.dispose();
-          if (child.material) child.material.dispose();
+      try {
+        if (selectedFlightGroup) {
+          aviationGroup.remove(selectedFlightGroup);
+          selectedFlightGroup.traverse((child) => {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) child.material.dispose();
+          });
+          selectedFlightGroup = null;
+        }
+        if (!fl || !fl.origin?.coords || !fl.destination?.coords) return;
+
+        selectedFlightGroup = new THREE.Group();
+
+        const [fromLat, fromLng] = fl.origin.coords;
+        const [toLat, toLng] = fl.destination.coords;
+        if (typeof fromLat !== 'number' || typeof fromLng !== 'number' || typeof toLat !== 'number' || typeof toLng !== 'number') return;
+
+        const vFrom = new THREE.Vector3(...coordsToVector(fromLng, fromLat, R_EARTH + 0.005));
+        const vTo = new THREE.Vector3(...coordsToVector(toLng, toLat, R_EARTH + 0.005));
+        const dist = vFrom.distanceTo(vTo);
+        const arcApex = R_EARTH + Math.min(0.38, 0.08 + dist * 0.14);
+        const vMid = vFrom.clone().add(vTo).multiplyScalar(0.5).normalize().multiplyScalar(arcApex);
+
+        // Great-circle parabolic corridor curve
+        const curve = new THREE.QuadraticBezierCurve3(vFrom, vMid, vTo);
+        const points = curve.getPoints(50);
+        const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
+        const lineMat = new THREE.LineBasicMaterial({
+          color: 0x00f2fe,
+          transparent: true,
+          opacity: 0.9,
         });
-        selectedFlightGroup = null;
+        const trajLine = new THREE.Line(lineGeom, lineMat);
+        selectedFlightGroup.add(trajLine);
+
+        // Departure Pin (Emerald)
+        const depGeom = new THREE.SphereGeometry(0.015, 12, 12);
+        const depMat = new THREE.MeshBasicMaterial({ color: 0x00f5a0 });
+        const depPin = new THREE.Mesh(depGeom, depMat);
+        depPin.position.copy(vFrom);
+        selectedFlightGroup.add(depPin);
+
+        // Arrival Pin (Cyan)
+        const arrGeom = new THREE.SphereGeometry(0.015, 12, 12);
+        const arrMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+        const arrPin = new THREE.Mesh(arrGeom, arrMat);
+        arrPin.position.copy(vTo);
+        selectedFlightGroup.add(arrPin);
+
+        // Targeting Reticle on the selected aircraft itself (pulsing cyan ring)
+        const lat = fl.lat ?? fl.origin?.coords?.[0];
+        const lng = fl.lng ?? fl.origin?.coords?.[1];
+        if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
+          const planeRadius = R_EARTH + 0.024 + ((fl.altitudeFt || 30000) / 60000) * 0.016;
+          const vPlane = new THREE.Vector3(...coordsToVector(lng, lat, planeRadius));
+          if (!isNaN(vPlane.x) && !isNaN(vPlane.y) && !isNaN(vPlane.z)) {
+            const targetRingGeom = new THREE.RingGeometry(0.018, 0.026, 32);
+            const targetRingMat = new THREE.MeshBasicMaterial({
+              color: 0x00ffff,
+              side: THREE.DoubleSide,
+              transparent: true,
+              opacity: 0.95,
+            });
+            const targetRing = new THREE.Mesh(targetRingGeom, targetRingMat);
+            targetRing.position.copy(vPlane);
+            targetRing.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), vPlane.clone().normalize());
+            selectedFlightGroup.add(targetRing);
+          }
+        }
+
+        aviationGroup.add(selectedFlightGroup);
+      } catch (err) {
+        console.warn('updateSelectedFlightPath error:', err);
       }
-      if (!fl || !fl.origin?.coords || !fl.destination?.coords) return;
-
-      selectedFlightGroup = new THREE.Group();
-
-      const [fromLat, fromLng] = fl.origin.coords;
-      const [toLat, toLng] = fl.destination.coords;
-      const vFrom = new THREE.Vector3(...coordsToVector(fromLng, fromLat, R_EARTH + 0.005));
-      const vTo = new THREE.Vector3(...coordsToVector(toLng, toLat, R_EARTH + 0.005));
-      const dist = vFrom.distanceTo(vTo);
-      const arcApex = R_EARTH + Math.min(0.38, 0.08 + dist * 0.14);
-      const vMid = vFrom.clone().add(vTo).multiplyScalar(0.5).normalize().multiplyScalar(arcApex);
-
-      // Great-circle parabolic corridor curve
-      const curve = new THREE.QuadraticBezierCurve3(vFrom, vMid, vTo);
-      const points = curve.getPoints(50);
-      const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
-      const lineMat = new THREE.LineBasicMaterial({
-        color: 0x00f2fe,
-        transparent: true,
-        opacity: 0.9,
-      });
-      const trajLine = new THREE.Line(lineGeom, lineMat);
-      selectedFlightGroup.add(trajLine);
-
-      // Departure Pin (Emerald)
-      const depGeom = new THREE.SphereGeometry(0.015, 12, 12);
-      const depMat = new THREE.MeshBasicMaterial({ color: 0x00f5a0 });
-      const depPin = new THREE.Mesh(depGeom, depMat);
-      depPin.position.copy(vFrom);
-      selectedFlightGroup.add(depPin);
-
-      // Arrival Pin (Cyan)
-      const arrGeom = new THREE.SphereGeometry(0.015, 12, 12);
-      const arrMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
-      const arrPin = new THREE.Mesh(arrGeom, arrMat);
-      arrPin.position.copy(vTo);
-      selectedFlightGroup.add(arrPin);
-
-      // Targeting Reticle on the selected aircraft itself (pulsing cyan ring)
-      const planeRadius = R_EARTH + 0.024 + ((fl.altitudeFt || 30000) / 60000) * 0.016;
-      const vPlane = new THREE.Vector3(...coordsToVector(fl.lng, fl.lat, planeRadius));
-      const targetRingGeom = new THREE.RingGeometry(0.018, 0.026, 32);
-      const targetRingMat = new THREE.MeshBasicMaterial({
-        color: 0x00ffff,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.95,
-      });
-      const targetRing = new THREE.Mesh(targetRingGeom, targetRingMat);
-      targetRing.position.copy(vPlane);
-      targetRing.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), vPlane.clone().normalize());
-      selectedFlightGroup.add(targetRing);
-
-      aviationGroup.add(selectedFlightGroup);
     };
 
     updateSelectedFlightPathRef.current = updateSelectedFlightPath;
@@ -2036,14 +2056,6 @@ export function OrbitView3D({
         });
       }
 
-      // Smooth hover mesh spring pop-in & glowing pulse
-      if (hoverMeshRef.current) {
-        hoverMeshRef.current.scale.lerp(new THREE.Vector3(1, 1, 1), 0.2);
-        if (hoverFillMatRef.current) {
-          hoverFillMatRef.current.opacity = 0.40 + 0.08 * Math.sin(frameCount * 0.1);
-        }
-      }
-
       // Selected country glowing pulse effect
       if (selectedFillMatRef.current) {
         selectedFillMatRef.current.opacity = 0.45 + 0.12 * Math.sin(frameCount * 0.07);
@@ -2111,7 +2123,6 @@ export function OrbitView3D({
       dayMap.dispose();
       cloudsMap.dispose();
 
-      removeHoverMesh();
       removeSelectedMesh();
 
       if (container.contains(renderer.domElement)) {

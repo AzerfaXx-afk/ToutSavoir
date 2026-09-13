@@ -211,8 +211,6 @@ export function TacticalMap2D({
             }
           });
         }
-        hoveredLayerRef.current = null;
-        setHoveredCountry(null);
         selectedLayerRef.current = null;
         setSelectedTerritory(null);
       }

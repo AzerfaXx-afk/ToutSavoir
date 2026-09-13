@@ -48,6 +48,28 @@ export class ErrorBoundary extends React.Component {
             <p style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.5, margin: '0 0 20px 0' }}>
               Une réinitialisation du flux d'affichage est requise pour restaurer la télémétrie en direct.
             </p>
+            {this.state.error && (
+              <div style={{
+                background: 'rgba(0, 0, 0, 0.6)',
+                border: '1px solid rgba(255, 51, 102, 0.3)',
+                borderRadius: 6,
+                padding: '10px',
+                marginBottom: '16px',
+                textAlign: 'left',
+                maxHeight: '180px',
+                overflow: 'auto',
+                fontSize: '11px',
+                color: '#f87171',
+                fontFamily: 'monospace'
+              }}>
+                <div style={{ fontWeight: 'bold' }}>{String(this.state.error.message || this.state.error)}</div>
+                {this.state.error.stack && (
+                  <pre style={{ margin: '6px 0 0', fontSize: '10px', color: '#94a3b8', whiteSpace: 'pre-wrap' }}>
+                    {this.state.error.stack}
+                  </pre>
+                )}
+              </div>
+            )}
             <button
               onClick={this.handleReset}
               style={{
