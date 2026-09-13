@@ -70,6 +70,7 @@ export function OrbitView3D({
   const earthGroupRef = useRef(null);
   const earthMeshRef = useRef(null);
   const earthShaderRef = useRef(null);
+  const cloudsShaderRef = useRef(null);
   const starFieldRef = useRef(null);
   const geoFeaturesRef = useRef([]);
   const selectedMeshRef = useRef(null);
@@ -490,9 +491,8 @@ export function OrbitView3D({
     cloudsMap.anisotropy = maxAniso;
     cloudsMap.generateMipmaps = true;
 
-    // 8. Photorealistic Multi-Map Earth Shader (NASA Blue Marble + City Night Lights + Specular Water)
+    // 8. Uniform Balanced Photorealistic Earth Shader (Google Earth / Awwwards 3D Standard)
     const earthGeo = new THREE.SphereGeometry(R_EARTH, 96, 96);
-    const sunDirection = new THREE.Vector3(1.1, 0.6, 1.2).normalize();
     const earthShader = {
       uniforms: {
         uDayMap: { value: dayMap },
@@ -500,7 +500,6 @@ export function OrbitView3D({
         uBumpMap: { value: bumpMap },
         uSpecMap: { value: specMap },
         uCloudsMap: { value: cloudsMap },
-        uSunDirection: { value: sunDirection },
         uCamDist: { value: 4.8 },
         uTime: { value: 0 },
       },
@@ -523,7 +522,6 @@ export function OrbitView3D({
         uniform sampler2D uBumpMap;
         uniform sampler2D uSpecMap;
         uniform sampler2D uCloudsMap;
-        uniform vec3 uSunDirection;
         uniform float uCamDist;
         uniform float uTime;
 
@@ -535,8 +533,8 @@ export function OrbitView3D({
           vec3 normal = normalize(vWorldNormal);
           vec3 viewDir = normalize(cameraPosition - vWorldPosition);
 
-          // Topographic bump perturbation along UV tangent space
-          float bumpScale = 0.022;
+          // Topographic bump perturbation along UV tangent space for mountain relief
+          float bumpScale = 0.016;
           vec2 dUvX = vec2(0.0008, 0.0);
           vec2 dUvY = vec2(0.0, 0.0008);
           float bCenter = texture2D(uBumpMap, vUv).r;
@@ -544,47 +542,44 @@ export function OrbitView3D({
           float bY = texture2D(uBumpMap, vUv + dUvY).r - bCenter;
           vec3 perturbedNormal = normalize(normal - vec3(bX, bY, 0.0) * bumpScale);
 
-          // Texture maps
+          // Full-resolution texture samples
           vec4 dayColor = texture2D(uDayMap, vUv);
           vec4 nightColor = texture2D(uNightMap, vUv);
-          float specVal = texture2D(uSpecMap, vUv).r; // 1.0 on oceans, 0.0 on continents
+          float specVal = texture2D(uSpecMap, vUv).r; // 1.0 on water, 0.0 on land
 
-          // Cloud shadows on ground
-          vec2 cloudUv = vec2(vUv.x + uTime * 0.00004, vUv.y);
-          float cloudCover = texture2D(uCloudsMap, cloudUv).r;
+          // Cloud shadows on ground (subtle organic drift)
+          vec2 cloudUv = vec2(vUv.x + uTime * 0.00003, vUv.y);
+          float cloudCover = texture2D(uCloudsMap, cloudUv).a;
 
-          // Natural sunlight calculation
-          vec3 sunDir = normalize(uSunDirection);
-          float NdotL = dot(perturbedNormal, sunDir);
+          // Uniform, balanced global illumination (Google Earth / Awwwards)
+          // The whole Earth is 100% visible and beautifully lit all around 360°
+          vec3 lightDir = normalize(vec3(0.5, 0.7, 1.0));
+          float NdotL = max(dot(perturbedNormal, lightDir), 0.0);
+          float diffuse = 0.90 + 0.10 * NdotL; // High baseline: 90% to 100% illumination everywhere
 
-          // Smooth day-to-night terminator curve with twilight
-          float dayFactor = smoothstep(-0.20, 0.25, NdotL);
-          float diffuseLight = max(NdotL, 0.0);
+          // Base surface color from high-res NASA Blue Marble
+          vec3 baseSurface = dayColor.rgb;
+          float fresnel = 1.0 - max(dot(normal, viewDir), 0.0);
 
-          // Ocean specular sunlight glint (reflection)
-          vec3 halfVector = normalize(sunDir + viewDir);
-          float NdotH = max(dot(perturbedNormal, halfVector), 0.0);
-          float specular = pow(NdotH, 64.0) * specVal * dayFactor * 0.42;
-          vec3 oceanSpecular = vec3(specular * 0.88, specular * 0.94, specular);
+          // Deep, rich ocean water enhancement (No harsh white bleached blob!)
+          if (specVal > 0.45) {
+            // Enhance deep royal marine blue on oceans & seas
+            baseSurface = mix(baseSurface, vec3(0.012, 0.08, 0.20), 0.16);
+            // Delicate glancing water sheen (satin gloss at horizon angles)
+            baseSurface += vec3(0.04, 0.14, 0.28) * pow(fresnel, 3.5) * 0.32;
+          }
 
-          // Ambient space light: deep indigo/navy tint
-          vec3 ambient = vec3(0.06, 0.08, 0.12);
+          // Subtle realistic cloud shadow on ground
+          float shadowMultiplier = 1.0 - cloudCover * 0.20;
+          vec3 surface = baseSurface * diffuse * shadowMultiplier;
 
-          // Daytime illuminated surface (clouds cast soft shadow on land & sea)
-          float shadowMultiplier = 1.0 - cloudCover * 0.28 * dayFactor;
-          vec3 daySurface = dayColor.rgb * (vec3(diffuseLight) * 0.95 + ambient) * shadowMultiplier + oceanSpecular;
+          // Subtle city electrical luminescence overlay on continents
+          vec3 cityLights = nightColor.rgb * vec3(1.15, 0.95, 0.65) * 0.38;
+          surface += cityLights * (1.0 - specVal);
 
-          // Nighttime illuminated surface: golden amber city lights in population centers
-          vec3 cityLights = nightColor.rgb * vec3(1.35, 1.15, 0.80);
-          vec3 nightSurface = dayColor.rgb * 0.03 + cityLights;
-
-          // Blend day & night seamlessly
-          vec3 surface = mix(nightSurface, daySurface, dayFactor);
-
-          // Elegant Rayleigh limb scattering (delicate electric blue atmosphere rim on daytime limb)
-          float rim = 1.0 - max(dot(normal, viewDir), 0.0);
-          float limbHaze = pow(rim, 3.6) * 0.55 * (0.3 + 0.7 * dayFactor);
-          vec3 atmosHaze = vec3(0.12, 0.58, 1.0) * limbHaze;
+          // Elegant Rayleigh limb scattering (delicate electric blue atmosphere rim wrapping 360°)
+          float limbHaze = pow(fresnel, 3.8) * 0.44;
+          vec3 atmosHaze = vec3(0.12, 0.60, 1.0) * limbHaze;
 
           gl_FragColor = vec4(surface + atmosHaze, 1.0);
         }
@@ -674,19 +669,58 @@ export function OrbitView3D({
       })
       .catch((err) => console.error('Failed to load 3D GeoJSON borders:', err));
 
-    // 10. Semi-transparent Atmospheric Clouds Layer
-    const cloudsGeo = new THREE.SphereGeometry(R_EARTH + 0.008, 64, 64);
-    const cloudsMat = new THREE.MeshStandardMaterial({
-      map: cloudsMap,
+    // 10. Atmospheric Volumetric Clouds Layer (Ethereal, Soft White, Drifting)
+    const cloudsGeo = new THREE.SphereGeometry(R_EARTH + 0.009, 80, 80);
+    const cloudsMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uCloudsMap: { value: cloudsMap },
+        uTime: { value: 0 },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        varying vec3 vViewDir;
+        void main() {
+          vUv = uv;
+          vNormal = normalize(normalMatrix * normal);
+          vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+          vViewDir = -mvPos.xyz;
+          gl_Position = projectionMatrix * mvPos;
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D uCloudsMap;
+        uniform float uTime;
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        varying vec3 vViewDir;
+
+        void main() {
+          // Continuous slow drift
+          vec2 uv = vec2(vUv.x + uTime * 0.000030, vUv.y);
+          vec4 cloudTex = texture2D(uCloudsMap, uv);
+          float density = cloudTex.a;
+
+          vec3 view = normalize(vViewDir);
+          vec3 norm = normalize(vNormal);
+          float rim = 1.0 - max(dot(norm, view), 0.0);
+
+          // Soft volumetric cloud density with feathering
+          float alpha = density * 0.32 + pow(rim, 3.2) * density * 0.15;
+
+          // Pure soft white cloud with subtle atmospheric tint
+          gl_FragColor = vec4(vec3(0.97, 0.98, 1.0), alpha);
+        }
+      `,
       transparent: true,
-      opacity: 0.28,
-      blending: THREE.AdditiveBlending,
       depthWrite: false,
+      blending: THREE.NormalBlending,
     });
     const cloudsMesh = new THREE.Mesh(cloudsGeo, cloudsMat);
     earthGroup.add(cloudsMesh);
+    cloudsShaderRef.current = cloudsMat;
 
-    // 11. Cyan / Blue Atmospheric Outer Halo (Limb edge only, 0.0 center)
+    // 11. Cyan / Blue Atmospheric Outer Halo (Limb edge only 360°, 0.0 center)
     const atmosGeo = new THREE.SphereGeometry(R_EARTH + 0.055, 64, 64);
     const atmosMat = new THREE.ShaderMaterial({
       vertexShader: `
@@ -704,14 +738,11 @@ export function OrbitView3D({
         varying vec3 vEye;
         void main() {
           vec3 eye = normalize(vEye);
-          // On BackSide, normal points towards the inside of the sphere.
-          // Looking towards center: dot(-vNormal, eye) ~ 1.0 -> smoothstep gives 0.0 (transparent!)
-          // Looking towards outer limb edge: dot(-vNormal, eye) ~ 0.0 -> smoothstep gives 1.0 (luminous blue rim!)
           float d = dot(-vNormal, eye);
-          float edgeGlow = smoothstep(0.38, 0.0, d);
-          float intensity = pow(edgeGlow, 2.4);
-          vec3 atmosColor = vec3(0.15, 0.62, 1.0);
-          gl_FragColor = vec4(atmosColor, intensity * 0.52);
+          float edgeGlow = smoothstep(0.40, 0.0, d);
+          float intensity = pow(edgeGlow, 2.2);
+          vec3 atmosColor = vec3(0.14, 0.65, 1.0);
+          gl_FragColor = vec4(atmosColor, intensity * 0.55);
         }
       `,
       blending: THREE.AdditiveBlending,
@@ -2314,6 +2345,9 @@ export function OrbitView3D({
         if (earthShaderRef.current.uniforms.uTime) {
           earthShaderRef.current.uniforms.uTime.value = frameCount;
         }
+      }
+      if (cloudsShaderRef.current && cloudsShaderRef.current.uniforms && cloudsShaderRef.current.uniforms.uTime) {
+        cloudsShaderRef.current.uniforms.uTime.value = frameCount;
       }
 
       // Animate cyber attack pulses (Kaspersky Traveling Laser Beams & Ground Shockwaves)
