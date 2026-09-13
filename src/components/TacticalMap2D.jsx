@@ -251,16 +251,30 @@ export function TacticalMap2D({
     pulsesLayerRef.current = pulsesLayer;
     pulsesLayer.addTo(map);
 
-    // 2. Aviation Layer (Direct Flightradar24 ADS-B Live Commercial Fleet with Viewport Culling)
+    // ===================================================================
+    // 2. Authentic Flightradar24 Canvas Engine (60 FPS Hardware-Accelerated)
+    // ===================================================================
     const aviationLayer = L.layerGroup();
     aviationLayerRef.current = aviationLayer;
-    if (activeLayers.has('aviation')) {
-      aviationLayer.addTo(map);
-    }
 
-    // High-performance viewport-culled flight markers management
-    const flightMarkersMap = new Map();
+    const aviationCanvas = document.createElement('canvas');
+    aviationCanvas.className = 'leaflet-aviation-traffic-canvas';
+    aviationCanvas.style.position = 'absolute';
+    aviationCanvas.style.top = '0';
+    aviationCanvas.style.left = '0';
+    aviationCanvas.style.width = '100%';
+    aviationCanvas.style.height = '100%';
+    aviationCanvas.style.pointerEvents = 'none';
+    aviationCanvas.style.zIndex = '455';
+    container.appendChild(aviationCanvas);
+
+    let isAviationActive = activeLayers.has('aviation');
+    aviationCanvas.style.display = isAviationActive ? 'block' : 'none';
+
     let currentRawFlights = [];
+    let hoveredFlight = null;
+    let hoverFlightTooltip = null;
+    let animFrameAviationId = null;
 
     const renderFlightradarTooltipHtml = (fl) => {
       const routeStr = (fl.origin?.code && fl.destination?.code && fl.origin.code !== '—' && fl.destination.code !== '—')
@@ -314,104 +328,295 @@ export function TacticalMap2D({
       `;
     };
 
+    const resizeAviationCanvas = () => {
+      if (!map || !aviationCanvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = container.getBoundingClientRect();
+      const width = Math.floor(rect.width);
+      const height = Math.floor(rect.height);
+      if (width === 0 || height === 0) return;
+      if (aviationCanvas.width !== width * dpr || aviationCanvas.height !== height * dpr) {
+        aviationCanvas.width = width * dpr;
+        aviationCanvas.height = height * dpr;
+      }
+    };
+
+    const drawFlightradarCanvas = () => {
+      if (!map || !aviationCanvas || !isAviationActive) {
+        if (aviationCanvas) {
+          const ctx = aviationCanvas.getContext('2d');
+          if (ctx) ctx.clearRect(0, 0, aviationCanvas.width, aviationCanvas.height);
+        }
+        return;
+      }
+
+      resizeAviationCanvas();
+      const dpr = window.devicePixelRatio || 1;
+      const rect = container.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+      if (width === 0 || height === 0) return;
+
+      const ctx = aviationCanvas.getContext('2d');
+      if (!ctx) return;
+
+      ctx.save();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      const limit = flightLimitRef.current || 3500;
+      const selectedId = inspectedTargetRef.current?.id;
+      const hoveredId = hoveredFlight?.id;
+      const zoom = map.getZoom();
+
+      const basePlaneSize = zoom <= 3 ? 12 : zoom <= 5 ? 15 : zoom <= 8 ? 18 : 22;
+      let selectedFlightToDrawLast = null;
+      let hoveredFlightToDrawLast = null;
+      let drawnCount = 0;
+
+      for (let i = 0; i < currentRawFlights.length; i++) {
+        const fl = currentRawFlights[i];
+        if (typeof fl.lat !== 'number' || typeof fl.lng !== 'number') continue;
+        const pt = map.latLngToContainerPoint([fl.lat, fl.lng]);
+
+        // Fast screen bounds culling with 45px padding
+        if (pt.x < -45 || pt.x > width + 45 || pt.y < -45 || pt.y > height + 45) {
+          fl._scX = undefined;
+          fl._scY = undefined;
+          continue;
+        }
+
+        fl._scX = pt.x;
+        fl._scY = pt.y;
+
+        if (fl.id === selectedId) {
+          selectedFlightToDrawLast = fl;
+          continue;
+        }
+        if (fl.id === hoveredId) {
+          hoveredFlightToDrawLast = fl;
+          continue;
+        }
+
+        if (drawnCount >= limit) continue;
+        drawnCount++;
+
+        const isWidebody = fl.aircraftCode?.startsWith('A38') || fl.aircraftCode?.startsWith('B77') || fl.aircraftCode?.startsWith('B74') || fl.aircraftCode?.startsWith('A35') || fl.aircraftCode?.startsWith('B78');
+        const planeSize = isWidebody ? basePlaneSize * 1.22 : basePlaneSize;
+        const track = fl.track || fl.heading || 0;
+
+        ctx.save();
+        ctx.translate(pt.x, pt.y);
+        ctx.rotate((track * Math.PI) / 180);
+
+        // Soft aerial drop-shadow
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetY = 1.5;
+
+        // Accurate commercial jet airliner silhouette
+        ctx.beginPath();
+        ctx.moveTo(0, -planeSize * 0.52); // Nose tip
+        ctx.lineTo(planeSize * 0.1, -planeSize * 0.12);
+        ctx.lineTo(planeSize * 0.52, planeSize * 0.14); // Right wing tip
+        ctx.lineTo(planeSize * 0.52, planeSize * 0.22);
+        ctx.lineTo(planeSize * 0.1, planeSize * 0.12);
+        ctx.lineTo(planeSize * 0.1, planeSize * 0.38); // Fuselage body
+        ctx.lineTo(planeSize * 0.26, planeSize * 0.48); // Right horizontal stabilizer
+        ctx.lineTo(planeSize * 0.26, planeSize * 0.54);
+        ctx.lineTo(0, planeSize * 0.46); // Tail cone
+        ctx.lineTo(-planeSize * 0.26, planeSize * 0.54);
+        ctx.lineTo(-planeSize * 0.26, planeSize * 0.48);
+        ctx.lineTo(-planeSize * 0.1, planeSize * 0.38);
+        ctx.lineTo(-planeSize * 0.1, planeSize * 0.12);
+        ctx.lineTo(-planeSize * 0.52, planeSize * 0.22);
+        ctx.lineTo(-planeSize * 0.52, planeSize * 0.14); // Left wing tip
+        ctx.lineTo(-planeSize * 0.1, -planeSize * 0.12);
+        ctx.closePath();
+
+        ctx.fillStyle = '#ffd700'; // Official Flightradar24 yellow
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(20, 20, 20, 0.9)';
+        ctx.lineWidth = 0.9;
+        ctx.stroke();
+        ctx.restore();
+
+        // FR24 Flight label box when zoomed in (zoom >= 7)
+        if (zoom >= 7) {
+          const callsign = fl.callsign || fl.flightNum || fl.icao;
+          const altText = fl.altitudeFt ? `FL${Math.round(fl.altitudeFt / 100)}` : '';
+          const spdText = fl.speedKts ? `${fl.speedKts}k` : '';
+          const subText = [altText, spdText].filter(Boolean).join(' • ');
+
+          ctx.save();
+          ctx.font = 'bold 9px "JetBrains Mono", monospace';
+          const textW = Math.max(ctx.measureText(callsign).width, ctx.measureText(subText).width) + 8;
+          const tagX = pt.x - textW / 2;
+          const tagY = pt.y + planeSize * 0.55;
+
+          ctx.fillStyle = 'rgba(10, 15, 25, 0.82)';
+          ctx.strokeStyle = 'rgba(255, 215, 0, 0.35)';
+          ctx.lineWidth = 0.75;
+          ctx.beginPath();
+          ctx.roundRect(tagX, tagY, textW, subText ? 22 : 13, 3);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.fillText(callsign, pt.x, tagY + 9);
+
+          if (subText) {
+            ctx.font = '8px "JetBrains Mono", monospace';
+            ctx.fillStyle = '#fef08a';
+            ctx.fillText(subText, pt.x, tagY + 18);
+          }
+          ctx.restore();
+        }
+      }
+
+      // Draw hovered flight highlighted
+      if (hoveredFlightToDrawLast && hoveredFlightToDrawLast.id !== selectedId) {
+        const fl = hoveredFlightToDrawLast;
+        const px = fl._scX;
+        const py = fl._scY;
+        const pSize = basePlaneSize * 1.35;
+        const track = fl.track || fl.heading || 0;
+
+        ctx.save();
+        // Golden aura ring
+        ctx.beginPath();
+        ctx.arc(px, py, pSize * 0.85, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.22)';
+        ctx.fill();
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        ctx.translate(px, py);
+        ctx.rotate((track * Math.PI) / 180);
+
+        ctx.beginPath();
+        ctx.moveTo(0, -pSize * 0.52);
+        ctx.lineTo(pSize * 0.1, -pSize * 0.12);
+        ctx.lineTo(pSize * 0.52, pSize * 0.14);
+        ctx.lineTo(pSize * 0.52, pSize * 0.22);
+        ctx.lineTo(pSize * 0.1, pSize * 0.12);
+        ctx.lineTo(pSize * 0.1, pSize * 0.38);
+        ctx.lineTo(pSize * 0.26, pSize * 0.48);
+        ctx.lineTo(pSize * 0.26, pSize * 0.54);
+        ctx.lineTo(0, pSize * 0.46);
+        ctx.lineTo(-pSize * 0.26, pSize * 0.54);
+        ctx.lineTo(-pSize * 0.26, pSize * 0.48);
+        ctx.lineTo(-pSize * 0.1, pSize * 0.38);
+        ctx.lineTo(-pSize * 0.1, pSize * 0.12);
+        ctx.lineTo(-pSize * 0.52, pSize * 0.22);
+        ctx.lineTo(-pSize * 0.52, pSize * 0.14);
+        ctx.lineTo(-pSize * 0.1, -pSize * 0.12);
+        ctx.closePath();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Draw selected flight with pulsing cyan reticle ring
+      if (selectedFlightToDrawLast) {
+        const fl = selectedFlightToDrawLast;
+        const px = fl._scX;
+        const py = fl._scY;
+        const pSize = basePlaneSize * 1.5;
+        const track = fl.track || fl.heading || 0;
+
+        ctx.save();
+        // Pulsing radar reticle
+        ctx.beginPath();
+        ctx.arc(px, py, pSize * 0.95, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 242, 254, 0.2)';
+        ctx.fill();
+        ctx.strokeStyle = '#00f2fe';
+        ctx.lineWidth = 2.0;
+        ctx.stroke();
+
+        ctx.translate(px, py);
+        ctx.rotate((track * Math.PI) / 180);
+
+        ctx.beginPath();
+        ctx.moveTo(0, -pSize * 0.52);
+        ctx.lineTo(pSize * 0.1, -pSize * 0.12);
+        ctx.lineTo(pSize * 0.52, pSize * 0.14);
+        ctx.lineTo(pSize * 0.52, pSize * 0.22);
+        ctx.lineTo(pSize * 0.1, pSize * 0.12);
+        ctx.lineTo(pSize * 0.1, pSize * 0.38);
+        ctx.lineTo(pSize * 0.26, pSize * 0.48);
+        ctx.lineTo(pSize * 0.26, pSize * 0.54);
+        ctx.lineTo(0, pSize * 0.46);
+        ctx.lineTo(-pSize * 0.26, pSize * 0.54);
+        ctx.lineTo(-pSize * 0.26, pSize * 0.48);
+        ctx.lineTo(-pSize * 0.1, pSize * 0.38);
+        ctx.lineTo(-pSize * 0.1, pSize * 0.12);
+        ctx.lineTo(-pSize * 0.52, pSize * 0.22);
+        ctx.lineTo(-pSize * 0.52, pSize * 0.14);
+        ctx.lineTo(-pSize * 0.1, -pSize * 0.12);
+        ctx.closePath();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.strokeStyle = '#00f2fe';
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      ctx.restore();
+    };
+
+    const requestDrawAviation = () => {
+      if (animFrameAviationId) return;
+      animFrameAviationId = requestAnimationFrame(() => {
+        animFrameAviationId = null;
+        drawFlightradarCanvas();
+      });
+    };
+
     const updateFlightradarPlanes = (flightsList) => {
       if (flightsList) currentRawFlights = flightsList;
-      if (!currentRawFlights || currentRawFlights.length === 0 || !map) return;
-
-      const limit = flightLimitRef.current || 25;
-      const candidateFlights = currentRawFlights.slice(0, limit);
-      const bounds = map.getBounds().pad(0.25); // 25% margin outside viewport
-      const activeIds = new Set();
-      let displayedCount = 0;
-      const maxDomCap = Math.min(limit, 1200);
-
-      for (let i = 0; i < candidateFlights.length; i++) {
-        const fl = candidateFlights[i];
-        const isSelected = inspectedTargetRef.current?.id === fl.id;
-        const inBounds = bounds.contains([fl.lat, fl.lng]);
-
-        // Always show selected flight; otherwise cap at maxDomCap
-        if (!inBounds && !isSelected) continue;
-        if (!isSelected && displayedCount >= maxDomCap) continue;
-
-        displayedCount++;
-        activeIds.add(fl.id);
-
-        if (flightMarkersMap.has(fl.id)) {
-          const m = flightMarkersMap.get(fl.id);
-          m.setLatLng([fl.lat, fl.lng]);
-          if (Math.abs((m._lastTrack || 0) - fl.track) > 2.0 || m._isSelected !== isSelected) {
-            const iconHtml = getFlightradarPlaneSvg(fl.track || fl.heading || 0, 20, isSelected);
-            const icon = L.divIcon({
-              className: 'fr24-plane-marker-wrap',
-              html: iconHtml,
-              iconSize: [22, 22],
-              iconAnchor: [11, 11],
-            });
-            m.setIcon(icon);
-            m._lastTrack = fl.track;
-            m._isSelected = isSelected;
-          }
-          if (m.isTooltipOpen && m.isTooltipOpen()) {
-            m.setTooltipContent(renderFlightradarTooltipHtml(fl));
-          }
-        } else {
-          const iconHtml = getFlightradarPlaneSvg(fl.track || fl.heading || 0, 20, isSelected);
-          const icon = L.divIcon({
-            className: 'fr24-plane-marker-wrap',
-            html: iconHtml,
-            iconSize: [22, 22],
-            iconAnchor: [11, 11],
-          });
-          const m = L.marker([fl.lat, fl.lng], { icon, pane: 'transitsPane' });
-          m._lastTrack = fl.track;
-          m._isSelected = isSelected;
-
-          m.bindTooltip(renderFlightradarTooltipHtml(fl), {
-            className: 'fr24-tactical-leaflet-tooltip',
-            direction: 'top',
-            offset: [0, -12],
-            opacity: 1,
-            sticky: false,
-          });
-
-          m.on('mouseover', () => {
-            sound.hover(0.15);
-          });
-
-          m.on('click', (e) => {
-            if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
-            sound.click();
-            setInspectedTarget({ type: 'flight', ...fl });
-          });
-
-          m.addTo(aviationLayer);
-          flightMarkersMap.set(fl.id, m);
-        }
-      }
-
-      // Prune planes that moved out of viewport or are no longer in radar range
-      for (const [id, m] of flightMarkersMap.entries()) {
-        if (!activeIds.has(id)) {
-          aviationLayer.removeLayer(m);
-          flightMarkersMap.delete(id);
-        }
-      }
+      requestDrawAviation();
     };
 
     updateFlightradarPlanesRef.current = updateFlightradarPlanes;
 
-    // Update on map drag / zoom end
-    map.on('moveend', () => {
-      updateFlightradarPlanes();
+    // Layer lifecycle listeners for Aviation
+    aviationLayer.on('add', () => {
+      isAviationActive = true;
+      aviationCanvas.style.display = 'block';
+      requestDrawAviation();
     });
+    aviationLayer.on('remove', () => {
+      isAviationActive = false;
+      aviationCanvas.style.display = 'none';
+      if (hoverFlightTooltip && map.hasLayer(hoverFlightTooltip)) {
+        map.removeLayer(hoverFlightTooltip);
+      }
+      const ctx = aviationCanvas.getContext('2d');
+      if (ctx) ctx.clearRect(0, 0, aviationCanvas.width, aviationCanvas.height);
+    });
+
+    if (isAviationActive) {
+      aviationLayer.addTo(map);
+    }
 
     // Subscribe to Flightradar24 live stream
     const unsubscribeFR24 = flightRadarService.subscribe((flights) => {
       updateFlightradarPlanes(flights);
     });
 
-    // 2b. Maritime Shipping Lanes Layer (Authentic MarineTraffic AIS 60 FPS Canvas Engine)
+    // ===================================================================
+    // 2b. Maritime Shipping Lanes Layer (Authentic MarineTraffic 60 FPS Canvas Engine)
+    // ===================================================================
     const maritimeLayer = L.layerGroup();
     maritimeLayerRef.current = maritimeLayer;
 
@@ -432,8 +637,8 @@ export function TacticalMap2D({
 
     let currentRawVessels = [];
     let hoveredVessel = null;
-    let hoverTooltip = null;
-    let animFrameId = null;
+    let hoverMaritimeTooltip = null;
+    let animFrameMaritimeId = null;
 
     const MARITIME_PALETTE = {
       container: '#22c55e',      // Lime Green (ULCV / Containers)
@@ -522,7 +727,7 @@ export function TacticalMap2D({
       `;
     };
 
-    const resizeCanvas = () => {
+    const resizeMaritimeCanvas = () => {
       if (!map || !maritimeCanvas) return;
       const dpr = window.devicePixelRatio || 1;
       const rect = container.getBoundingClientRect();
@@ -544,7 +749,7 @@ export function TacticalMap2D({
         return;
       }
 
-      resizeCanvas();
+      resizeMaritimeCanvas();
       const dpr = window.devicePixelRatio || 1;
       const rect = container.getBoundingClientRect();
       const width = rect.width;
@@ -558,8 +763,7 @@ export function TacticalMap2D({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
 
-      const limit = vesselLimitRef.current || 500;
-      const candidateVessels = currentRawVessels.slice(0, limit);
+      const limit = vesselLimitRef.current || 5000;
       const selectedId = inspectedTargetRef.current?.id;
       const hoveredId = hoveredVessel?.id;
       const zoom = map.getZoom();
@@ -571,13 +775,15 @@ export function TacticalMap2D({
 
       let selectedVesselToDrawLast = null;
       let hoveredVesselToDrawLast = null;
+      let drawnCount = 0;
 
-      for (let i = 0; i < candidateVessels.length; i++) {
-        const ves = candidateVessels[i];
+      for (let i = 0; i < currentRawVessels.length; i++) {
+        const ves = currentRawVessels[i];
+        if (typeof ves.lat !== 'number' || typeof ves.lng !== 'number') continue;
         const pt = map.latLngToContainerPoint([ves.lat, ves.lng]);
 
-        // Fast viewport culling
-        if (pt.x < -30 || pt.x > width + 30 || pt.y < -30 || pt.y > height + 30) {
+        // Fast viewport culling with 35px margin
+        if (pt.x < -35 || pt.x > width + 35 || pt.y < -35 || pt.y > height + 35) {
           ves._scX = undefined;
           ves._scY = undefined;
           continue;
@@ -594,6 +800,9 @@ export function TacticalMap2D({
           hoveredVesselToDrawLast = ves;
           continue;
         }
+
+        if (drawnCount >= limit) continue;
+        drawnCount++;
 
         const isUnderway = (ves.speedKts !== undefined ? ves.speedKts : 10) >= 0.6 &&
           ves.status !== 'Au mouillage' && ves.status !== 'Amarré à quai';
@@ -743,32 +952,32 @@ export function TacticalMap2D({
       ctx.restore();
     };
 
-    const requestDraw = () => {
-      if (animFrameId) return;
-      animFrameId = requestAnimationFrame(() => {
-        animFrameId = null;
+    const requestDrawMaritime = () => {
+      if (animFrameMaritimeId) return;
+      animFrameMaritimeId = requestAnimationFrame(() => {
+        animFrameMaritimeId = null;
         drawMarineTrafficCanvas();
       });
     };
 
     const updateMarineTrafficVessels = (vesselsList) => {
       if (vesselsList) currentRawVessels = vesselsList;
-      requestDraw();
+      requestDrawMaritime();
     };
 
     updateMarineTrafficVesselsRef.current = updateMarineTrafficVessels;
 
-    // Layer lifecycle listeners for dynamic layer toggling
+    // Layer lifecycle listeners for Maritime
     maritimeLayer.on('add', () => {
       isMaritimeActive = true;
       maritimeCanvas.style.display = 'block';
-      requestDraw();
+      requestDrawMaritime();
     });
     maritimeLayer.on('remove', () => {
       isMaritimeActive = false;
       maritimeCanvas.style.display = 'none';
-      if (hoverTooltip && map.hasLayer(hoverTooltip)) {
-        map.removeLayer(hoverTooltip);
+      if (hoverMaritimeTooltip && map.hasLayer(hoverMaritimeTooltip)) {
+        map.removeLayer(hoverMaritimeTooltip);
       }
       const ctx = maritimeCanvas.getContext('2d');
       if (ctx) ctx.clearRect(0, 0, maritimeCanvas.width, maritimeCanvas.height);
@@ -778,38 +987,96 @@ export function TacticalMap2D({
       maritimeLayer.addTo(map);
     }
 
-    // High performance mouse interaction on canvas layer
+    // Subscribe to MarineTraffic live stream
+    const unsubscribeMarine = marineTrafficService.subscribe((vessels) => {
+      updateMarineTrafficVessels(vessels);
+    });
+
+    // ===================================================================
+    // High-Performance Unified Mouse Interactions (Aviation & Maritime)
+    // ===================================================================
     const onMapMouseMove = (e) => {
-      if (!isMaritimeActive || !map) return;
+      if (!map) return;
       const mx = e.containerPoint.x;
       const my = e.containerPoint.y;
-      const hitRadiusSq = 121; // 11px radius squared
 
-      const limit = vesselLimitRef.current || 500;
-      const candidateVessels = currentRawVessels.slice(0, limit);
-      let closest = null;
-      let minDistSq = hitRadiusSq;
-
-      for (let i = 0; i < candidateVessels.length; i++) {
-        const ves = candidateVessels[i];
-        if (ves._scX === undefined) continue;
-        const dx = ves._scX - mx;
-        const dy = ves._scY - my;
-        if (Math.abs(dx) > 11 || Math.abs(dy) > 11) continue;
-        const distSq = dx * dx + dy * dy;
-        if (distSq < minDistSq) {
-          minDistSq = distSq;
-          closest = ves;
+      // 1. Check Aviation first (Planes fly in sky above ships)
+      let closestFlight = null;
+      if (isAviationActive) {
+        let minDistSq = 225; // 15px radius
+        for (let i = 0; i < currentRawFlights.length; i++) {
+          const fl = currentRawFlights[i];
+          if (fl._scX === undefined) continue;
+          const dx = fl._scX - mx;
+          const dy = fl._scY - my;
+          if (Math.abs(dx) > 15 || Math.abs(dy) > 15) continue;
+          const distSq = dx * dx + dy * dy;
+          if (distSq < minDistSq) {
+            minDistSq = distSq;
+            closestFlight = fl;
+          }
         }
       }
 
-      if (closest !== hoveredVessel) {
-        hoveredVessel = closest;
+      if (closestFlight !== hoveredFlight) {
+        hoveredFlight = closestFlight;
+        if (hoveredFlight) {
+          container.style.cursor = 'pointer';
+          sound.hover(0.12);
+          if (!hoverFlightTooltip) {
+            hoverFlightTooltip = L.tooltip({
+              className: 'fr24-tactical-leaflet-tooltip',
+              direction: 'top',
+              offset: [0, -12],
+              opacity: 1,
+              interactive: false,
+            });
+          }
+          hoverFlightTooltip.setLatLng([hoveredFlight.lat, hoveredFlight.lng]);
+          hoverFlightTooltip.setContent(renderFlightradarTooltipHtml(hoveredFlight));
+          if (!map.hasLayer(hoverFlightTooltip)) {
+            hoverFlightTooltip.addTo(map);
+          }
+          if (hoverMaritimeTooltip && map.hasLayer(hoverMaritimeTooltip)) {
+            map.removeLayer(hoverMaritimeTooltip);
+          }
+          requestDrawAviation();
+          return;
+        } else {
+          if (hoverFlightTooltip && map.hasLayer(hoverFlightTooltip)) {
+            map.removeLayer(hoverFlightTooltip);
+          }
+          requestDrawAviation();
+        }
+      }
+
+      if (hoveredFlight) return;
+
+      // 2. Check Maritime Vessels
+      let closestVessel = null;
+      if (isMaritimeActive) {
+        let minDistSq = 196; // 14px radius
+        for (let i = 0; i < currentRawVessels.length; i++) {
+          const ves = currentRawVessels[i];
+          if (ves._scX === undefined) continue;
+          const dx = ves._scX - mx;
+          const dy = ves._scY - my;
+          if (Math.abs(dx) > 14 || Math.abs(dy) > 14) continue;
+          const distSq = dx * dx + dy * dy;
+          if (distSq < minDistSq) {
+            minDistSq = distSq;
+            closestVessel = ves;
+          }
+        }
+      }
+
+      if (closestVessel !== hoveredVessel) {
+        hoveredVessel = closestVessel;
         if (hoveredVessel) {
           container.style.cursor = 'pointer';
           sound.hover(0.12);
-          if (!hoverTooltip) {
-            hoverTooltip = L.tooltip({
+          if (!hoverMaritimeTooltip) {
+            hoverMaritimeTooltip = L.tooltip({
               className: 'marinetraffic-tactical-leaflet-tooltip',
               direction: 'top',
               offset: [0, -10],
@@ -817,54 +1084,77 @@ export function TacticalMap2D({
               interactive: false,
             });
           }
-          hoverTooltip.setLatLng([hoveredVessel.lat, hoveredVessel.lng]);
-          hoverTooltip.setContent(renderMarineTrafficTooltipHtml(hoveredVessel));
-          if (!map.hasLayer(hoverTooltip)) {
-            hoverTooltip.addTo(map);
+          hoverMaritimeTooltip.setLatLng([hoveredVessel.lat, hoveredVessel.lng]);
+          hoverMaritimeTooltip.setContent(renderMarineTrafficTooltipHtml(hoveredVessel));
+          if (!map.hasLayer(hoverMaritimeTooltip)) {
+            hoverMaritimeTooltip.addTo(map);
           }
         } else {
           container.style.cursor = '';
-          if (hoverTooltip && map.hasLayer(hoverTooltip)) {
-            map.removeLayer(hoverTooltip);
+          if (hoverMaritimeTooltip && map.hasLayer(hoverMaritimeTooltip)) {
+            map.removeLayer(hoverMaritimeTooltip);
           }
         }
-        requestDraw();
+        requestDrawMaritime();
       }
     };
 
     const onMapClick = (e) => {
-      if (!isMaritimeActive || !map) return;
+      if (!map) return;
       const mx = e.containerPoint.x;
       const my = e.containerPoint.y;
-      const limit = vesselLimitRef.current || 500;
-      const candidateVessels = currentRawVessels.slice(0, limit);
 
-      for (let i = 0; i < candidateVessels.length; i++) {
-        const ves = candidateVessels[i];
-        if (ves._scX === undefined) continue;
-        const dx = ves._scX - mx;
-        const dy = ves._scY - my;
-        if (dx * dx + dy * dy <= 169) { // 13px radius
-          sound.click();
-          setInspectedTarget({ type: 'vessel', ...ves });
-          requestDraw();
-          return;
+      // 1. Check Aviation click
+      if (isAviationActive) {
+        for (let i = 0; i < currentRawFlights.length; i++) {
+          const fl = currentRawFlights[i];
+          if (fl._scX === undefined) continue;
+          const dx = fl._scX - mx;
+          const dy = fl._scY - my;
+          if (dx * dx + dy * dy <= 289) { // 17px radius
+            sound.click();
+            setInspectedTarget({ type: 'flight', ...fl });
+            requestDrawAviation();
+            return;
+          }
+        }
+      }
+
+      // 2. Check Maritime click
+      if (isMaritimeActive) {
+        for (let i = 0; i < currentRawVessels.length; i++) {
+          const ves = currentRawVessels[i];
+          if (ves._scX === undefined) continue;
+          const dx = ves._scX - mx;
+          const dy = ves._scY - my;
+          if (dx * dx + dy * dy <= 225) { // 15px radius
+            sound.click();
+            setInspectedTarget({ type: 'vessel', ...ves });
+            requestDrawMaritime();
+            return;
+          }
         }
       }
     };
 
-    // Attach listeners
+    // Viewport change listener: redraws canvas & dynamically fetches live FR24 bounds
+    const onMapMoveEnd = () => {
+      requestDrawAviation();
+      requestDrawMaritime();
+      if (isAviationActive && map) {
+        const b = map.getBounds();
+        const boundsStr = `${b.getNorth().toFixed(2)},${b.getSouth().toFixed(2)},${b.getWest().toFixed(2)},${b.getEast().toFixed(2)}`;
+        flightRadarService.fetchViewportFeed(boundsStr);
+      }
+    };
+
     map.on('mousemove', onMapMouseMove);
     map.on('click', onMapClick);
-    map.on('move', requestDraw);
-    map.on('zoom', requestDraw);
-    map.on('viewreset', requestDraw);
-    map.on('resize', requestDraw);
-
-    // Subscribe to MarineTraffic live stream
-    const unsubscribeMarine = marineTrafficService.subscribe((vessels) => {
-      updateMarineTrafficVessels(vessels);
-    });
+    map.on('move', () => { requestDrawAviation(); requestDrawMaritime(); });
+    map.on('zoom', () => { requestDrawAviation(); requestDrawMaritime(); });
+    map.on('viewreset', () => { requestDrawAviation(); requestDrawMaritime(); });
+    map.on('resize', () => { requestDrawAviation(); requestDrawMaritime(); });
+    map.on('moveend', onMapMoveEnd);
 
     // 3. Cyber warfare layer (Kaspersky Cybermap Style Curved Trajectories + Interactive Telemetry)
     const cyberLayer = L.layerGroup();
@@ -1216,21 +1506,27 @@ export function TacticalMap2D({
       unsubscribeStream();
       if (unsubscribeFR24) unsubscribeFR24();
       if (unsubscribeMarine) unsubscribeMarine();
+      if (aviationCanvas && aviationCanvas.parentNode) {
+        aviationCanvas.parentNode.removeChild(aviationCanvas);
+      }
       if (maritimeCanvas && maritimeCanvas.parentNode) {
         maritimeCanvas.parentNode.removeChild(maritimeCanvas);
       }
-      if (hoverTooltip && map.hasLayer(hoverTooltip)) {
-        map.removeLayer(hoverTooltip);
+      if (hoverFlightTooltip && map.hasLayer(hoverFlightTooltip)) {
+        map.removeLayer(hoverFlightTooltip);
       }
-      if (animFrameId) {
-        cancelAnimationFrame(animFrameId);
+      if (hoverMaritimeTooltip && map.hasLayer(hoverMaritimeTooltip)) {
+        map.removeLayer(hoverMaritimeTooltip);
+      }
+      if (animFrameAviationId) {
+        cancelAnimationFrame(animFrameAviationId);
+      }
+      if (animFrameMaritimeId) {
+        cancelAnimationFrame(animFrameMaritimeId);
       }
       map.off('mousemove', onMapMouseMove);
       map.off('click', onMapClick);
-      map.off('move', requestDraw);
-      map.off('zoom', requestDraw);
-      map.off('viewreset', requestDraw);
-      map.off('resize', requestDraw);
+      map.off('moveend', onMapMoveEnd);
       container.removeEventListener('contextmenu', onContextMenu);
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);

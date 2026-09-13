@@ -370,7 +370,7 @@ class MarineTrafficService {
     this.vesselsMap = new Map();
     this.vesselMetadataMap = new Map(); // MMSI → {name, callSign, imo, destination, shipType, dimensions}
     this.totalGlobalVessels = 25910;
-    this.vesselLimit = 500;
+    this.vesselLimit = 5000;
     this.listeners = new Set();
     this.animationTimer = null;
     this.pollingInterval = null;

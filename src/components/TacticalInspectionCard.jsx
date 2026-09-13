@@ -44,16 +44,16 @@ export function TacticalInspectionCard({
 
   if (!target) return null;
 
-  const isCCTV = target.type === 'cctv' || target.category?.includes('Maritime') || target.embedUrl;
-  const isFlight = target.type === 'flight' || target.aircraft || target.callsign;
-  const isVessel = target.type === 'vessel' || target.imo || target.mmsi;
-  const isSatellite = target.type === 'satellite' || target.noradId;
-  const isNuclear = target.type === 'nuclear' || target.capacityMwe;
-  const isWeather = target.type === 'weather' || target.windSpeedKmh !== undefined || target.pressureHpa !== undefined;
-  const isCyber = target.type === 'cyber' || target.threatActor || target.cve || target.targetSector || target.fromCity;
-  const isConflict = target.type === 'conflict' || target.alert || target.activeMissiles !== undefined;
-  const isEarthquake = target.type === 'earthquake' || target.mag !== undefined;
-  const isCable = target.type === 'cable' || target.capacityTbps !== undefined;
+  const isVessel = target.type === 'vessel' || (!target.type && (target.mmsi !== undefined || target.imo !== undefined));
+  const isFlight = target.type === 'flight' || (!target.type && !isVessel && (target.aircraft !== undefined || target.flightPhase !== undefined || target.altitudeFt !== undefined));
+  const isCCTV = target.type === 'cctv' || (!target.type && target.embedUrl !== undefined);
+  const isSatellite = target.type === 'satellite' || (!target.type && target.noradId !== undefined);
+  const isNuclear = target.type === 'nuclear' || (!target.type && target.capacityMwe !== undefined);
+  const isWeather = target.type === 'weather' || (!target.type && (target.windSpeedKmh !== undefined || target.pressureHpa !== undefined));
+  const isCyber = target.type === 'cyber' || (!target.type && (target.threatActor !== undefined || target.cve !== undefined || target.targetSector !== undefined));
+  const isConflict = target.type === 'conflict' || (!target.type && target.alert !== undefined);
+  const isEarthquake = target.type === 'earthquake' || (!target.type && target.mag !== undefined);
+  const isCable = target.type === 'cable' || (!target.type && target.capacityTbps !== undefined);
 
   const handleClose = () => {
     sound.tick();
@@ -124,12 +124,12 @@ export function TacticalInspectionCard({
       {/* Main Title & Subtitle */}
       <div className="tic-title-section">
         <h4 className="tic-main-name">
-          {target.name || target.airline || target.aircraft || target.threatActor || 'Vecteur Identifié'}
+          {isFlight ? (target.callsign || target.flightNum || target.airline || 'Vol Commercial') : (target.name || target.threatActor || 'Vecteur Identifié')}
         </h4>
         <p className="tic-sub-name">
           {isCCTV && `${target.city}, ${target.country} — ${target.category}`}
-          {isFlight && `${target.airline} • ${target.aircraft}${target.corridorType || target.flightPhase ? ` (${target.corridorType || target.flightPhase})` : ''}`}
-          {isVessel && `${target.flagEmoji || '⚓'} Pavillon : ${target.flag || 'Inconnu'} • ${target.type || 'Cargo / Fret'}`}
+          {isFlight && `${target.airline ? `${target.airline} • ` : ''}${target.aircraft || 'Avion Commercial'}${target.corridorType || target.flightPhase ? ` (${target.corridorType || target.flightPhase})` : ''}`}
+          {isVessel && `${target.flagEmoji || '⚓'} Pavillon : ${target.flag || 'International'} • ${target.type || 'Cargo / Fret'}`}
           {isSatellite && `${target.country} • NORAD ${target.noradId} • ${target.orbitType || 'LEO'}`}
           {isNuclear && `${target.region}, ${target.country} • ${target.securityLevel}`}
           {isWeather && `${target.category} • Bassin : ${target.basin || 'Océanique'}`}
@@ -605,6 +605,20 @@ export function TacticalInspectionCard({
           >
             <ExternalLink size={13} />
             <span>FLIGHTRADAR24 DIRECT</span>
+          </a>
+        )}
+
+        {isVessel && (target.mmsi || target.imo) && (
+          <a
+            href={target.mmsi ? `https://www.marinetraffic.com/en/ais/details/ships/mmsi:${target.mmsi}` : `https://www.marinetraffic.com/en/ais/details/ships/imo:${target.imo}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="tic-action-btn primary"
+            style={{ textDecoration: 'none', background: 'rgba(0, 245, 160, 0.15)', borderColor: 'rgba(0, 245, 160, 0.4)', color: '#00f5a0' }}
+            onMouseEnter={() => sound.hover()}
+          >
+            <ExternalLink size={13} />
+            <span>MARINETRAFFIC DIRECT</span>
           </a>
         )}
 

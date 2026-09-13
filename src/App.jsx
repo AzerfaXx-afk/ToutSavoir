@@ -20,21 +20,21 @@ export default function App() {
   const [autoRotate, setAutoRotate] = useState(true);
   const [selectedYear, setSelectedYear] = useState(2026);
 
-  // Curated default entry: Only aviation and conflicts active to keep the map clean, responsive, and uncluttered
+  // Curated default entry: Aviation, Maritime, and Conflicts active for immediate authentic live tracking
   const [activeLayers, setActiveLayers] = useState(
-    () => new Set(['aviation', 'conflicts'])
+    () => new Set(['aviation', 'maritime', 'conflicts'])
   );
 
-  // Flight traffic density limit (default: 25 for maximum performance & zero lag, adjustable up to 5,000+ flights)
-  const [flightLimit, setFlightLimit] = useState(25);
+  // Flight traffic density limit (default: 2500 for authentic dense Flightradar24 experience at 60 FPS)
+  const [flightLimit, setFlightLimit] = useState(2500);
 
   const handleFlightLimitChange = useCallback((limit) => {
     setFlightLimit(limit);
     flightRadarService.setFlightLimit(limit);
   }, []);
 
-  // Maritime traffic density limit (default: 500, adjustable up to 15,000+ vessels)
-  const [vesselLimit, setVesselLimit] = useState(500);
+  // Maritime traffic density limit (default: 5000 for authentic dense MarineTraffic experience at 60 FPS)
+  const [vesselLimit, setVesselLimit] = useState(5000);
 
   const handleVesselLimitChange = useCallback((limit) => {
     setVesselLimit(limit);

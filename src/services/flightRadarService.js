@@ -254,6 +254,42 @@ export const AIRPORTS = {
   BOG: { code: 'BOG', name: 'Bogota El Dorado', city: 'Bogota', country: 'Colombie', coords: [4.7016, -74.1469] },
   JNB: { code: 'JNB', name: 'Johannesbourg O.R. Tambo', city: 'Johannesbourg', country: 'Afrique du Sud', coords: [-26.1367, 28.2411] },
   CAI: { code: 'CAI', name: 'Le Caire International', city: 'Le Caire', country: 'Égypte', coords: [30.1219, 31.4056] },
+  // Aéroports Méditerranée & Europe supplémentaires
+  TEB: { code: 'TEB', name: 'Teterboro Executive', city: 'New York / NJ', country: 'États-Unis', coords: [40.8501, -74.0608] },
+  GRS: { code: 'GRS', name: 'Grosseto Baccarini', city: 'Grosseto / Toscane', country: 'Italie', coords: [42.7597, 11.0719] },
+  CAT: { code: 'CAT', name: 'Cascais Tires', city: 'Cascais / Lisbonne', country: 'Portugal', coords: [38.7256, -9.3553] },
+  MLA: { code: 'MLA', name: 'Malte International', city: 'La Valette', country: 'Malte', coords: [35.8575, 14.4775] },
+  VRN: { code: 'VRN', name: 'Vérone Villafranca', city: 'Vérone', country: 'Italie', coords: [45.3957, 10.8885] },
+  VCE: { code: 'VCE', name: 'Venise Marco Polo', city: 'Venise', country: 'Italie', coords: [45.5053, 12.3519] },
+  BLQ: { code: 'BLQ', name: 'Bologne Guglielmo Marconi', city: 'Bologne', country: 'Italie', coords: [44.5354, 11.2887] },
+  NAP: { code: 'NAP', name: 'Naples Capodichino', city: 'Naples', country: 'Italie', coords: [40.886, 14.2908] },
+  PSA: { code: 'PSA', name: 'Pise Galilée', city: 'Pise', country: 'Italie', coords: [43.6839, 10.3927] },
+  CTA: { code: 'CTA', name: 'Catane Fontanarossa', city: 'Catane / Sicile', country: 'Italie', coords: [37.4668, 15.0664] },
+  PMO: { code: 'PMO', name: 'Palerme Falcone-Borsellino', city: 'Palerme / Sicile', country: 'Italie', coords: [38.176, 13.091] },
+  BSL: { code: 'BSL', name: 'EuroAirport Bâle-Mulhouse', city: 'Bâle/Mulhouse', country: 'France/Suisse', coords: [47.5896, 7.5299] },
+  STR: { code: 'STR', name: 'Stuttgart Airport', city: 'Stuttgart', country: 'Allemagne', coords: [48.6899, 9.2219] },
+  HAM: { code: 'HAM', name: 'Hambourg Helmut Schmidt', city: 'Hambourg', country: 'Allemagne', coords: [53.6304, 9.9882] },
+  DUS: { code: 'DUS', name: 'Düsseldorf Airport', city: 'Düsseldorf', country: 'Allemagne', coords: [51.2895, 6.7668] },
+  CGN: { code: 'CGN', name: 'Cologne/Bonn Airport', city: 'Cologne', country: 'Allemagne', coords: [50.8659, 7.1427] },
+  AGP: { code: 'AGP', name: 'Malaga Costa del Sol', city: 'Malaga', country: 'Espagne', coords: [36.6749, -4.4991] },
+  VLC: { code: 'VLC', name: 'Valence Manises', city: 'Valence', country: 'Espagne', coords: [39.4893, -0.4816] },
+  SVQ: { code: 'SVQ', name: 'Séville San Pablo', city: 'Séville', country: 'Espagne', coords: [37.418, -5.8931] },
+  BIO: { code: 'BIO', name: 'Bilbao Airport', city: 'Bilbao', country: 'Espagne', coords: [43.3011, -2.9106] },
+  TFS: { code: 'TFS', name: 'Tenerife Sud', city: 'Tenerife', country: 'Espagne', coords: [28.0445, -16.5725] },
+  LPA: { code: 'LPA', name: 'Grande Canarie', city: 'Las Palmas', country: 'Espagne', coords: [27.9319, -15.3866] },
+  FAO: { code: 'FAO', name: 'Faro Algarve', city: 'Faro', country: 'Portugal', coords: [37.0144, -7.9659] },
+  OPO: { code: 'OPO', name: 'Porto Francisco Sá Carneiro', city: 'Porto', country: 'Portugal', coords: [41.2481, -8.6814] },
+  HER: { code: 'HER', name: 'Héraklion Nikos Kazantzakis', city: 'Héraklion / Crète', country: 'Grèce', coords: [35.3397, 25.1803] },
+  CHQ: { code: 'CHQ', name: 'La Canée Daskalogiannis', city: 'La Canée / Crète', country: 'Grèce', coords: [35.5317, 24.1497] },
+  RHO: { code: 'RHO', name: 'Rhodes Diagoras', city: 'Rhodes', country: 'Grèce', coords: [36.4054, 28.0862] },
+  CFU: { code: 'CFU', name: 'Corfou Ioannis Kapodistrias', city: 'Corfou', country: 'Grèce', coords: [39.6019, 19.9117] },
+  LCA: { code: 'LCA', name: 'Larnaca International', city: 'Larnaca', country: 'Chypre', coords: [34.8751, 33.6249] },
+  PFO: { code: 'PFO', name: 'Paphos International', city: 'Paphos', country: 'Chypre', coords: [34.718, 32.4857] },
+  AUH: { code: 'AUH', name: 'Abou Dabi Zayed', city: 'Abou Dabi', country: 'Émirats Arabes Unis', coords: [24.433, 54.6511] },
+  CMN: { code: 'CMN', name: 'Casablanca Mohammed V', city: 'Casablanca', country: 'Maroc', coords: [33.3675, -7.5899] },
+  RAK: { code: 'RAK', name: 'Marrakech Menara', city: 'Marrakech', country: 'Maroc', coords: [31.6069, -8.0363] },
+  ALG: { code: 'ALG', name: 'Alger Houari Boumédiène', city: 'Alger', country: 'Algérie', coords: [36.691, 3.2154] },
+  TUN: { code: 'TUN', name: 'Tunis Carthage', city: 'Tunis', country: 'Tunisie', coords: [36.851, 10.2272] },
 };
 
 // Generates the authentic Flightradar24 yellow airplane SVG icon
@@ -309,13 +345,15 @@ class FlightRadarService {
   constructor() {
     this.flights = [];
     this.flightsMap = new Map();
-    this.totalGlobalFlights = 18450;
-    this.flightLimit = 25;
+    this.totalGlobalFlights = 21450;
+    this.flightLimit = 3500;
     this.listeners = new Set();
     this.pollingInterval = null;
     this.animationTimer = null;
     this.lastFetchTime = 0;
     this.isFetching = false;
+    this._lastViewportFetch = 0;
+    this._lastViewportBounds = null;
 
     // Direct initialization from the authentic real Flightradar24 worldwide dataset (7,892 real flights)
     if (Array.isArray(REAL_FLIGHTS_SNAPSHOT) && REAL_FLIGHTS_SNAPSHOT.length > 0) {
@@ -446,12 +484,110 @@ class FlightRadarService {
     };
   }
 
+  // Fetch live planes for a specific map bounding box (maxLat,minLat,minLng,maxLng)
+  async fetchViewportFeed(bounds) {
+    if (!bounds) return;
+    const now = Date.now();
+    // Debounce to at most once every 3.5 seconds for identical or rapid boundary changes
+    if (this._lastViewportBounds === bounds && now - this._lastViewportFetch < 3500) {
+      return;
+    }
+    this._lastViewportFetch = now;
+    this._lastViewportBounds = bounds;
+
+    const baseUrl = typeof window !== 'undefined' ? '' : 'http://localhost:5174';
+    try {
+      const res = await fetch(`${baseUrl}/api/fr24/zones/fcgi/feed.js?bounds=${bounds}`, {
+        signal: AbortSignal.timeout(7000),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && typeof data === 'object') {
+          const keys = Object.keys(data).filter((k) => k !== 'full_count' && k !== 'version');
+          let addedOrUpdated = 0;
+          for (const k of keys) {
+            const arr = data[k];
+            if (Array.isArray(arr) && arr.length >= 7 && arr[14] !== 1 && arr[1] && arr[2]) {
+              const planeId = `fr24-${k}`;
+              const plane = this.parsePlaneRecord(k, arr);
+              this.flightsMap.set(planeId, plane);
+              addedOrUpdated++;
+            }
+          }
+          if (addedOrUpdated > 0) {
+            this.flights = Array.from(this.flightsMap.values());
+            if (data.full_count && data.full_count > this.totalGlobalFlights) {
+              this.totalGlobalFlights = data.full_count;
+            }
+            this.lastFetchTime = now;
+            this.notify();
+          }
+        }
+      }
+    } catch (err) {
+      // quiet fallback
+    }
+  }
+
+  // Parse OpenSky Network ADS-B state vector
+  parseOpenSkyState(state) {
+    const icao = (state[0] || '').toUpperCase();
+    const callsign = (state[1] || icao).trim().toUpperCase();
+    const country = state[2] || 'International';
+    const lng = state[5];
+    const lat = state[6];
+    const altM = Math.round(state[7] || state[13] || 10000);
+    const altFt = Math.round(altM * 3.28084);
+    const speedMs = state[9] || 0;
+    const speedKts = Math.round(speedMs * 1.94384);
+    const speedKmh = Math.round(speedMs * 3.6);
+    const track = Math.round(state[10] || 0);
+    const squawk = (state[14] || '1000').toString();
+    const onGround = state[8] === true;
+
+    const rawAirline = callsign.length >= 3 ? callsign.substring(0, 3) : '';
+    const airlineInfo = AIRLINE_NAMES[rawAirline] || {
+      name: rawAirline ? `Compagnie ${rawAirline}` : country,
+      country: country,
+      flag: '✈️',
+    };
+
+    return {
+      id: `os-${icao}`,
+      fr24Id: icao,
+      icao,
+      callsign: callsign || `VOL-${icao}`,
+      flightNum: callsign,
+      airline: airlineInfo.name,
+      airlineFlag: airlineInfo.flag,
+      airlineCountry: airlineInfo.country,
+      aircraft: 'Avion de Ligne Commercial',
+      aircraftCode: 'ADS-B',
+      registration: icao,
+      lat,
+      lng,
+      track,
+      heading: track,
+      altitudeFt: altFt,
+      altitudeM: altM,
+      speedKts,
+      speedKmh,
+      mach: speedKmh > 100 ? (speedKmh / 1062).toFixed(2) : '0.00',
+      squawk,
+      origin: { code: 'ADS-B', name: 'Origine Radar Direct', city: country, country },
+      destination: { code: 'ADS-B', name: 'En Route', city: 'Arrivée ADS-B', country: '' },
+      onGround,
+      flightPhase: onGround ? 'Au sol / Roulage' : altFt < 3000 ? 'Approche' : 'Vol de croisière',
+      lastUpdate: Date.now(),
+    };
+  }
+
   // Fetch live planes from FlightRadar24 across all 9 worldwide zones concurrently
   async fetchLiveFeed() {
     if (this.isFetching) return;
     this.isFetching = true;
 
-    const baseUrl = typeof window !== 'undefined' ? '' : 'http://localhost:5175';
+    const baseUrl = typeof window !== 'undefined' ? '' : 'http://localhost:5174';
 
     try {
       const endpoints = FR24_GLOBAL_ZONES.map(
@@ -459,16 +595,20 @@ class FlightRadarService {
       );
 
       // Query all 9 global zones concurrently for comprehensive worldwide coverage
-      const results = await Promise.allSettled(endpoints.map((url) => fetch(url)));
+      const results = await Promise.allSettled(
+        endpoints.map((url) => fetch(url, { signal: AbortSignal.timeout(8000) }))
+      );
 
       const zoneLists = [];
       const seenIds = new Set();
       let maxFullCount = this.totalGlobalFlights;
+      let successfulZones = 0;
 
       for (let i = 0; i < results.length; i++) {
         const res = results[i];
         const list = [];
         if (res.status === 'fulfilled' && res.value.ok) {
+          successfulZones++;
           try {
             const data = await res.value.json();
             if (data && typeof data === 'object') {
@@ -498,21 +638,49 @@ class FlightRadarService {
         zoneLists.push(list);
       }
 
-      // Interleave planes from all 9 zones so that any flightLimit provides
-      // an even, authentic worldwide distribution across all continents
+      // Interleave planes from all 9 zones for an authentic worldwide distribution
       const interleavedLivePlanes = interleaveArrays(zoneLists);
 
       if (interleavedLivePlanes.length > 0) {
-        const liveMap = new Map();
         interleavedLivePlanes.forEach((plane) => {
-          liveMap.set(plane.id, plane);
+          this.flightsMap.set(plane.id, plane);
         });
 
-        this.flightsMap = liveMap;
-        this.flights = interleavedLivePlanes;
-        this.totalGlobalFlights = Math.max(maxFullCount, interleavedLivePlanes.length);
+        this.flights = Array.from(this.flightsMap.values());
+        this.totalGlobalFlights = Math.max(maxFullCount, this.flights.length);
         this.lastFetchTime = Date.now();
         this.notify();
+      }
+
+      // Supplementary check: If few planes loaded, query OpenSky Network
+      if (this.flights.length < 500) {
+        try {
+          const osRes = await fetch(`${baseUrl}/api/opensky/api/states/all`, {
+            signal: AbortSignal.timeout(8000),
+          });
+          if (osRes.ok) {
+            const osData = await osRes.json();
+            if (osData && Array.isArray(osData.states)) {
+              let added = 0;
+              for (let i = 0; i < Math.min(3000, osData.states.length); i++) {
+                const st = osData.states[i];
+                if (st && st[5] !== null && st[6] !== null && st[8] !== true) {
+                  const plane = this.parseOpenSkyState(st);
+                  if (!this.flightsMap.has(plane.id)) {
+                    this.flightsMap.set(plane.id, plane);
+                    added++;
+                  }
+                }
+              }
+              if (added > 0) {
+                this.flights = Array.from(this.flightsMap.values());
+                this.notify();
+              }
+            }
+          }
+        } catch (e) {
+          // silent fallback
+        }
       }
     } catch (err) {
       console.warn('Flightradar24 live feed notice:', err.message);
@@ -521,7 +689,7 @@ class FlightRadarService {
     }
   }
 
-  // Dead-reckoning motion at real physical speed (1x)
+  // High-precision smooth dead-reckoning motion
   updatePhysicalMotion() {
     const now = Date.now();
     if (this.flights.length === 0) return;
@@ -531,12 +699,12 @@ class FlightRadarService {
       if (!plane.speedKmh || plane.speedKmh <= 0) continue;
 
       const elapsedSec = (now - plane.lastUpdate) / 1000;
-      if (elapsedSec <= 0 || elapsedSec > 15) {
+      if (elapsedSec <= 0.05 || elapsedSec > 20) {
         plane.lastUpdate = now;
         continue;
       }
 
-      // Distance traveled in km at real physical speed
+      // Distance traveled in km
       const distKm = (plane.speedKmh / 3600) * elapsedSec;
       const headingRad = (plane.track * Math.PI) / 180;
 
@@ -568,10 +736,10 @@ class FlightRadarService {
       this.fetchLiveFeed();
     }, 10000);
 
-    // Continuous 1-second physical motion ticker
+    // Continuous 250ms smooth motion ticker
     this.animationTimer = setInterval(() => {
       this.updatePhysicalMotion();
-    }, 1000);
+    }, 250);
   }
 
   stop() {

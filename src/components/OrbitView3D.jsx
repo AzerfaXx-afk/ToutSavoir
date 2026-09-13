@@ -794,7 +794,7 @@ export function OrbitView3D({
       if (!planesInstancedMesh || !flightsList || flightsList.length === 0) return;
       try {
         currentLiveFlights = flightsList;
-        const count = Math.min(flightLimitRef.current || 25, flightsList.length, 10000);
+        const count = Math.min(flightLimitRef.current || 3500, flightsList.length, 10000);
         let validCount = 0;
 
         // Dynamic scale factor: smoothly scales aircraft down as user zooms into surface
@@ -935,7 +935,7 @@ export function OrbitView3D({
       if (!vesselsInstancedMesh || !vesselsList || vesselsList.length === 0) return;
       try {
         currentLiveVessels = vesselsList;
-        const count = Math.min(vesselLimitRef.current || 500, vesselsList.length, 27000);
+        const count = Math.min(vesselLimitRef.current || 5000, vesselsList.length, 27000);
         let validCount = 0;
 
         // Dynamic scale factor: smoothly scales vessels down as user zooms into surface
