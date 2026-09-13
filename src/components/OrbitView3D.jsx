@@ -686,7 +686,7 @@ export function OrbitView3D({
 
     // Flightradar24 signature gold yellow with double-sided rendering
     const airplaneMat = new THREE.MeshBasicMaterial({ color: 0xffd700, side: THREE.DoubleSide });
-    const planesInstancedMesh = new THREE.InstancedMesh(airplaneGeom, airplaneMat, 6500);
+    const planesInstancedMesh = new THREE.InstancedMesh(airplaneGeom, airplaneMat, 10000);
     planesInstancedMesh.count = 0;
     planesInstancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     aviationGroup.add(planesInstancedMesh);
@@ -713,7 +713,7 @@ export function OrbitView3D({
       if (!planesInstancedMesh || !flightsList || flightsList.length === 0) return;
       try {
         currentLiveFlights = flightsList;
-        const count = Math.min(flightLimitRef.current || 25, flightsList.length, 6500);
+        const count = Math.min(flightLimitRef.current || 25, flightsList.length, 10000);
         let validCount = 0;
 
         for (let i = 0; i < count; i++) {

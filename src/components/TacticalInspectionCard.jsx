@@ -128,7 +128,7 @@ export function TacticalInspectionCard({
         </h4>
         <p className="tic-sub-name">
           {isCCTV && `${target.city}, ${target.country} — ${target.category}`}
-          {isFlight && `${target.airline} • ${target.aircraft} (${target.corridorType})`}
+          {isFlight && `${target.airline} • ${target.aircraft}${target.corridorType || target.flightPhase ? ` (${target.corridorType || target.flightPhase})` : ''}`}
           {isVessel && `${target.flagEmoji || '⚓'} Pavillon : ${target.flag} • ${target.type}`}
           {isSatellite && `${target.country} • NORAD ${target.noradId} • ${target.orbitType || 'LEO'}`}
           {isNuclear && `${target.region}, ${target.country} • ${target.securityLevel}`}
@@ -180,7 +180,7 @@ export function TacticalInspectionCard({
                   }}
                 />
               </div>
-              <span className="corridor-cat">{target.corridorType}</span>
+              <span className="corridor-cat">{target.corridorType || target.flightPhase || 'Vol Commercial'}</span>
             </div>
             <div className="endpoint dest">
               <span className="iata">{target.destination.code}</span>

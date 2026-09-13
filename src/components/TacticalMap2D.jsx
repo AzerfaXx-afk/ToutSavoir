@@ -248,6 +248,58 @@ export function TacticalMap2D({
     const flightMarkersMap = new Map();
     let currentRawFlights = [];
 
+    const renderFlightradarTooltipHtml = (fl) => {
+      const routeStr = (fl.origin?.code && fl.destination?.code && fl.origin.code !== '—' && fl.destination.code !== '—')
+        ? `${fl.origin.code} ➔ ${fl.destination.code}`
+        : (fl.origin?.city && fl.destination?.city && fl.origin.city !== 'Départ ADS-B' && fl.destination.city !== 'Arrivée ADS-B')
+        ? `${fl.origin.city} ➔ ${fl.destination.city}`
+        : 'VOL EN ROUTE';
+
+      const altFtStr = fl.altitudeFt ? `${fl.altitudeFt.toLocaleString('fr-FR')} ft` : '--';
+      const flStr = fl.altitudeFt ? `FL${Math.round(fl.altitudeFt / 100)}` : '';
+      const spdStr = fl.speedKts ? `${fl.speedKts} kts` : '--';
+      const spdKmhStr = fl.speedKmh ? `${fl.speedKmh} km/h` : '';
+
+      return `
+        <div class="fr24-popup-card">
+          <div class="fr24-pc-head">
+            <div class="fr24-pc-badge">
+              <span class="fr24-pc-icon">✈</span>
+              <span class="fr24-pc-callsign">${fl.callsign || fl.flightNum || fl.icao}</span>
+            </div>
+            <div class="fr24-pc-airline">
+              <span>${fl.airlineFlag || '✈️'}</span>
+              <span class="fr24-pc-airline-name">${fl.airline || 'Aviation'}</span>
+            </div>
+          </div>
+          <div class="fr24-pc-route">${routeStr}</div>
+          <div class="fr24-pc-aircraft">${fl.aircraft || fl.aircraftCode || 'Avion de ligne'}${fl.registration ? ` • <span class="fr24-pc-reg">${fl.registration}</span>` : ''}</div>
+          <div class="fr24-pc-stats">
+            <div class="fr24-pc-stat">
+              <span class="fr24-pc-label">ALTITUDE</span>
+              <span class="fr24-pc-val">${altFtStr} <small>${flStr}</small></span>
+            </div>
+            <div class="fr24-pc-stat">
+              <span class="fr24-pc-label">VITESSE SOL</span>
+              <span class="fr24-pc-val">${spdStr} <small>${spdKmhStr}</small></span>
+            </div>
+            <div class="fr24-pc-stat">
+              <span class="fr24-pc-label">CAP</span>
+              <span class="fr24-pc-val">${fl.track || fl.heading || 0}°</span>
+            </div>
+            <div class="fr24-pc-stat">
+              <span class="fr24-pc-label">TRANSPONDEUR</span>
+              <span class="fr24-pc-val mono">SQK ${fl.squawk || '1000'}</span>
+            </div>
+          </div>
+          <div class="fr24-pc-footer">
+            <span class="fr24-pc-live-indicator"><span class="fr24-pc-blink">●</span> DIRECT FLIGHTRADAR24</span>
+            <span class="fr24-pc-hint">Cliquer pour inspecter</span>
+          </div>
+        </div>
+      `;
+    };
+
     const updateFlightradarPlanes = (flightsList) => {
       if (flightsList) currentRawFlights = flightsList;
       if (!currentRawFlights || currentRawFlights.length === 0 || !map) return;
@@ -286,6 +338,9 @@ export function TacticalMap2D({
             m._lastTrack = fl.track;
             m._isSelected = isSelected;
           }
+          if (m.isTooltipOpen && m.isTooltipOpen()) {
+            m.setTooltipContent(renderFlightradarTooltipHtml(fl));
+          }
         } else {
           const iconHtml = getFlightradarPlaneSvg(fl.track || fl.heading || 0, 20, isSelected);
           const icon = L.divIcon({
@@ -297,6 +352,18 @@ export function TacticalMap2D({
           const m = L.marker([fl.lat, fl.lng], { icon, pane: 'transitsPane' });
           m._lastTrack = fl.track;
           m._isSelected = isSelected;
+
+          m.bindTooltip(renderFlightradarTooltipHtml(fl), {
+            className: 'fr24-tactical-leaflet-tooltip',
+            direction: 'top',
+            offset: [0, -12],
+            opacity: 1,
+            sticky: false,
+          });
+
+          m.on('mouseover', () => {
+            sound.hover(0.15);
+          });
 
           m.on('click', (e) => {
             if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
