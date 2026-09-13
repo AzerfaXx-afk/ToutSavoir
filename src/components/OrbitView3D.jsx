@@ -56,6 +56,7 @@ export function OrbitView3D({
   const coordLngRef = useRef(null);
   const coordAltRef = useRef(null);
   const [selectedTerritory, setSelectedTerritory] = useState(null);
+  const [hoveredTerritory, setHoveredTerritory] = useState(null);
   const [internalInspectedTarget, setInternalInspectedTarget] = useState(null);
   const inspectedTarget = propInspectedTarget !== undefined ? propInspectedTarget : internalInspectedTarget;
   const setInspectedTarget = useCallback((target) => {
@@ -68,10 +69,13 @@ export function OrbitView3D({
   const cameraRef = useRef(null);
   const earthGroupRef = useRef(null);
   const earthMeshRef = useRef(null);
+  const earthShaderRef = useRef(null);
   const starFieldRef = useRef(null);
   const geoFeaturesRef = useRef([]);
   const selectedMeshRef = useRef(null);
   const selectedFillMatRef = useRef(null);
+  const hoverMeshRef = useRef(null);
+  const hoveredFeatureRef = useRef(null);
   const updateSelectedFlightPathRef = useRef(null);
   const update3DPlanesRef = useRef(null);
   const update3DVesselsRef = useRef(null);
@@ -137,10 +141,24 @@ export function OrbitView3D({
     }
   };
 
+  const removeHoverMesh = () => {
+    if (hoverMeshRef.current && earthGroupRef.current) {
+      earthGroupRef.current.remove(hoverMeshRef.current);
+      hoverMeshRef.current.traverse((child) => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) child.material.dispose();
+      });
+      hoverMeshRef.current = null;
+      hoveredFeatureRef.current = null;
+    }
+  };
+
   const handleResetSelection = () => {
     sound.click();
     setSelectedTerritory(null);
     removeSelectedMesh();
+    removeHoverMesh();
+    setHoveredTerritory(null);
     // Resume rotation when unselecting
     if (onAutoRotateChange) {
       onAutoRotateChange(true);
@@ -434,16 +452,44 @@ export function OrbitView3D({
     scene.add(earthGroup);
     earthGroupRef.current = earthGroup;
 
-    // 7. Texture Loading
+    // 7. Photorealistic Texture Loading with Max Anisotropy & Mipmapping
     const textureLoader = new THREE.TextureLoader();
-    const dayMap = textureLoader.load('/textures/earth_day.jpg');
-    const cloudsMap = textureLoader.load('/textures/earth_clouds.png');
+    const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 8;
 
-    // 8. Full Daylight Photorealistic Shader
-    const earthGeo = new THREE.SphereGeometry(R_EARTH, 64, 64);
+    const dayMap = textureLoader.load('/textures/earth_day.jpg');
+    dayMap.colorSpace = THREE.SRGBColorSpace;
+    dayMap.anisotropy = maxAniso;
+    dayMap.generateMipmaps = true;
+    dayMap.minFilter = THREE.LinearMipmapLinearFilter;
+    dayMap.magFilter = THREE.LinearFilter;
+
+    const bumpMap = textureLoader.load('/textures/earth_bump.png');
+    bumpMap.anisotropy = maxAniso;
+    bumpMap.generateMipmaps = true;
+    bumpMap.minFilter = THREE.LinearMipmapLinearFilter;
+
+    const specMap = textureLoader.load('/textures/earth_specular.jpg');
+    specMap.anisotropy = maxAniso;
+    specMap.generateMipmaps = true;
+    specMap.minFilter = THREE.LinearMipmapLinearFilter;
+
+    const nightMap = textureLoader.load('/textures/earth_night.jpg');
+    nightMap.colorSpace = THREE.SRGBColorSpace;
+    nightMap.anisotropy = maxAniso;
+    nightMap.generateMipmaps = true;
+
+    const cloudsMap = textureLoader.load('/textures/earth_clouds.png');
+    cloudsMap.anisotropy = maxAniso;
+    cloudsMap.generateMipmaps = true;
+
+    // 8. Full Daylight Photorealistic Multi-Map Shader (Awwwards 3D Earth)
+    const earthGeo = new THREE.SphereGeometry(R_EARTH, 96, 96);
     const earthShader = {
       uniforms: {
         uDayMap: { value: dayMap },
+        uBumpMap: { value: bumpMap },
+        uSpecMap: { value: specMap },
+        uCamDist: { value: 4.8 },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -460,6 +506,9 @@ export function OrbitView3D({
       `,
       fragmentShader: `
         uniform sampler2D uDayMap;
+        uniform sampler2D uBumpMap;
+        uniform sampler2D uSpecMap;
+        uniform float uCamDist;
 
         varying vec2 vUv;
         varying vec3 vWorldNormal;
@@ -467,19 +516,40 @@ export function OrbitView3D({
 
         void main() {
           vec4 dayColor = texture2D(uDayMap, vUv);
+          float specVal = texture2D(uSpecMap, vUv).r; // 1.0 on water, 0.0 on land
 
           vec3 normal = normalize(vWorldNormal);
           vec3 viewDir = normalize(cameraPosition - vWorldPosition);
 
+          // Topographic bump perturbation along UV tangent space
+          // Gives realistic 3D elevation to mountain chains, trenches and coastlines
+          float bumpScale = 0.028;
+          vec2 dUvX = vec2(0.001, 0.0);
+          vec2 dUvY = vec2(0.0, 0.001);
+          float bX = texture2D(uBumpMap, vUv + dUvX).r - texture2D(uBumpMap, vUv - dUvX).r;
+          float bY = texture2D(uBumpMap, vUv + dUvY).r - texture2D(uBumpMap, vUv - dUvY).r;
+          vec3 perturbedNormal = normalize(normal - vec3(bX, bY, 0.0) * bumpScale);
+
           vec3 lightDir = normalize(vec3(0.8, 1.2, 1.5));
-          float NdotL = dot(normal, lightDir);
-          float diffuse = 0.88 + 0.12 * max(NdotL, 0.0);
+          float NdotL = dot(perturbedNormal, lightDir);
+          float diffuse = 0.84 + 0.16 * max(NdotL, 0.0);
 
-          vec3 surface = dayColor.rgb * diffuse;
+          // Specular sunlight reflection on oceans
+          vec3 halfVector = normalize(lightDir + viewDir);
+          float NdotH = max(dot(perturbedNormal, halfVector), 0.0);
+          float specular = pow(NdotH, 28.0) * specVal * 0.45;
 
+          // High-frequency procedural micro-detail when zooming close to Earth
+          float zoomFactor = clamp((3.6 - uCamDist) / 1.4, 0.0, 1.0);
+          float microGrain = fract(sin(dot(vUv * 900.0, vec2(12.9898, 78.233))) * 43758.5453);
+          vec3 microDetail = (microGrain - 0.5) * 0.035 * zoomFactor * (1.0 - specVal);
+
+          vec3 surface = (dayColor.rgb + microDetail) * diffuse + vec3(specular * 0.85, specular * 0.95, specular);
+
+          // Crisp atmospheric rim lighting & Rayleigh blue limb haze
           float rim = 1.0 - max(dot(normal, viewDir), 0.0);
-          float limbHaze = pow(rim, 4.0) * 0.45;
-          vec3 atmosHaze = vec3(0.08, 0.72, 1.0) * limbHaze;
+          float limbHaze = pow(rim, 3.8) * 0.42;
+          vec3 atmosHaze = vec3(0.06, 0.68, 1.0) * limbHaze;
 
           gl_FragColor = vec4(surface + atmosHaze, 1.0);
         }
@@ -490,6 +560,7 @@ export function OrbitView3D({
     const earthMesh = new THREE.Mesh(earthGeo, earthMat);
     earthGroup.add(earthMesh);
     earthMeshRef.current = earthMesh;
+    earthShaderRef.current = earthShader;
 
     // 9. Vector Country Boundaries from subunits_50m.json
     fetch('/subunits_50m.json')
@@ -669,9 +740,9 @@ export function OrbitView3D({
     const aviationGroup = new THREE.Group();
     earthGroup.add(aviationGroup);
 
-    // Build authentic Flightradar24 yellow airplane silhouette in 3D (prominently visible & aerodynamic)
+    // Build authentic Flightradar24 yellow airplane silhouette in 3D (aerodynamic, zoom-adaptive scale)
     const planeShape = new THREE.Shape();
-    const s = 0.0028; // Beautiful, crisp Flightradar24 yellow silhouette visible from orbit
+    const s = 0.0022; // Crisp, balanced Flightradar24 yellow silhouette visible from orbit
     planeShape.moveTo(0, 10 * s);
     planeShape.bezierCurveTo(-0.7 * s, 10 * s, -1.4 * s, 9.2 * s, -1.4 * s, 7.8 * s);
     planeShape.lineTo(-1.4 * s, 2.5 * s);
@@ -726,6 +797,10 @@ export function OrbitView3D({
         const count = Math.min(flightLimitRef.current || 25, flightsList.length, 10000);
         let validCount = 0;
 
+        // Dynamic scale factor: smoothly scales aircraft down as user zooms into surface
+        const camDist = camera.position.length();
+        const zoomScaleFactor = THREE.MathUtils.clamp((camDist - 1.95) / 3.4, 0.22, 1.0);
+
         for (let i = 0; i < count; i++) {
           const fl = flightsList[i];
           if (!fl || typeof fl.lat !== 'number' || typeof fl.lng !== 'number' || isNaN(fl.lat) || isNaN(fl.lng)) continue;
@@ -754,7 +829,7 @@ export function OrbitView3D({
           scratchQuat.setFromRotationMatrix(scratchRotMatrix);
 
           const isWidebody = fl.aircraftCode?.startsWith('A38') || fl.aircraftCode?.startsWith('B77') || fl.aircraftCode?.startsWith('B74') || fl.aircraftCode?.startsWith('A35');
-          const sVal = isWidebody ? 1.25 : 1.0;
+          const sVal = (isWidebody ? 1.25 : 1.0) * zoomScaleFactor;
           scratchScale.set(sVal, sVal, sVal);
 
           dummyPlaneMatrix.compose(scratchPos, scratchQuat, scratchScale);
@@ -834,7 +909,7 @@ export function OrbitView3D({
 
     // Build authentic hydrodynamic ship hull silhouette in 3D (pointed bow, slender midship, transom stern)
     const shipShape = new THREE.Shape();
-    const vs = 0.0022; // Visible, elegant scale for commercial vessels on orbit
+    const vs = 0.0017; // Visible, sleek scale for commercial vessels on orbit
     shipShape.moveTo(0, 7.5 * vs); // Bow tip
     shipShape.bezierCurveTo(-1.8 * vs, 4.0 * vs, -2.0 * vs, 0, -2.0 * vs, -5.5 * vs);
     shipShape.lineTo(-1.4 * vs, -7.5 * vs); // Port stern
@@ -847,7 +922,7 @@ export function OrbitView3D({
 
     // High performance instanced mesh with double-sided rendering and dynamic vertex colors
     const shipMat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
-    const vesselsInstancedMesh = new THREE.InstancedMesh(shipGeom, shipMat, 16000);
+    const vesselsInstancedMesh = new THREE.InstancedMesh(shipGeom, shipMat, 27000);
     vesselsInstancedMesh.count = 0;
     vesselsInstancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     maritimeGroup.add(vesselsInstancedMesh);
@@ -860,8 +935,12 @@ export function OrbitView3D({
       if (!vesselsInstancedMesh || !vesselsList || vesselsList.length === 0) return;
       try {
         currentLiveVessels = vesselsList;
-        const count = Math.min(vesselLimitRef.current || 500, vesselsList.length, 16000);
+        const count = Math.min(vesselLimitRef.current || 500, vesselsList.length, 27000);
         let validCount = 0;
+
+        // Dynamic scale factor: smoothly scales vessels down as user zooms into surface
+        const camDist = camera.position.length();
+        const zoomScaleFactor = THREE.MathUtils.clamp((camDist - 1.95) / 3.4, 0.22, 1.0);
 
         for (let i = 0; i < count; i++) {
           const ves = vesselsList[i];
@@ -890,8 +969,8 @@ export function OrbitView3D({
           scratchRotMatrix.makeBasis(scratchRight, scratchHeading, scratchNormal);
           scratchQuat.setFromRotationMatrix(scratchRotMatrix);
 
-          // Scaled according to vessel length (ULCV / VLCC appear more imposing)
-          const lengthFactor = ves.lengthM ? Math.max(0.75, Math.min(1.45, ves.lengthM / 280)) : 1.0;
+          // Scaled according to vessel length and zoom factor
+          const lengthFactor = (ves.lengthM ? Math.max(0.75, Math.min(1.45, ves.lengthM / 280)) : 1.0) * zoomScaleFactor;
           scratchScale.set(lengthFactor, lengthFactor, lengthFactor);
 
           dummyVesselMatrix.compose(scratchPos, scratchQuat, scratchScale);
@@ -1797,6 +1876,10 @@ export function OrbitView3D({
               centerLng: `${Math.abs(lng).toFixed(2)}° ${lng >= 0 ? 'E' : 'W'}`,
             });
 
+            // Remove hover mesh and floating tooltip when territory is clicked & selected
+            removeHoverMesh();
+            setHoveredTerritory(null);
+
             // Remove existing selected mesh
             removeSelectedMesh();
 
@@ -1841,12 +1924,74 @@ export function OrbitView3D({
       if (intersects.length > 0) {
         isHoveringEarth = true;
         const localPoint = earthMesh.worldToLocal(intersects[0].point.clone());
-        updateCoordsFromLocalPoint(localPoint);
+        const { lat, lng } = updateCoordsFromLocalPoint(localPoint);
+
+        const foundFeature = findCountryFeature(lat, lng);
+
+        if (foundFeature && foundFeature !== hoveredFeatureRef.current) {
+          const props = foundFeature.properties || {};
+          const isCurrentSelected = selectedTerritory && (
+            props.NAME === selectedTerritory.name ||
+            props.NAME_FR === selectedTerritory.name ||
+            props.ADMIN === selectedTerritory.name
+          );
+
+          if (!isCurrentSelected) {
+            removeHoverMesh();
+            hoveredFeatureRef.current = foundFeature;
+
+            const hoverMesh = createTerritoryMesh(foundFeature, {
+              surfaceRadius: R_HOVER_BASE + 0.003,
+              borderRadius: R_HOVER_BASE + 0.005,
+              baseRadius: R_HOVER_BASE,
+              fillColor: 0x00f2fe,
+              fillOpacity: 0.28,
+              borderColor: 0x00ffff,
+              borderOpacity: 0.95,
+              hasWalls: false,
+            });
+
+            earthGroup.add(hoverMesh);
+            hoverMeshRef.current = hoverMesh;
+            sound.hover(0.08);
+
+            const rawName = props.NAME || props.SUBUNIT || props.ADMIN || 'Territoire';
+            const displayName = TERRITORY_NAMES_FR[rawName] || props.NAME_FR || rawName;
+            const sovereign = props.SOVEREIGNT || props.SOV_A3 || displayName;
+            const continent = props.CONTINENT || 'International';
+            const pop = props.POP_EST || props.POP2005;
+            const popFormatted = pop ? Number(pop).toLocaleString('fr-FR') : 'N/A';
+            const areaKm2 = getCountryAreaKm2(foundFeature);
+            const areaFormatted = formatAreaKm2(areaKm2);
+
+            setHoveredTerritory({
+              x: e.clientX,
+              y: e.clientY,
+              name: displayName,
+              sovereign: sovereign !== displayName ? sovereign : null,
+              continent,
+              pop: popFormatted,
+              area: areaFormatted,
+            });
+          } else {
+            removeHoverMesh();
+            setHoveredTerritory(null);
+          }
+        } else if (foundFeature && hoveredTerritory) {
+          setHoveredTerritory((prev) => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+        } else if (!foundFeature && hoveredFeatureRef.current) {
+          removeHoverMesh();
+          setHoveredTerritory(null);
+        }
 
         if (!isRightDragging && !(e.buttons & 2)) {
-          container.style.cursor = 'pointer';
+          container.style.cursor = foundFeature ? 'pointer' : 'default';
         }
       } else {
+        if (hoveredFeatureRef.current) {
+          removeHoverMesh();
+          setHoveredTerritory(null);
+        }
         isHoveringEarth = false;
         scratchDirVector.copy(camera.position).negate().normalize().multiplyScalar(2);
         const localPoint = earthMesh.worldToLocal(scratchDirVector);
@@ -2039,19 +2184,24 @@ export function OrbitView3D({
         });
       }
 
-      // Animate aviation flights (Flightradar24 Commercial Fleet - 10 Hz refresh, optimal 60 FPS)
+      // Animate aviation flights (Flightradar24 Commercial Fleet - 30 Hz live direct advancement)
       if (aviationGroup.visible && planesInstancedMesh) {
-        if (flightRadarService.flights.length > 0 && frameCount % 6 === 0) {
+        if (flightRadarService.flights.length > 0 && frameCount % 2 === 0) {
           update3DPlanes(flightRadarService.flights);
         }
       }
 
-      // Animate maritime fleet (MarineTraffic Commercial Fleet - 10 Hz refresh, optimal 60 FPS)
+      // Animate maritime fleet (MarineTraffic Commercial Fleet - 30 Hz live direct advancement)
       maritimeGroup.visible = layers.has('maritime');
       if (maritimeGroup.visible && vesselsInstancedMesh) {
-        if (marineTrafficService.vessels.length > 0 && frameCount % 6 === 0) {
+        if (marineTrafficService.vessels.length > 0 && frameCount % 2 === 0) {
           update3DVessels(marineTrafficService.vessels);
         }
+      }
+
+      // Update camera distance for dynamic zoom shader micro-relief
+      if (earthShaderRef.current && earthShaderRef.current.uniforms && earthShaderRef.current.uniforms.uCamDist) {
+        earthShaderRef.current.uniforms.uCamDist.value = camera.position.length();
       }
 
       // Animate cyber attack pulses (Kaspersky Traveling Laser Beams & Ground Shockwaves)
@@ -2181,6 +2331,7 @@ export function OrbitView3D({
       cloudsMap.dispose();
 
       removeSelectedMesh();
+      removeHoverMesh();
 
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
@@ -2204,6 +2355,38 @@ export function OrbitView3D({
         className="orbit-canvas-container"
         ref={mountRef}
       />
+
+      {/* 3D Interactive Country Hover Floating Tooltip */}
+      {hoveredTerritory && !selectedTerritory && (
+        <div
+          className="orbit-country-hover-tooltip"
+          style={{
+            position: 'fixed',
+            left: `${hoveredTerritory.x + 16}px`,
+            top: `${hoveredTerritory.y - 30}px`,
+          }}
+        >
+          <div className="orbit-tooltip-inner">
+            <div className="orbit-tooltip-title">{hoveredTerritory.name}</div>
+            {hoveredTerritory.sovereign && (
+              <div className="orbit-tooltip-sub">Rattaché : {hoveredTerritory.sovereign}</div>
+            )}
+            <div className="orbit-tooltip-stats">
+              <span>{hoveredTerritory.continent}</span>
+              <span>•</span>
+              <span>{hoveredTerritory.pop} hab.</span>
+              {hoveredTerritory.area && (
+                <>
+                  <span>•</span>
+                  <span>{hoveredTerritory.area}</span>
+                </>
+              )}
+            </div>
+            <div className="orbit-tooltip-hint">Cliquer pour dossier stratégique</div>
+          </div>
+        </div>
+      )}
+
       {/* Country Inspector HUD Overlay (Same design as 2D) */}
       {selectedTerritory && (
         <div className="territory-inspector-card">

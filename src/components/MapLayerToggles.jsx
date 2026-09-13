@@ -47,7 +47,7 @@ export const LAYER_CONFIGS = [
     label: 'Navires marchands',
     shortLabel: 'Maritime',
     icon: Anchor,
-    count: '15 340+ navires',
+    count: '25 910+ navires',
     source: 'AIS MarineTraffic Direct',
     accentColor: '#00f5a0',
     category: 'TRANSIT',
@@ -167,7 +167,7 @@ export function MapLayerToggles({
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [liveFlightCount, setLiveFlightCount] = useState(flightRadarService.flights.length || 2280);
-  const [liveVesselCount, setLiveVesselCount] = useState(marineTrafficService.vessels.length || 15340);
+  const [liveVesselCount, setLiveVesselCount] = useState(marineTrafficService.vessels.length || 25910);
 
   useEffect(() => {
     const unsub = flightRadarService.subscribe((flights, total) => {
@@ -181,7 +181,7 @@ export function MapLayerToggles({
 
   useEffect(() => {
     const unsub = marineTrafficService.subscribe((vessels, total) => {
-      const nextCount = vessels.length > 0 ? vessels.length : total || 15340;
+      const nextCount = vessels.length > 0 ? vessels.length : total || 25910;
       setLiveVesselCount((prev) => (prev === nextCount ? prev : nextCount));
     });
     return () => {
@@ -432,7 +432,7 @@ export function MapLayerToggles({
                             <input
                               type="range"
                               min="50"
-                              max={Math.max(15340, liveVesselCount)}
+                              max={Math.max(25910, liveVesselCount)}
                               step="50"
                               value={vesselLimit}
                               onChange={(e) => {
@@ -483,11 +483,11 @@ export function MapLayerToggles({
                               className={`density-preset-btn ${vesselLimit >= 10000 ? 'is-active' : ''}`}
                               onClick={() => {
                                 sound.tick();
-                                if (onVesselLimitChange) onVesselLimitChange(Math.max(15340, liveVesselCount));
+                                if (onVesselLimitChange) onVesselLimitChange(Math.max(25910, liveVesselCount));
                               }}
-                              title="Flotte mondiale intégrale (15 000+ navires)"
+                              title="Flotte mondiale intégrale (25 000+ navires)"
                             >
-                              MAX (15 000+)
+                              MAX ({Math.max(25000, liveVesselCount).toLocaleString('fr-FR')})
                             </button>
                           </div>
                         </div>

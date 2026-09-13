@@ -437,14 +437,16 @@ export function TacticalMap2D({
 
     const MARITIME_PALETTE = {
       container: '#22c55e',      // Lime Green (ULCV / Containers)
-      cargo: '#16a34a',          // Deep Green (General Cargo / Ro-Ro)
+      cargo: '#10b981',          // Emerald Green (General Cargo / Ro-Ro)
       tanker: '#ef4444',         // Bright Red (Crude VLCC)
-      product_tanker: '#dc2626', // Crimson Red (Chemical / Product Tankers)
-      lng: '#a855f7',            // Purple / Magenta (LNG Cryogenic Carriers)
-      bulk: '#3b82f6',           // Bright Blue (Capesize / Panamax Bulkers)
+      product_tanker: '#f43f5e', // Crimson Red (Chemical / Product Tankers)
+      lng: '#c084fc',            // Vivid Purple (LNG Cryogenic Carriers)
+      bulk: '#0ea5e9',           // Sky Blue (Capesize / Panamax Bulkers)
       passenger: '#2563eb',      // Royal Blue (Cruise / Ferries)
-      tug: '#06b6d4',            // Cyan (Tugs & Offshore)
-      fishing: '#f97316',        // Orange (Ocean Fishing)
+      tug: '#06b6d4',            // Aqua Cyan (Tugs & Port Assistance)
+      fishing: '#f97316',        // Vibrant Orange (Ocean Fishing)
+      military: '#94a3b8',       // Steel Grey (Naval & Coast Guard)
+      pleasure: '#e879f9',       // Violet (Yachts & Sailing)
       default: '#22c55e',
     };
 
@@ -552,10 +554,10 @@ export function TacticalMap2D({
       const hoveredId = hoveredVessel?.id;
       const zoom = map.getZoom();
 
-      // Dynamic sizing based on zoom level: crisp chevrons matching MarineTraffic
-      const baseLen = zoom <= 3 ? 7.5 : zoom <= 5 ? 10.0 : zoom <= 8 ? 13.5 : 17.0;
-      const baseWidth = zoom <= 3 ? 4.2 : zoom <= 5 ? 5.8 : zoom <= 8 ? 7.8 : 9.8;
-      const circleRadius = zoom <= 3 ? 2.2 : zoom <= 5 ? 3.0 : 4.0;
+      // Dynamic sizing based on zoom level: crisp, luminous chevrons matching MarineTraffic
+      const baseLen = zoom <= 3 ? 9.2 : zoom <= 5 ? 12.0 : zoom <= 8 ? 15.5 : 19.0;
+      const baseWidth = zoom <= 3 ? 5.6 : zoom <= 5 ? 7.2 : zoom <= 8 ? 9.0 : 11.2;
+      const circleRadius = zoom <= 3 ? 2.6 : zoom <= 5 ? 3.4 : 4.4;
 
       let selectedVesselToDrawLast = null;
       let hoveredVesselToDrawLast = null;
@@ -565,7 +567,7 @@ export function TacticalMap2D({
         const pt = map.latLngToContainerPoint([ves.lat, ves.lng]);
 
         // Fast viewport culling
-        if (pt.x < -20 || pt.x > width + 20 || pt.y < -20 || pt.y > height + 20) {
+        if (pt.x < -30 || pt.x > width + 30 || pt.y < -30 || pt.y > height + 30) {
           ves._scX = undefined;
           ves._scY = undefined;
           continue;
@@ -595,28 +597,40 @@ export function TacticalMap2D({
           ctx.translate(pt.x, pt.y);
           ctx.rotate(rad);
 
+          // Forward speed vector projecting ahead from the bow (MarineTraffic standard)
+          if (zoom >= 4.0 && ves.speedKts && ves.speedKts >= 1.0) {
+            const vectorLen = Math.min(26, Math.max(5, ves.speedKts * (zoom >= 7 ? 1.6 : 0.95)));
+            ctx.beginPath();
+            ctx.moveTo(0, -baseLen * 0.7);
+            ctx.lineTo(0, -baseLen * 0.7 - vectorLen);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = zoom >= 6 ? 1.4 : 0.9;
+            ctx.stroke();
+          }
+
+          // Authentic MarineTraffic pointed vessel chevron
           ctx.beginPath();
-          ctx.moveTo(0, -baseLen * 0.65);
+          ctx.moveTo(0, -baseLen * 0.7);
           ctx.lineTo(baseWidth * 0.5, baseLen * 0.45);
-          ctx.lineTo(0, baseLen * 0.25);
+          ctx.lineTo(0, baseLen * 0.2);
           ctx.lineTo(-baseWidth * 0.5, baseLen * 0.45);
           ctx.closePath();
 
           ctx.fillStyle = color;
           ctx.fill();
-          ctx.strokeStyle = '#050c18';
-          ctx.lineWidth = 0.8;
+          ctx.strokeStyle = 'rgba(5, 12, 24, 0.45)';
+          ctx.lineWidth = 0.5;
           ctx.stroke();
 
           ctx.restore();
         } else {
-          // Stopped / Anchored ship: diamond or circle dot
+          // Stopped / Anchored ship: crisp diamond / dot
           ctx.beginPath();
           ctx.arc(pt.x, pt.y, circleRadius, 0, Math.PI * 2);
           ctx.fillStyle = color;
           ctx.fill();
-          ctx.strokeStyle = '#050c18';
-          ctx.lineWidth = 0.8;
+          ctx.strokeStyle = 'rgba(5, 12, 24, 0.45)';
+          ctx.lineWidth = 0.5;
           ctx.stroke();
         }
       }

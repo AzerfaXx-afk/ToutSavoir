@@ -17,6 +17,15 @@ export default defineConfig({
           'Referer': 'https://www.flightradar24.com/',
         },
       },
+      '/api/digitraffic': {
+        target: 'https://meri.digitraffic.fi',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/digitraffic/, ''),
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/json',
+        },
+      },
     },
   },
 })
