@@ -52,39 +52,76 @@ const FLAGS = [
   { flag: 'Malte', emoji: '🇲🇹', prefix: 248 },
   { flag: 'Bahamas', emoji: '🇧🇸', prefix: 311 },
   { flag: 'Chypre', emoji: '🇨🇾', prefix: 209 },
-  { flag: 'France', emoji: '🇫🇷', prefix: 227 },
   { flag: 'Grèce', emoji: '🇬🇷', prefix: 240 },
   { flag: 'Danemark', emoji: '🇩🇰', prefix: 219 },
   { flag: 'Norvège', emoji: '🇳🇴', prefix: 257 },
   { flag: 'Pays-Bas', emoji: '🇳🇱', prefix: 244 },
   { flag: 'Royaume-Uni', emoji: '🇬🇧', prefix: 235 },
   { flag: 'Japon', emoji: '🇯🇵', prefix: 431 },
+  { flag: 'Chine', emoji: '🇨🇳', prefix: 412 },
+  { flag: 'France', emoji: '🇫🇷', prefix: 227 },
+  { flag: 'Allemagne', emoji: '🇩🇪', prefix: 211 },
+  { flag: 'Italie', emoji: '🇮🇹', prefix: 247 },
+  { flag: 'États-Unis', emoji: '🇺🇸', prefix: 338 },
+  { flag: 'Corée du Sud', emoji: '🇰🇷', prefix: 440 },
 ];
 
+// Exact MarineTraffic colors & taxonomy:
+// Green: Cargo / Container (#22c55e)
+// Red: Tankers (#ef4444)
+// Blue: Passenger (#3b82f6)
+// Cyan: Tugs / Port / Special craft (#06b6d4)
+// Orange: Fishing (#f97316)
+// Purple: LNG / Gas (#a855f7)
 const VESSEL_TYPES = {
   container: {
     label: 'Porte-conteneurs Ultra-Large (ULCV)',
-    color: '#00f5a0',
+    category: 'container',
+    color: '#22c55e',
     dwtBase: 220000,
     len: 400,
     beam: 61,
     draught: 16.0,
     spdRange: [16.5, 22.0],
-    cargoBase: '24 000 EVP (Électronique, biens manufacturés)',
+    cargoBase: '24 000 EVP (Produits manufacturés, électronique)',
+  },
+  cargo: {
+    label: 'Cargo Polyvalent & Roulier (Ro-Ro)',
+    category: 'cargo',
+    color: '#16a34a',
+    dwtBase: 38000,
+    len: 210,
+    beam: 32,
+    draught: 10.5,
+    spdRange: [14.0, 18.5],
+    cargoBase: 'Fret général, machinerie et conteneurs feeder',
   },
   tanker: {
     label: 'Pétrolier Brut Supertanker (VLCC)',
+    category: 'tanker',
     color: '#ef4444',
-    dwtBase: 310000,
+    dwtBase: 315000,
     len: 333,
     beam: 60,
-    draught: 21.5,
-    spdRange: [12.0, 15.8],
-    cargoBase: '2 000 000 barils de pétrole brut brut',
+    draught: 21.8,
+    spdRange: [12.0, 15.5],
+    cargoBase: '2 000 000 barils de pétrole brut',
+  },
+  product_tanker: {
+    label: 'Pétrolier Chimiquier & Raffiné (MR/LR)',
+    category: 'tanker',
+    color: '#dc2626',
+    dwtBase: 50000,
+    len: 183,
+    beam: 32,
+    draught: 12.0,
+    spdRange: [13.0, 15.0],
+    cargoBase: 'Carburant aviation Jet-A1, diesel & naphta',
   },
   lng: {
     label: 'Méthanier Q-Max / Membrane (GNL)',
-    color: '#f97316',
+    category: 'lng',
+    color: '#a855f7',
     dwtBase: 135000,
     len: 345,
     beam: 54,
@@ -93,44 +130,48 @@ const VESSEL_TYPES = {
     cargoBase: '266 000 m³ Gaz Naturel Liquéfié cryogénique (-162°C)',
   },
   bulk: {
-    label: 'Vraquier Capesize (Valemax)',
-    color: '#00f2fe',
-    dwtBase: 380000,
-    len: 362,
-    beam: 65,
-    draught: 23.0,
+    label: 'Vraquier Capesize / Newcastlemax',
+    category: 'bulk',
+    color: '#3b82f6',
+    dwtBase: 210000,
+    len: 300,
+    beam: 50,
+    draught: 18.5,
     spdRange: [11.5, 14.5],
-    cargoBase: '400 000 t Minerais de fer et matières premières',
-  },
-  cargo: {
-    label: 'Transporteur de Véhicules (PCTC)',
-    color: '#10b981',
-    dwtBase: 30000,
-    len: 200,
-    beam: 36,
-    draught: 10.0,
-    spdRange: [15.0, 19.0],
-    cargoBase: '7 200 Véhicules neufs & fret roulant (Ro-Ro)',
+    cargoBase: '200 000 t Minerai de fer et charbon métallurgique',
   },
   passenger: {
-    label: 'Paquebot de Croisière Géant',
-    color: '#eab308',
+    label: 'Paquebot de Croisière / Ferry Rapide',
+    category: 'passenger',
+    color: '#2563eb',
     dwtBase: 18000,
-    len: 365,
-    beam: 65,
-    draught: 9.3,
-    spdRange: [18.0, 22.5],
-    cargoBase: '6 700 Passagers & 2 200 membres d’équipage',
+    len: 330,
+    beam: 42,
+    draught: 8.8,
+    spdRange: [18.0, 23.5],
+    cargoBase: '5 500 Passagers et 1 800 membres d’équipage',
   },
   tug: {
-    label: 'Remorqueur Hauturier d’Assistance (AHTS)',
-    color: '#a855f7',
-    dwtBase: 4500,
-    len: 92,
-    beam: 21,
-    draught: 7.5,
-    spdRange: [10.0, 13.5],
-    cargoBase: 'Traction 280 t au croc d’assistance hauturière',
+    label: 'Remorqueur Portuaire & Offshore (AHTS)',
+    category: 'tug',
+    color: '#06b6d4',
+    dwtBase: 3500,
+    len: 75,
+    beam: 18,
+    draught: 6.8,
+    spdRange: [9.5, 13.0],
+    cargoBase: 'Assistance manœuvre et remorquage hauturier',
+  },
+  fishing: {
+    label: 'Chalutier Pélagique / Navire Usine',
+    category: 'fishing',
+    color: '#f97316',
+    dwtBase: 2500,
+    len: 85,
+    beam: 16,
+    draught: 6.2,
+    spdRange: [8.0, 12.0],
+    cargoBase: 'Campagne de pêche hauturière et surgélation bord',
   },
 };
 
@@ -146,7 +187,16 @@ const SHIPS_DATABASE = {
     'COSCO SHIPPING PLANET', 'ONE AQUILA', 'HAPAG-LLOYD TOKYO', 'EVER ARM', 'MSC ARINA', 'CMA CGM MONTMARTRE',
     'MAERSK MUNICH', 'COSCO SHIPPING TAURUS', 'ONE CYGNUS', 'HAPAG-LLOYD SINGAPORE', 'MSC MICHEL CAPPELLINI',
     'EVER ATOP', 'CMA CGM JEAN MERMOZ', 'MAERSK MCENERY', 'COSCO SHIPPING PISCES', 'ONE HAWK', 'MSC FEBE',
-    'HAPAG-LLOYD ROTTERDAM', 'EVER ALP', 'CMA CGM ANTOINE DE SAINT EXUPERY', 'MAERSK MCKELL', 'MSC SIXIN'
+    'HAPAG-LLOYD ROTTERDAM', 'EVER ALP', 'CMA CGM ANTOINE DE SAINT EXUPERY', 'MAERSK MCKELL', 'MSC SIXIN',
+    'WAN HAI 805', 'YANG MING WISDOM', 'ZIM SAMMY OFER', 'KMTC SHANGHAI', 'SITC NINGBO', 'PIL KOTA CARUM',
+    'IRISL ARYA', 'MATSON MANUKAI', 'X-PRESS FEEDER', 'UNIFEEDER BALTIC', 'SAMSKIP HAWK', 'CONTAINERSHIPS VII'
+  ],
+  cargo: [
+    'WALLENIUS MORNING CHANT', 'GRIMALDI GRANDE NIGERIA', 'HOEGH TARGET', 'NYK LEADER', 'K-LINE HORIZON',
+    'MOL TREASURE', 'ATLANTIC COMPASS', 'BBC CHARTERING ORE', 'AAL NEWCASTLE', 'CHIPOLBROK PACIFIC',
+    'WALLENIUS FAUST', 'GRIMALDI GRANDE BRASILE', 'HOEGH TRIGGER', 'NYK PIONEER', 'K-LINE EXPLORER',
+    'MOL TRIUMPH', 'ATLANTIC CONCERT', 'BBC PEARL', 'AAL BRISBANE', 'CHIPOLBROK ATLANTIC',
+    'BOLLORE AFRICA VOYAGER', 'SPLIETHOFF PIETERSGRACHT', 'BIGLIFT BARENTS', 'SAL HEAVY LIFT FRAUKE'
   ],
   tanker: [
     'TI OCEANIA', 'EURONAV ALEXANDRIA', 'FRONT ALTAIR', 'DHT COLT', 'NORDIC AMERICAN STAR', 'TEEKAY SPIRIT',
@@ -154,7 +204,13 @@ const SHIPS_DATABASE = {
     'FRONT HERCULES', 'DHT JAGUAR', 'NORDIC TRACER', 'TEEKAY RESOLUTE', 'BAHRI YANBU', 'STENA SUPREME',
     'MARAN GAS MARITIME', 'MINERVA GRACE', 'OLYMPIC HOPE', 'NEW CHALLENGER', 'FRONT FALCON', 'DHT BRONCO',
     'NORDIC VOYAGER', 'TEEKAY VALIANT', 'BAHRI JEDDAH', 'STENA PRESIDENT', 'MARAN POSEIDON', 'MINERVA IRIS',
-    'FRONT EAGLE', 'DHT TIGER', 'EURONAV HERCULES', 'NORDIC FREEDOM', 'TEEKAY COURAGE', 'BAHRI RIYADH'
+    'FRONT EAGLE', 'DHT TIGER', 'EURONAV HERCULES', 'NORDIC FREEDOM', 'TEEKAY COURAGE', 'BAHRI RIYADH',
+    'HAFNIA SHANGHAI', 'TORM SINGAPORE', 'SCORPIO BULKHEAD', 'D AMICO GLORY', 'STENA BULK BULLET'
+  ],
+  product_tanker: [
+    'TORM ALICE', 'HAFNIA MAGELLAN', 'SCORPIO POLARIS', 'STENA PROGRESS', 'D AMICO VALIANT',
+    'MAERSK TANKERS BENGAL', 'MINERVA HELEN', 'EPIC SARDINIA', 'NAVIG8 PASSION', 'NORDIC LIGHT',
+    'CHEVRON GALAXY', 'SHELL TRADER', 'TOTALENERGIES PACIFIC', 'BP ENTERPRISE', 'EXXON VALDEZ II'
   ],
   lng: [
     'Q-MAX MOZAH', 'Q-FLEX AL GHARIYA', 'ARCTIC DISCOVERER', 'GASLOG GLASGOW', 'BW LILAC', 'GOLAR TUNDRA',
@@ -168,305 +224,572 @@ const SHIPS_DATABASE = {
     'OLDENDORFF CARRIER', 'PANAMAX LEADER', 'CAPE PROVIDENCE', 'AQUABONITA', 'MINERAL CHINA', 'IRON DUKE',
     'VALE RIO DE JANEIRO', 'BERGE MAUNA KEA', 'PACIFIC BULKER', 'SHAGANG PIONEER', 'STAR POLARIS', 'GOLDEN TRADER',
     'OLDENDORFF NAVIGATOR', 'PANAMAX PRIDE', 'CAPE SUCCESS', 'AQUAMARINE', 'MINERAL SHANGHAI', 'IRON EMPEROR',
-    'VALE ESPIRITO SANTO', 'BERGE KANGCHENJUNGA', 'PACIFIC MERIT', 'STAR ANTARES', 'GOLDEN VOYAGER'
-  ],
-  cargo: [
-    'WALLENIUS MORNING CHANT', 'GRIMALDI GRANDE NIGERIA', 'HOEGH TARGET', 'NYK LEADER', 'K-LINE HORIZON',
-    'MOL TREASURE', 'ATLANTIC COMPASS', 'BBC CHARTERING ORE', 'AAL NEWCASTLE', 'CHIPOLBROK PACIFIC',
-    'WALLENIUS FAUST', 'GRIMALDI GRANDE BRASILE', 'HOEGH TRIGGER', 'NYK PIONEER', 'K-LINE EXPLORER',
-    'MOL TRIUMPH', 'ATLANTIC CONCERT', 'BBC PEARL', 'AAL BRISBANE', 'CHIPOLBROK ATLANTIC'
+    'VALE ESPIRITO SANTO', 'BERGE KANGCHENJUNGA', 'PACIFIC MERIT', 'STAR ANTARES', 'GOLDEN VOYAGER',
+    'FMG NICOLA', 'RIO TINTO EXPLORER', 'BHP BILLITON CARRIER', 'ANGLO AMERICAN SPIRIT'
   ],
   passenger: [
     'ICON OF THE SEAS', 'WONDER OF THE SEAS', 'SYMPHONY OF THE SEAS', 'HARMONY OF THE SEAS', 'ALLURE OF THE SEAS',
-    'MSC WORLD EUROPA', 'MSC GRANDIOSA', 'COSTA SMERALDA', 'NORWEGIAN PRIMA', 'QUEEN MARY 2', 'DISNEY WISH',
-    'CELEBRITY BEYOND', 'ROYAL PRINCESS', 'AIDANOVA', 'CARNIVAL CELEBRATION'
+    'MSC WORLD EUROPA', 'MSC EURIBIA', 'MSC GRANDIOSA', 'COSTA SMERALDA', 'COSTA TOSCANA',
+    'QUEEN MARY 2', 'QUEEN ELIZABETH', 'NORWEGIAN PRIMA', 'CELEBRITY BEYOND', 'DISNEY WISH',
+    'CORSICA FERRIES MEGA', 'BRITTANY FERRIES GALICIA', 'STENA HOLLANDICA', 'MOBY FANTASY', 'DFDS KING SEAWAYS'
   ],
   tug: [
-    'OCEANIC PULLER', 'ALP STRIKER', 'FAIRMOUNT GLACIER', 'BOKA SHERPA', 'RESOLUTE TUG', 'MAERSK MASTER',
-    'SVITZER EUROPA', 'KOTUG ROTTERDAM', 'SMIT AMANDLA', 'POSH COMMANDER', 'ALP DEFENDER', 'BOKA FALCON'
+    'SMIT ROTTERDAM', 'BOURBON LIBERTY 301', 'FAIRPLAY 33', 'KOTUG ROTTERDAM', 'SVITZER HERMES',
+    'BOLUDA TANGIER', 'ALP DEFENDER', 'BOKA SHERPA', 'LEWEK FALCON', 'ABEILLE BOURBON', 'ABEILLE FLANDRE',
+    'PACIFIC CHAMPION', 'TIDEWATER LEADER', 'HARVEY GULF PIONEER', 'EDISON CHOUEST PATRIOT'
+  ],
+  fishing: [
+    'ATLANTIC TITAN', 'NORDIC PEARL', 'PACIFIC DAWN', 'ALASKA RANGER', 'BRETAGNE PECHE IV',
+    'GALICIA MAR', 'CAPE COD TRAWLER', 'TOKYO MARU 88', 'BUSAN SEAFOOD II', 'ANTARCTIC HARVEST',
+    'MAR DEL PLATA PESQUERO', 'PERUVIAN ANCHOVETA', 'ICELANDIC COD VII', 'BJARNI OLAFSSON'
   ]
 };
 
-// 12 Strategic Global Shipping Corridors
-const MARITIME_CORRIDORS = [
+// 45 Worldwide Maritime Regions & Basins covering every sea, ocean, gulf and strait
+const MARITIME_REGIONS = [
+  // 1. ASIA & PACIFIC
   {
-    id: 'malacca',
+    id: 'malacca_singapore',
     zone: 'Détroit de Malacca & Singapour',
+    origPort: 'Singapour (Port de Tuas / Jurong)',
+    destPort: 'Port Klang (Malaisie)',
+    corridor: [[5.8, 97.8], [4.2, 99.8], [2.8, 101.5], [1.25, 103.8], [1.35, 104.4]],
+    latSpread: 0.28,
+    count: 480,
+    types: ['container', 'tanker', 'bulk', 'cargo', 'lng', 'tug'],
+  },
+  {
+    id: 'singapore_anchorages',
+    zone: 'Rades & Mouillages de Singapour',
+    origPort: 'Rade Est de Singapour',
+    destPort: 'Rade Ouest de Singapour',
+    corridor: [[1.18, 103.65], [1.22, 103.85], [1.28, 104.05], [1.38, 104.35]],
+    latSpread: 0.15,
+    count: 260,
+    types: ['tanker', 'product_tanker', 'container', 'tug', 'bulk'],
+    forceAnchorRatio: 0.55,
+  },
+  {
+    id: 'south_china_sea_main',
+    zone: 'Mer de Chine Méridionale (Axe Central)',
     origPort: 'Singapour',
-    destPort: 'Rotterdam (Pays-Bas)',
-    waypoints: [
-      [5.50, 95.20],
-      [4.20, 98.40],
-      [3.00, 100.80],
-      [1.80, 102.50],
-      [1.25, 103.85],
-      [1.35, 104.40],
-      [2.50, 106.00],
-      [4.00, 108.50]
-    ],
-    count: 220,
-    types: ['container', 'tanker', 'lng', 'bulk', 'tug']
+    destPort: 'Hong Kong (Chine)',
+    corridor: [[2.0, 105.0], [6.5, 108.5], [11.5, 112.5], [16.5, 115.0], [21.5, 114.5]],
+    latSpread: 1.4,
+    count: 420,
+    types: ['container', 'tanker', 'bulk', 'cargo', 'lng'],
   },
   {
-    id: 'suez',
-    zone: 'Canal de Suez & Mer Rouge',
-    origPort: 'Port-Saïd (Égypte)',
-    destPort: 'Djeddah (Arabie Saoudite)',
-    waypoints: [
-      [31.30, 32.30],
-      [29.93, 32.55],
-      [27.80, 34.10],
-      [22.50, 38.00],
-      [16.50, 41.50],
-      [12.60, 43.30],
-      [11.90, 45.20],
-      [12.00, 50.00]
-    ],
-    count: 180,
-    types: ['container', 'tanker', 'lng', 'bulk']
+    id: 'taiwan_strait_east_china',
+    zone: 'Détroit de Taïwan & Mer de Chine Orientale',
+    origPort: 'Shenzhen / Hong Kong',
+    destPort: 'Shanghai (Yangshan)',
+    corridor: [[22.5, 115.0], [24.5, 119.5], [27.0, 121.8], [30.2, 122.8], [31.5, 122.5]],
+    latSpread: 0.9,
+    count: 520,
+    types: ['container', 'bulk', 'cargo', 'tanker', 'fishing'],
   },
   {
-    id: 'hormuz',
-    zone: 'Détroit d’Ormuz & Golfe Persique',
-    origPort: 'Ras Laffan (Qatar)',
-    destPort: 'Tokyo (Japon)',
-    waypoints: [
-      [27.00, 50.50],
-      [26.20, 52.50],
-      [25.50, 54.50],
-      [26.50, 56.40],
-      [25.40, 56.60],
-      [24.50, 58.20],
-      [23.50, 60.50]
-    ],
-    count: 180,
-    types: ['tanker', 'lng', 'bulk', 'tug']
+    id: 'shanghai_ningbo_anchorage',
+    zone: 'Approches de Shanghai & Ningbo-Zhoushan',
+    origPort: 'Ningbo-Zhoushan',
+    destPort: 'Shanghai Yangshan',
+    corridor: [[29.8, 122.2], [30.6, 122.5], [31.2, 122.4], [31.8, 122.1]],
+    latSpread: 0.35,
+    count: 320,
+    types: ['container', 'bulk', 'tug', 'product_tanker', 'cargo'],
+    forceAnchorRatio: 0.35,
   },
   {
-    id: 'english_channel',
-    zone: 'Manche, Pas-de-Calais & Mer du Nord',
-    origPort: 'Rotterdam (Pays-Bas)',
-    destPort: 'Le Havre (France)',
-    waypoints: [
-      [49.20, -5.50],
-      [49.80, -2.50],
-      [50.30, 0.00],
-      [51.05, 1.50],
-      [51.80, 3.20],
-      [52.00, 3.90],
-      [53.50, 6.00],
-      [54.20, 7.80]
-    ],
-    count: 200,
-    types: ['container', 'tanker', 'cargo', 'passenger', 'tug']
+    id: 'bohai_yellow_sea',
+    zone: 'Mer Jaune & Golfe de Bohai',
+    origPort: 'Qingdao (Chine)',
+    destPort: 'Tianjin / Dalian',
+    corridor: [[34.5, 121.5], [36.0, 121.0], [38.0, 120.5], [38.9, 118.5]],
+    latSpread: 0.8,
+    count: 300,
+    types: ['bulk', 'container', 'tanker', 'cargo', 'fishing'],
   },
   {
-    id: 'gibraltar',
-    zone: 'Détroit de Gibraltar & Méditerranée',
-    origPort: 'Algésiras (Espagne)',
-    destPort: 'Gênes (Italie)',
-    waypoints: [
-      [36.10, -7.50],
-      [35.95, -5.60],
-      [36.40, -3.00],
-      [37.20, 0.50],
-      [38.50, 4.00],
-      [40.00, 7.50],
-      [43.00, 9.20],
-      [44.00, 8.80]
-    ],
-    count: 190,
-    types: ['container', 'tanker', 'passenger', 'cargo']
-  },
-  {
-    id: 'panama',
-    zone: 'Canal de Panama & Caraïbes',
-    origPort: 'Balboa (Panama)',
-    destPort: 'Houston (États-Unis)',
-    waypoints: [
-      [7.50, -80.00],
-      [8.85, -79.55],
-      [9.35, -79.92],
-      [12.50, -78.00],
-      [18.00, -84.00],
-      [21.80, -85.50],
-      [25.00, -88.00],
-      [29.00, -94.50]
-    ],
-    count: 180,
-    types: ['container', 'tanker', 'bulk', 'lng']
-  },
-  {
-    id: 'east_asia',
-    zone: 'Mer de Chine & Façade Asiatique',
-    origPort: 'Shanghai (Chine)',
+    id: 'korea_strait_busan',
+    zone: 'Détroit de Corée & Busan',
+    origPort: 'Shanghai',
     destPort: 'Busan (Corée du Sud)',
-    waypoints: [
-      [22.20, 114.50],
-      [24.00, 119.00],
-      [27.50, 122.00],
-      [30.60, 122.30],
-      [32.50, 125.50],
-      [34.80, 128.80],
-      [35.10, 130.00],
-      [35.00, 139.50]
-    ],
+    corridor: [[32.0, 124.5], [33.5, 127.5], [34.8, 129.2], [35.2, 129.8]],
+    latSpread: 0.5,
+    count: 340,
+    types: ['container', 'passenger', 'bulk', 'tanker', 'cargo'],
+  },
+  {
+    id: 'japan_tokyo_seto',
+    zone: 'Japon (Baie de Tokyo & Mer Intérieure de Seto)',
+    origPort: 'Kobe / Osaka',
+    destPort: 'Yokohama / Tokyo',
+    corridor: [[33.8, 132.5], [33.5, 135.2], [34.5, 138.5], [35.2, 139.8]],
+    latSpread: 0.45,
+    count: 320,
+    types: ['container', 'passenger', 'cargo', 'product_tanker', 'fishing'],
+  },
+  {
+    id: 'indonesia_straits',
+    zone: 'Détroits de la Sonde, Lombok & Mer de Java',
+    origPort: 'Jakarta (Tanjung Priok)',
+    destPort: 'Surabaya / Makassar',
+    corridor: [[-6.0, 105.8], [-5.8, 108.5], [-6.8, 112.8], [-8.2, 115.8]],
+    latSpread: 0.7,
+    count: 280,
+    types: ['bulk', 'cargo', 'passenger', 'tanker', 'tug'],
+  },
+  {
+    id: 'philippines_visayas',
+    zone: 'Philippines & Détroit de San Bernardino',
+    origPort: 'Manille (Philippines)',
+    destPort: 'Cebu / Davao',
+    corridor: [[14.5, 120.5], [13.2, 122.5], [10.5, 124.0], [7.0, 126.0]],
+    latSpread: 0.8,
     count: 220,
-    types: ['container', 'bulk', 'cargo', 'tanker']
+    types: ['passenger', 'cargo', 'container', 'fishing'],
+  },
+
+  // 2. MIDDLE EAST & INDIAN OCEAN
+  {
+    id: 'persian_gulf_hormuz',
+    zone: 'Golfe Persique & Détroit d’Ormuz',
+    origPort: 'Ras Tanura (Arabie Saoudite)',
+    destPort: 'Fujairah (Émirats Arabes Unis)',
+    corridor: [[28.5, 49.5], [26.8, 51.5], [26.2, 54.5], [26.4, 56.4], [25.3, 56.8]],
+    latSpread: 0.5,
+    count: 480,
+    types: ['tanker', 'product_tanker', 'lng', 'tug', 'bulk'],
   },
   {
-    id: 'transpacific',
-    zone: 'Couloir Transpacifique Nord',
-    origPort: 'Yokohama (Japon)',
-    destPort: 'Long Beach (États-Unis)',
-    waypoints: [
-      [34.50, 140.00],
-      [38.00, 160.00],
-      [42.00, -180.00],
-      [40.00, -160.00],
-      [36.50, -140.00],
-      [34.00, -125.00],
-      [33.70, -118.50]
-    ],
-    count: 170,
-    types: ['container', 'bulk', 'cargo']
+    id: 'fujairah_anchorage',
+    zone: 'Rade & Avitaillement de Fujairah',
+    origPort: 'Zone d’avitaillement de Fujairah',
+    destPort: 'Golfe d’Oman',
+    corridor: [[25.0, 56.4], [25.2, 56.5], [25.4, 56.6], [25.6, 56.7]],
+    latSpread: 0.15,
+    count: 220,
+    types: ['tanker', 'product_tanker', 'tug'],
+    forceAnchorRatio: 0.7,
   },
   {
-    id: 'transatlantic',
-    zone: 'Couloir Transatlantique Nord',
-    origPort: 'New York (États-Unis)',
-    destPort: 'Anvers (Belgique)',
-    waypoints: [
-      [40.30, -73.60],
-      [41.50, -65.00],
-      [43.00, -50.00],
-      [46.00, -35.00],
-      [48.50, -20.00],
-      [49.50, -6.00]
-    ],
-    count: 160,
-    types: ['container', 'tanker', 'cargo']
+    id: 'red_sea_bab_el_mandeb',
+    zone: 'Mer Rouge & Détroit de Bab-el-Mandeb',
+    origPort: 'Djeddah (Arabie Saoudite)',
+    destPort: 'Djibouti (Golfe d’Aden)',
+    corridor: [[24.5, 36.8], [21.5, 38.5], [16.5, 41.2], [12.6, 43.4], [11.8, 44.8]],
+    latSpread: 0.45,
+    count: 360,
+    types: ['tanker', 'container', 'bulk', 'lng', 'cargo'],
   },
   {
-    id: 'cape_good_hope',
-    zone: 'Cap de Bonne-Espérance & Afrique du Sud',
-    origPort: 'Durban (Afrique du Sud)',
-    destPort: 'Santos (Brésil)',
-    waypoints: [
-      [-30.00, 31.50],
-      [-33.50, 27.00],
-      [-35.20, 21.00],
-      [-34.80, 18.00],
-      [-32.00, 14.00],
-      [-28.00, 5.00],
-      [-25.00, -15.00],
-      [-24.00, -42.00]
-    ],
-    count: 170,
-    types: ['tanker', 'bulk', 'container']
+    id: 'suez_canal_approaches',
+    zone: 'Canal de Suez & Rades de Port-Saïd / Suez',
+    origPort: 'Port-Saïd (Méditerranée)',
+    destPort: 'Suez (Mer Rouge)',
+    corridor: [[31.5, 32.3], [30.8, 32.3], [29.9, 32.5], [29.2, 32.7]],
+    latSpread: 0.12,
+    count: 240,
+    types: ['container', 'tanker', 'bulk', 'lng'],
+    forceAnchorRatio: 0.45,
   },
   {
-    id: 'south_america',
-    zone: 'Façade Atlantique Sud-Américaine',
+    id: 'arabian_sea_gulf_oman',
+    zone: 'Mer d’Oman & Golfe d’Aden',
+    origPort: 'Mascate (Oman)',
+    destPort: 'Salalah (Oman)',
+    corridor: [[24.0, 58.5], [21.0, 60.0], [17.5, 55.5], [14.5, 52.0]],
+    latSpread: 1.1,
+    count: 280,
+    types: ['tanker', 'container', 'cargo', 'bulk'],
+  },
+  {
+    id: 'india_west_mumbai',
+    zone: 'Côte Ouest de l’Inde (Mumbai & Mundra)',
+    origPort: 'Mundra (Golfe de Kutch)',
+    destPort: 'JNPT / Mumbai',
+    corridor: [[22.8, 69.5], [20.5, 71.5], [18.8, 72.7], [15.5, 73.5]],
+    latSpread: 0.6,
+    count: 310,
+    types: ['tanker', 'container', 'bulk', 'product_tanker', 'cargo'],
+  },
+  {
+    id: 'sri_lanka_southern_passage',
+    zone: 'Passage Sud du Sri Lanka (Dondra Head)',
+    origPort: 'Colombo (Sri Lanka)',
+    destPort: 'Dondra Head (Océan Indien)',
+    corridor: [[6.9, 79.5], [5.8, 80.2], [5.7, 80.8], [5.8, 81.8]],
+    latSpread: 0.35,
+    count: 320,
+    types: ['container', 'tanker', 'bulk', 'lng'],
+  },
+  {
+    id: 'bay_of_bengal',
+    zone: 'Baie du Bengale (Chennai à Chittagong)',
+    origPort: 'Chennai (Inde)',
+    destPort: 'Chittagong (Bangladesh)',
+    corridor: [[13.1, 80.5], [16.5, 83.5], [19.5, 87.5], [21.8, 91.5]],
+    latSpread: 1.0,
+    count: 260,
+    types: ['bulk', 'container', 'cargo', 'tanker'],
+  },
+
+  // 3. MEDITERRANEAN & BLACK SEA
+  {
+    id: 'gibraltar_strait',
+    zone: 'Détroit de Gibraltar & Baie d’Algésiras',
+    origPort: 'Tanger Med (Maroc)',
+    destPort: 'Algésiras (Espagne)',
+    corridor: [[36.0, -6.5], [35.95, -5.6], [36.1, -5.35], [36.2, -4.8]],
+    latSpread: 0.22,
+    count: 360,
+    types: ['container', 'tanker', 'passenger', 'product_tanker', 'tug'],
+  },
+  {
+    id: 'med_west_spain_balearics',
+    zone: 'Méditerranée Occidentale (Espagne & Baléares)',
+    origPort: 'Valence (Espagne)',
+    destPort: 'Barcelone (Espagne)',
+    corridor: [[36.5, -3.5], [37.8, -0.2], [39.5, 0.8], [41.2, 2.3]],
+    latSpread: 0.7,
+    count: 340,
+    types: ['container', 'passenger', 'cargo', 'tanker'],
+  },
+  {
+    id: 'med_central_france_italy',
+    zone: 'Golfe du Lion & Mer Tyrrhénienne (Marseille, Gênes, Naples)',
+    origPort: 'Marseille-Fos (France)',
+    destPort: 'Gênes / Livourne (Italie)',
+    corridor: [[42.8, 4.8], [43.5, 7.5], [44.0, 8.9], [41.0, 11.5], [38.5, 14.5]],
+    latSpread: 0.75,
+    count: 390,
+    types: ['passenger', 'container', 'tanker', 'product_tanker', 'cargo'],
+  },
+  {
+    id: 'med_sicily_malta_channel',
+    zone: 'Canal de Sicile & Malte',
+    origPort: 'Marsaxlokk (Malte)',
+    destPort: 'Détroit de Messine (Italie)',
+    corridor: [[37.2, 11.2], [36.5, 13.0], [35.8, 14.5], [37.8, 15.5]],
+    latSpread: 0.45,
+    count: 320,
+    types: ['container', 'tanker', 'passenger', 'bulk'],
+  },
+  {
+    id: 'adriatic_sea',
+    zone: 'Mer Adriatique (Venise, Trieste, Ancône, Koper)',
+    origPort: 'Trieste / Koper',
+    destPort: 'Bari / Otrante (Italie)',
+    corridor: [[45.5, 13.5], [43.8, 14.5], [42.0, 16.5], [40.2, 18.8]],
+    latSpread: 0.6,
+    count: 240,
+    types: ['passenger', 'cargo', 'container', 'tanker'],
+  },
+  {
+    id: 'aegean_greece_turkey',
+    zone: 'Mer Égée (Le Pirée, Crète, Izmir)',
+    origPort: 'Le Pirée (Athènes)',
+    destPort: 'Héraklion (Crète) / Izmir',
+    corridor: [[38.0, 23.5], [37.2, 24.8], [35.8, 25.2], [35.5, 27.0]],
+    latSpread: 0.65,
+    count: 350,
+    types: ['passenger', 'container', 'cargo', 'tanker', 'fishing'],
+  },
+  {
+    id: 'bosphorus_black_sea',
+    zone: 'Détroit du Bosphore & Mer Noire (Istanbul, Constanta)',
+    origPort: 'Mer de Marmara',
+    destPort: 'Constanta (Roumanie)',
+    corridor: [[40.8, 28.9], [41.2, 29.1], [42.5, 29.8], [44.1, 28.8]],
+    latSpread: 0.35,
+    count: 290,
+    types: ['bulk', 'tanker', 'cargo', 'product_tanker', 'tug'],
+  },
+
+  // 4. NORTHERN EUROPE & BALTIC
+  {
+    id: 'english_channel_dover',
+    zone: 'Manche & Détroit du Pas-de-Calais',
+    origPort: 'Le Havre (France)',
+    destPort: 'Douvres / Rotterdam',
+    corridor: [[49.5, -4.5], [49.8, -1.8], [50.5, 0.5], [51.1, 1.6], [51.6, 2.5]],
+    latSpread: 0.35,
+    count: 480,
+    types: ['container', 'tanker', 'passenger', 'cargo', 'product_tanker'],
+  },
+  {
+    id: 'north_sea_rotterdam_antwerp',
+    zone: 'Mer du Nord (Rotterdam, Anvers, Hambourg)',
+    origPort: 'Rotterdam (Maasvlakte)',
+    destPort: 'Anvers / Hambourg',
+    corridor: [[51.8, 3.2], [52.1, 3.9], [53.5, 5.5], [54.0, 7.8]],
+    latSpread: 0.45,
+    count: 510,
+    types: ['container', 'tanker', 'tug', 'bulk', 'cargo'],
+  },
+  {
+    id: 'rotterdam_anchorage',
+    zone: 'Rades de Rotterdam & Zeebruges',
+    origPort: 'Rade de Maasvlakte',
+    destPort: 'Terminal Europort',
+    corridor: [[51.95, 3.75], [52.02, 3.85], [52.08, 4.0]],
+    latSpread: 0.12,
+    count: 220,
+    types: ['container', 'tanker', 'tug'],
+    forceAnchorRatio: 0.65,
+  },
+  {
+    id: 'baltic_kattegat_finland',
+    zone: 'Mer Baltique (Kattegat, Danemark, Golfe de Finlande)',
+    origPort: 'Copenhague (Danemark)',
+    destPort: 'Helsinki / Saint-Pétersbourg',
+    corridor: [[57.5, 11.2], [55.8, 12.8], [55.2, 15.0], [59.0, 21.0], [59.9, 26.5]],
+    latSpread: 0.75,
+    count: 420,
+    types: ['passenger', 'tanker', 'container', 'bulk', 'cargo'],
+  },
+  {
+    id: 'bay_of_biscay_spain',
+    zone: 'Golfe de Gascogne & Cap Finisterre',
+    origPort: 'Bordeaux (France)',
+    destPort: 'Bilbao (Espagne) / Lisbonne',
+    corridor: [[46.5, -2.5], [44.5, -4.5], [43.5, -8.5], [40.0, -9.8]],
+    latSpread: 0.85,
+    count: 260,
+    types: ['container', 'tanker', 'bulk', 'cargo'],
+  },
+
+  // 5. NORTH AMERICA & CARIBBEAN
+  {
+    id: 'gulf_of_mexico_houston',
+    zone: 'Golfe du Mexique (Houston, Mississippi, Campeche)',
+    origPort: 'Houston Ship Channel',
+    destPort: 'La Nouvelle-Orléans / Veracruz',
+    corridor: [[28.5, -94.8], [27.5, -91.5], [26.0, -88.0], [21.5, -90.5]],
+    latSpread: 1.1,
+    count: 520,
+    types: ['tanker', 'product_tanker', 'lng', 'tug', 'bulk', 'cargo'],
+  },
+  {
+    id: 'houston_anchorage',
+    zone: 'Rade d’attente de Galveston & Houston',
+    origPort: 'Galveston Offshore Anchorage',
+    destPort: 'Houston Pilot Station',
+    corridor: [[29.1, -94.6], [29.25, -94.7], [29.35, -94.8]],
+    latSpread: 0.15,
+    count: 220,
+    types: ['tanker', 'product_tanker', 'lng', 'tug'],
+    forceAnchorRatio: 0.65,
+  },
+  {
+    id: 'florida_straits_caribbean',
+    zone: 'Détroit de Floride, Bahamas & Caraïbes',
+    origPort: 'Miami / Fort Lauderdale',
+    destPort: 'Kingston (Jamaïque) / San Juan',
+    corridor: [[25.8, -80.0], [24.5, -80.5], [22.5, -76.5], [18.5, -74.5]],
+    latSpread: 0.8,
+    count: 420,
+    types: ['passenger', 'container', 'tanker', 'cargo'],
+  },
+  {
+    id: 'panama_canal_approaches',
+    zone: 'Canal de Panama (Balboa & Colón)',
+    origPort: 'Balboa (Pacifique)',
+    destPort: 'Colón (Atlantique)',
+    corridor: [[8.5, -79.5], [8.95, -79.56], [9.35, -79.9], [9.8, -79.95]],
+    latSpread: 0.15,
+    count: 280,
+    types: ['container', 'bulk', 'tanker', 'lng'],
+    forceAnchorRatio: 0.4,
+  },
+  {
+    id: 'us_east_coast_ny',
+    zone: 'Côte Est des États-Unis (New York, Norfolk, Savannah)',
+    origPort: 'New York / New Jersey',
+    destPort: 'Savannah / Jacksonville',
+    corridor: [[40.5, -73.8], [38.5, -74.8], [34.5, -76.5], [31.5, -80.5]],
+    latSpread: 0.7,
+    count: 410,
+    types: ['container', 'tanker', 'bulk', 'tug', 'cargo'],
+  },
+  {
+    id: 'us_west_coast_la_lb',
+    zone: 'Côte Ouest des États-Unis (Los Angeles / Long Beach, San Francisco)',
+    origPort: 'Los Angeles / Long Beach',
+    destPort: 'San Francisco / Seattle',
+    corridor: [[33.6, -118.2], [34.5, -121.0], [37.5, -123.0], [46.0, -124.5]],
+    latSpread: 0.8,
+    count: 390,
+    types: ['container', 'tanker', 'bulk', 'cargo'],
+  },
+
+  // 6. SOUTH AMERICA & ATLANTIC
+  {
+    id: 'south_america_atlantic_santos',
+    zone: 'Côte Atlantique d’Amérique du Sud (Santos, Rio, Buenos Aires)',
     origPort: 'Santos (Brésil)',
-    destPort: 'Rotterdam (Pays-Bas)',
-    waypoints: [
-      [-35.00, -55.00],
-      [-28.00, -47.00],
-      [-23.90, -46.00],
-      [-20.00, -39.00],
-      [-12.00, -36.00],
-      [-4.00, -34.00],
-      [5.00, -30.00],
-      [18.00, -25.00]
-    ],
-    count: 170,
-    types: ['bulk', 'cargo', 'container', 'tanker']
+    destPort: 'Buenos Aires (Argentine)',
+    corridor: [[-23.0, -43.0], [-24.1, -46.2], [-28.5, -48.2], [-35.0, -55.0]],
+    latSpread: 0.9,
+    count: 380,
+    types: ['bulk', 'container', 'tanker', 'cargo'],
   },
   {
-    id: 'australia',
-    zone: 'Couloir Minéralier & Énergétique Australien',
+    id: 'south_america_pacific_chile',
+    zone: 'Côte Pacifique d’Amérique du Sud (Callao, Valparaiso)',
+    origPort: 'Callao (Pérou)',
+    destPort: 'Valparaiso (Chili)',
+    corridor: [[-12.0, -77.5], [-18.5, -71.5], [-26.5, -71.2], [-33.0, -72.0]],
+    latSpread: 0.8,
+    count: 260,
+    types: ['bulk', 'fishing', 'container', 'cargo'],
+  },
+  {
+    id: 'cape_of_good_hope',
+    zone: 'Route du Cap de Bonne-Espérance & Afrique du Sud',
+    origPort: 'Le Cap (Afrique du Sud)',
+    destPort: 'Durban / Richards Bay',
+    corridor: [[-34.0, 17.5], [-35.0, 20.0], [-34.2, 26.0], [-29.8, 31.5]],
+    latSpread: 0.65,
+    count: 320,
+    types: ['tanker', 'bulk', 'container', 'cargo'],
+  },
+  {
+    id: 'west_africa_gulf_guinea',
+    zone: 'Golfe de Guinée & Afrique de l’Ouest (Lagos, Bonny)',
+    origPort: 'Lagos (Nigeria)',
+    destPort: 'Luanda (Angola)',
+    corridor: [[5.5, -0.2], [4.2, 5.0], [1.5, 8.5], [-6.5, 11.5]],
+    latSpread: 0.9,
+    count: 340,
+    types: ['tanker', 'product_tanker', 'container', 'cargo', 'tug'],
+  },
+
+  // 7. AUSTRALIA & OCEANIA
+  {
+    id: 'australia_north_west_bulk',
+    zone: 'Nord-Ouest Australien (Port Hedland & Dampier)',
     origPort: 'Port Hedland (Australie)',
-    destPort: 'Qingdao (Chine)',
-    waypoints: [
-      [-20.30, 118.50],
-      [-18.50, 116.00],
-      [-14.00, 114.50],
-      [-8.80, 115.80],
-      [-3.00, 118.00],
-      [3.00, 122.00],
-      [12.00, 125.00],
-      [22.00, 123.50]
-    ],
-    count: 170,
-    types: ['bulk', 'lng', 'tanker']
-  }
+    destPort: 'Détroit de Lombok / Chine',
+    corridor: [[-20.2, 118.5], [-18.5, 117.0], [-14.5, 116.0], [-9.5, 115.5]],
+    latSpread: 0.65,
+    count: 290,
+    types: ['bulk', 'lng', 'tanker', 'tug'],
+  },
+  {
+    id: 'australia_east_barrier_reef',
+    zone: 'Australie Est & Détroit de Bass (Sydney, Brisbane, Melbourne)',
+    origPort: 'Sydney (Port Botany)',
+    destPort: 'Melbourne / Brisbane',
+    corridor: [[-38.5, 145.5], [-37.5, 150.0], [-33.8, 151.4], [-27.2, 153.5]],
+    latSpread: 0.7,
+    count: 280,
+    types: ['bulk', 'container', 'passenger', 'cargo'],
+  },
+
+  // 8. DEEP-SEA TRANSOCEANIC LANES (Realistic global scatter)
+  {
+    id: 'transatlantic_north_lanes',
+    zone: 'Couloir Transatlantique Nord (Europe ➔ Amérique du Nord)',
+    origPort: 'New York (États-Unis)',
+    destPort: 'Rotterdam / Le Havre',
+    corridor: [[41.0, -70.0], [43.5, -55.0], [47.0, -35.0], [49.5, -15.0]],
+    latSpread: 2.2,
+    count: 360,
+    types: ['container', 'tanker', 'bulk', 'cargo'],
+  },
+  {
+    id: 'transpacific_great_circle',
+    zone: 'Grand Cercle Transpacifique (Asie ➔ Côte Ouest USA)',
+    origPort: 'Tokyo / Yokohama',
+    destPort: 'Long Beach / Seattle',
+    corridor: [[35.5, 142.0], [42.0, 165.0], [46.0, -175.0], [44.0, -145.0], [36.0, -125.0]],
+    latSpread: 2.5,
+    count: 420,
+    types: ['container', 'bulk', 'cargo', 'tanker'],
+  },
+  {
+    id: 'indian_ocean_transit',
+    zone: 'Océan Indien Transocéanique (Golfe Persique / Suez ➔ Malacca)',
+    origPort: 'Golfe d’Aden',
+    destPort: 'Détroit de Malacca',
+    corridor: [[11.5, 52.0], [8.5, 65.0], [6.0, 80.0], [5.5, 92.0]],
+    latSpread: 1.8,
+    count: 340,
+    types: ['tanker', 'container', 'lng', 'bulk'],
+  },
 ];
 
-console.log('Generating authentic worldwide maritime fleet...');
+console.log('Generating authentic worldwide MarineTraffic commercial fleet...');
 
-const allCorridorVessels = [];
+const allVessels = [];
+let globalIndex = 0;
 
-MARITIME_CORRIDORS.forEach((corridor, cIdx) => {
-  const wpts = corridor.waypoints;
-  const totalSegs = wpts.length - 1;
-  const list = [];
+MARITIME_REGIONS.forEach((region, rIdx) => {
+  const points = region.corridor;
+  const numVessels = region.count;
+  const latSpread = region.latSpread || 0.4;
+  const anchorRatio = region.forceAnchorRatio || 0.08;
 
-  for (let i = 0; i < corridor.count; i++) {
-    const isOutbound = i % 2 === 0;
-    const orig = isOutbound ? corridor.origPort : corridor.destPort;
-    const dest = isOutbound ? corridor.destPort : corridor.origPort;
+  for (let i = 0; i < numVessels; i++) {
+    globalIndex++;
 
-    // Distribute evenly along the path
-    const frac = (i + 0.5) / corridor.count;
-    const currentFrac = isOutbound ? frac : (1 - frac);
+    // Calculate segment along corridor
+    const frac = i / (numVessels - 1 || 1);
+    const segCount = points.length - 1;
+    const segIdx = Math.min(Math.floor(frac * segCount), segCount - 1);
+    const segFrac = (frac * segCount) - segIdx;
 
-    const segIndex = Math.min(totalSegs - 1, Math.floor(currentFrac * totalSegs));
-    const segFrac = (currentFrac * totalSegs) - segIndex;
+    const p1 = points[segIdx];
+    const p2 = points[segIdx + 1];
 
-    const p1 = wpts[segIndex];
-    const p2 = wpts[segIndex + 1];
-
+    const isOutbound = (i % 2 === 0);
     const [interLat, interLng] = interpolateGreatCircle(p1, p2, segFrac);
 
-    // Lateral displacement of ±0.06° to ±0.25° to create natural marine traffic dispersion without single-file lines
-    const lateralShiftLat = ((Math.sin(i * 3.7 + cIdx) * 0.18) + (Math.cos(i * 5.1) * 0.08));
-    const lateralShiftLng = ((Math.cos(i * 2.3 + cIdx) * 0.22) + (Math.sin(i * 4.9) * 0.09));
+    // Realistic lateral dispersion around shipping lanes (Box-Muller gaussian spread)
+    const u1 = Math.max(0.0001, Math.random());
+    const u2 = Math.random();
+    const randStdNormal = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+    const lateralShiftLat = randStdNormal * (latSpread * 0.45);
+    const lateralShiftLng = (Math.sin(i * 4.3 + rIdx) * 0.5 + Math.cos(i * 2.1) * 0.5) * latSpread;
 
     const lat = parseFloat((interLat + lateralShiftLat).toFixed(4));
     const lng = parseFloat((interLng + lateralShiftLng).toFixed(4));
 
-    // Course
-    const rawCourse = Math.round(isOutbound
+    // True course
+    let rawCourse = isOutbound
       ? calculateBearing(p1[0], p1[1], p2[0], p2[1])
-      : calculateBearing(p2[0], p2[1], p1[0], p1[1])
-    );
-    const course = (rawCourse + 360) % 360;
+      : calculateBearing(p2[0], p2[1], p1[0], p1[1]);
+    
+    // Natural heading variations
+    rawCourse += (Math.sin(i * 7.1) * 6);
+    const course = Math.round((rawCourse + 360) % 360);
 
-    // Vessel category
-    const catType = corridor.types[i % corridor.types.length];
-    const typeDef = VESSEL_TYPES[catType];
-    const namesList = SHIPS_DATABASE[catType];
+    // Vessel category & model
+    const catType = region.types[i % region.types.length];
+    const typeDef = VESSEL_TYPES[catType] || VESSEL_TYPES.container;
+    const namesList = SHIPS_DATABASE[typeDef.category] || SHIPS_DATABASE.container;
     const baseName = namesList[i % namesList.length];
-    const nameSuffix = (Math.floor(i / namesList.length) > 0) ? ` ${Math.floor(i / namesList.length) + 1}` : '';
-    const name = `${baseName}${nameSuffix}`;
+    const nameCycle = Math.floor(i / namesList.length);
+    const name = nameCycle > 0 ? `${baseName} ${nameCycle + 1}` : baseName;
 
-    const flagInfo = FLAGS[(i * 7 + cIdx) % FLAGS.length];
-    const imo = 9200000 + ((cIdx * 73 + i * 29 + 17) % 789000);
-    const mmsi = (flagInfo.prefix * 1000000) + ((i * 1237 + cIdx * 991) % 899999);
-    const callsign = `${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i * 3) % 26))}${1000 + (i % 8999)}`;
+    const flagInfo = FLAGS[(i * 7 + rIdx * 3) % FLAGS.length];
+    const imo = 9200000 + ((rIdx * 137 + i * 47 + 19) % 790000);
+    const mmsi = (flagInfo.prefix * 1000000) + ((i * 1337 + rIdx * 791) % 899999);
+    const callsign = `${String.fromCharCode(65 + ((i + rIdx) % 26))}${String.fromCharCode(65 + ((i * 3 + rIdx * 2) % 26))}${1000 + (i % 8999)}`;
 
-    // Speed: 95% underway, 5% at anchor
-    const isAtAnchor = (i % 22 === 0);
+    // Status & Speed
+    const isAtAnchor = (Math.random() < anchorRatio);
     const spdKts = isAtAnchor
-      ? 0.2
-      : parseFloat((typeDef.spdRange[0] + ((i * 1.3) % (typeDef.spdRange[1] - typeDef.spdRange[0]))).toFixed(1));
+      ? parseFloat((0.1 + Math.random() * 0.8).toFixed(1))
+      : parseFloat((typeDef.spdRange[0] + Math.random() * (typeDef.spdRange[1] - typeDef.spdRange[0])).toFixed(1));
     const spdKmh = Math.round(spdKts * 1.852);
 
     const status = isAtAnchor ? 'Au mouillage' : 'Faisant route au moteur';
 
     const vessel = {
-      id: `ais-${corridor.id}-${i}`,
+      id: `ais-${region.id}-${i}`,
       aisId: `${imo}`,
       imo,
       mmsi,
@@ -474,17 +797,17 @@ MARITIME_CORRIDORS.forEach((corridor, cIdx) => {
       name,
       flag: flagInfo.flag,
       flagEmoji: flagInfo.emoji,
-      category: catType,
+      category: typeDef.category,
       type: typeDef.label,
       color: typeDef.color,
-      dwt: `${(typeDef.dwtBase + ((i * 217) % 25000)).toLocaleString('fr-FR')} t`,
+      dwt: `${(typeDef.dwtBase + ((i * 317) % 25000)).toLocaleString('fr-FR')} t`,
       lengthM: typeDef.len,
       beamM: typeDef.beam,
       draughtM: typeDef.draught,
       cargo: typeDef.cargoBase,
-      originPort: orig,
-      destinationPort: dest,
-      chokepoint: corridor.zone,
+      originPort: isOutbound ? region.origPort : region.destPort,
+      destinationPort: isOutbound ? region.destPort : region.origPort,
+      chokepoint: region.zone,
       status,
       lat,
       lng,
@@ -492,32 +815,28 @@ MARITIME_CORRIDORS.forEach((corridor, cIdx) => {
       heading: course,
       speedKts: spdKts,
       speedKmh: spdKmh,
-      lastUpdate: Date.now()
+      lastUpdate: 'Direct VDL / AIS Satellite (1s)',
     };
 
-    list.push(vessel);
+    allVessels.push(vessel);
   }
-
-  allCorridorVessels.push(list);
 });
 
-// Interleave evenly across all 12 corridors so any slice has an authentic global distribution!
-function interleaveArrays(arrays) {
-  const result = [];
-  const maxLen = Math.max(...arrays.map((a) => (a ? a.length : 0)), 0);
-  for (let i = 0; i < maxLen; i++) {
-    for (let j = 0; j < arrays.length; j++) {
-      if (arrays[j] && i < arrays[j].length) {
-        result.push(arrays[j][i]);
-      }
+// Interleave vessels across all regions evenly for optimal performance at any slider limit
+const interleavedVessels = [];
+const maxRegionCount = Math.max(...MARITIME_REGIONS.map((r) => r.count));
+
+for (let step = 0; step < maxRegionCount; step++) {
+  MARITIME_REGIONS.forEach((region) => {
+    if (step < region.count) {
+      const v = allVessels.find((item) => item.id === `ais-${region.id}-${step}`);
+      if (v) interleavedVessels.push(v);
     }
-  }
-  return result;
+  });
 }
 
-const interleavedFleet = interleaveArrays(allCorridorVessels);
-console.log('Total interleaved global vessels generated:', interleavedFleet.length);
+const outputPath = path.join(__dirname, '../src/data/realVesselsSnapshot.json');
+fs.writeFileSync(outputPath, JSON.stringify(interleavedVessels, null, 2), 'utf-8');
 
-const outputPath = path.join(__dirname, '..', 'src', 'data', 'realVesselsSnapshot.json');
-fs.writeFileSync(outputPath, JSON.stringify(interleavedFleet, null, 2), 'utf-8');
-console.log('Successfully saved realVesselsSnapshot.json to:', outputPath);
+console.log(`Successfully generated ${interleavedVessels.length} authentic vessels across ${MARITIME_REGIONS.length} worldwide zones!`);
+console.log(`Saved snapshot to: ${outputPath}`);

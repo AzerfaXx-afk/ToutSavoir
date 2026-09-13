@@ -41,7 +41,7 @@ export function OrbitView3D({
   onAutoRotateChange,
   activeLayers = new Set(['aviation', 'satellites', 'cctv']),
   flightLimit = 25,
-  vesselLimit = 25,
+  vesselLimit = 500,
   onSelectCCTV,
   onSelectSatellite,
   onSelectCountry,
@@ -847,7 +847,7 @@ export function OrbitView3D({
 
     // High performance instanced mesh with double-sided rendering and dynamic vertex colors
     const shipMat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
-    const vesselsInstancedMesh = new THREE.InstancedMesh(shipGeom, shipMat, 5000);
+    const vesselsInstancedMesh = new THREE.InstancedMesh(shipGeom, shipMat, 16000);
     vesselsInstancedMesh.count = 0;
     vesselsInstancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     maritimeGroup.add(vesselsInstancedMesh);
@@ -860,7 +860,7 @@ export function OrbitView3D({
       if (!vesselsInstancedMesh || !vesselsList || vesselsList.length === 0) return;
       try {
         currentLiveVessels = vesselsList;
-        const count = Math.min(vesselLimitRef.current || 25, vesselsList.length, 5000);
+        const count = Math.min(vesselLimitRef.current || 500, vesselsList.length, 16000);
         let validCount = 0;
 
         for (let i = 0; i < count; i++) {
@@ -1747,7 +1747,7 @@ export function OrbitView3D({
           if (activeLayersRef.current.has('maritime') && currentLiveVessels.length > 0) {
             let closestVes = null;
             let minVesDistSq = 0.008;
-            const maxCheck = Math.min(vesselLimitRef.current || 25, currentLiveVessels.length);
+            const maxCheck = Math.min(vesselLimitRef.current || 500, currentLiveVessels.length);
             for (let k = 0; k < maxCheck; k++) {
               const ves = currentLiveVessels[k];
               const [px, py, pz] = coordsToVector(ves.lng, ves.lat, R_EARTH + 0.0042);

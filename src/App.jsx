@@ -33,8 +33,8 @@ export default function App() {
     flightRadarService.setFlightLimit(limit);
   }, []);
 
-  // Maritime traffic density limit (default: 25 for maximum performance & zero lag, adjustable up to 2,500+ vessels)
-  const [vesselLimit, setVesselLimit] = useState(25);
+  // Maritime traffic density limit (default: 500, adjustable up to 15,000+ vessels)
+  const [vesselLimit, setVesselLimit] = useState(500);
 
   const handleVesselLimitChange = useCallback((limit) => {
     setVesselLimit(limit);

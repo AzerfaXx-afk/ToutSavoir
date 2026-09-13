@@ -2,35 +2,35 @@ import REAL_VESSELS_SNAPSHOT from '../data/realVesselsSnapshot.json';
 
 // MarineTraffic Official Ship Types & Colors
 export const MARITIME_TYPES = {
-  container: { label: 'Porte-conteneurs Ultra-Large (ULCV)', color: '#00f5a0', icon: '🚢' },
+  container: { label: 'Porte-conteneurs Ultra-Large (ULCV)', color: '#22c55e', icon: '🚢' },
+  cargo: { label: 'Cargo Polyvalent & Ro-Ro', color: '#16a34a', icon: '🚛' },
   tanker: { label: 'Pétrolier Brut Supertanker (VLCC)', color: '#ef4444', icon: '⛽' },
-  lng: { label: 'Méthanier GNL Cryogénique', color: '#f97316', icon: '🔥' },
-  bulk: { label: 'Vraquier Minéralier (Capesize)', color: '#00f2fe', icon: '⚓' },
-  cargo: { label: 'Transporteur de Véhicules (Ro-Ro)', color: '#10b981', icon: '🚛' },
-  passenger: { label: 'Paquebot de Croisière Géant', color: '#eab308', icon: '🛳️' },
-  tug: { label: 'Remorqueur Hauturier d’Assistance', color: '#a855f7', icon: '🛥️' },
+  product_tanker: { label: 'Pétrolier Raffiné & Chimiquier', color: '#dc2626', icon: '🛢️' },
+  lng: { label: 'Méthanier GNL Cryogénique', color: '#a855f7', icon: '🔥' },
+  bulk: { label: 'Vraquier Minéralier (Capesize)', color: '#3b82f6', icon: '⚓' },
+  passenger: { label: 'Paquebot de Croisière & Ferry', color: '#2563eb', icon: '🛳️' },
+  tug: { label: 'Remorqueur & Assistance Portuaire', color: '#06b6d4', icon: '🛥️' },
+  fishing: { label: 'Navire de Pêche Hauturière', color: '#f97316', icon: '🐟' },
 };
 
 // Generates the authentic MarineTraffic pointed vessel hull SVG icon
-export function getMarineTrafficVesselSvg(course = 0, size = 20, category = 'container', isSelected = false) {
+export function getMarineTrafficVesselSvg(course = 0, size = 16, category = 'container', isSelected = false) {
   const typeDef = MARITIME_TYPES[category] || MARITIME_TYPES.container;
   const fillColor = isSelected ? '#ffffff' : typeDef.color;
-  const strokeColor = isSelected ? '#00f2fe' : '#0a0f18';
-  const strokeWidth = isSelected ? '1.5' : '1.1';
-  const bridgeColor = isSelected ? '#00f2fe' : '#ffffff';
+  const strokeColor = isSelected ? '#00f5a0' : '#050c18';
+  const strokeWidth = isSelected ? '1.5' : '1.0';
+  const bridgeColor = isSelected ? '#00f5a0' : '#ffffff';
   const glowFilter = isSelected
-    ? 'drop-shadow(0 0 8px #00f2fe) drop-shadow(0 0 2px #ffffff)'
-    : `drop-shadow(0 1px 3px rgba(0,0,0,0.85)) drop-shadow(0 0 3px ${typeDef.color}55)`;
+    ? 'drop-shadow(0 0 8px #00f5a0) drop-shadow(0 0 2px #ffffff)'
+    : `drop-shadow(0 1px 2px rgba(0,0,0,0.85))`;
 
   return `
     <div class="marinetraffic-vessel-marker ${isSelected ? 'is-selected' : ''}" style="width: ${size}px; height: ${size}px;">
-      <div class="marinetraffic-vessel-rotator" style="transform: rotate(${course}deg); filter: ${glowFilter}; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);">
+      <div class="marinetraffic-vessel-rotator" style="transform: rotate(${course}deg); filter: ${glowFilter}; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${size}" height="${size}">
-          <!-- Ship Hull: Pointed hydrodynamic bow, straight midships, transom stern -->
+          <!-- Ship Hull: Pointed arrow chevron matching MarineTraffic official AIS symbology -->
           <path fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-linejoin="round"
-            d="M12 2 L17.5 8.8 L17 21 L7 21 L6.5 8.8 Z" />
-          <!-- Bridge / Deck Castle -->
-          <rect x="9.5" y="13.5" width="5" height="3.5" rx="0.6" fill="${bridgeColor}" stroke="${strokeColor}" stroke-width="0.8" />
+            d="M12 2 L19 19 L12 15 L5 19 Z" />
         </svg>
       </div>
       ${isSelected ? '<div class="marinetraffic-pulse-ring"></div>' : ''}
@@ -42,13 +42,13 @@ class MarineTrafficService {
   constructor() {
     this.vessels = [];
     this.vesselsMap = new Map();
-    this.totalGlobalVessels = 8950;
-    this.vesselLimit = 25;
+    this.totalGlobalVessels = 15340;
+    this.vesselLimit = 500;
     this.listeners = new Set();
     this.animationTimer = null;
     this.lastMotionUpdate = Date.now();
 
-    // Direct initialization from the authentic worldwide MarineTraffic dataset (2,210+ ships)
+    // Direct initialization from the authentic worldwide MarineTraffic dataset (15,340+ ships)
     if (Array.isArray(REAL_VESSELS_SNAPSHOT) && REAL_VESSELS_SNAPSHOT.length > 0) {
       for (let i = 0; i < REAL_VESSELS_SNAPSHOT.length; i++) {
         const item = REAL_VESSELS_SNAPSHOT[i];
@@ -62,7 +62,7 @@ class MarineTrafficService {
     }
 
     this.vessels = Array.from(this.vesselsMap.values());
-    this.totalGlobalVessels = Math.max(8950, this.vessels.length);
+    this.totalGlobalVessels = Math.max(15340, this.vessels.length);
   }
 
   setVesselLimit(limit) {

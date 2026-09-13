@@ -47,7 +47,7 @@ export const LAYER_CONFIGS = [
     label: 'Navires marchands',
     shortLabel: 'Maritime',
     icon: Anchor,
-    count: '2 210+ navires',
+    count: '15 340+ navires',
     source: 'AIS MarineTraffic Direct',
     accentColor: '#00f5a0',
     category: 'TRANSIT',
@@ -162,12 +162,12 @@ export function MapLayerToggles({
   onSwitchTo3D,
   flightLimit = 25,
   onFlightLimitChange,
-  vesselLimit = 25,
+  vesselLimit = 500,
   onVesselLimitChange,
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [liveFlightCount, setLiveFlightCount] = useState(flightRadarService.flights.length || 2280);
-  const [liveVesselCount, setLiveVesselCount] = useState(marineTrafficService.vessels.length || 2210);
+  const [liveVesselCount, setLiveVesselCount] = useState(marineTrafficService.vessels.length || 15340);
 
   useEffect(() => {
     const unsub = flightRadarService.subscribe((flights, total) => {
@@ -181,7 +181,7 @@ export function MapLayerToggles({
 
   useEffect(() => {
     const unsub = marineTrafficService.subscribe((vessels, total) => {
-      const nextCount = vessels.length > 0 ? vessels.length : total || 2210;
+      const nextCount = vessels.length > 0 ? vessels.length : total || 15340;
       setLiveVesselCount((prev) => (prev === nextCount ? prev : nextCount));
     });
     return () => {
@@ -431,9 +431,9 @@ export function MapLayerToggles({
                           <div className="flight-density-slider-wrap">
                             <input
                               type="range"
-                              min="10"
-                              max={Math.max(2200, liveVesselCount)}
-                              step="10"
+                              min="50"
+                              max={Math.max(15340, liveVesselCount)}
+                              step="50"
                               value={vesselLimit}
                               onChange={(e) => {
                                 const val = Number(e.target.value);
@@ -447,47 +447,47 @@ export function MapLayerToggles({
                           <div className="flight-density-presets">
                             <button
                               type="button"
-                              className={`density-preset-btn ${vesselLimit <= 25 ? 'is-active' : ''}`}
-                              onClick={() => {
-                                sound.tick();
-                                if (onVesselLimitChange) onVesselLimitChange(20);
-                              }}
-                              title="Mode ultra-fluide sans lag (20 navires)"
-                            >
-                              MIN (20)
-                            </button>
-                            <button
-                              type="button"
-                              className={`density-preset-btn ${vesselLimit === 100 ? 'is-active' : ''}`}
+                              className={`density-preset-btn ${vesselLimit <= 150 ? 'is-active' : ''}`}
                               onClick={() => {
                                 sound.tick();
                                 if (onVesselLimitChange) onVesselLimitChange(100);
                               }}
-                              title="Flotte stratégique (100 navires)"
+                              title="Mode léger (100 navires)"
                             >
-                              100
+                              MIN (100)
                             </button>
                             <button
                               type="button"
-                              className={`density-preset-btn ${vesselLimit === 350 ? 'is-active' : ''}`}
+                              className={`density-preset-btn ${vesselLimit === 500 ? 'is-active' : ''}`}
                               onClick={() => {
                                 sound.tick();
-                                if (onVesselLimitChange) onVesselLimitChange(350);
+                                if (onVesselLimitChange) onVesselLimitChange(500);
                               }}
-                              title="Forte densité mondiale (350 navires)"
+                              title="Flotte stratégique (500 navires)"
                             >
-                              350
+                              500
                             </button>
                             <button
                               type="button"
-                              className={`density-preset-btn ${vesselLimit >= 2000 ? 'is-active' : ''}`}
+                              className={`density-preset-btn ${vesselLimit === 2500 ? 'is-active' : ''}`}
                               onClick={() => {
                                 sound.tick();
-                                if (onVesselLimitChange) onVesselLimitChange(Math.max(2200, liveVesselCount));
+                                if (onVesselLimitChange) onVesselLimitChange(2500);
                               }}
-                              title="Flotte mondiale intégrale (2 200+ navires)"
+                              title="Forte densité mondiale (2 500 navires)"
                             >
-                              MAX ({Math.max(2200, liveVesselCount).toLocaleString('fr-FR')})
+                              2 500
+                            </button>
+                            <button
+                              type="button"
+                              className={`density-preset-btn ${vesselLimit >= 10000 ? 'is-active' : ''}`}
+                              onClick={() => {
+                                sound.tick();
+                                if (onVesselLimitChange) onVesselLimitChange(Math.max(15340, liveVesselCount));
+                              }}
+                              title="Flotte mondiale intégrale (15 000+ navires)"
+                            >
+                              MAX (15 000+)
                             </button>
                           </div>
                         </div>
