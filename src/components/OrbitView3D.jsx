@@ -40,6 +40,7 @@ export function OrbitView3D({
   autoRotate = true,
   onAutoRotateChange,
   activeLayers = new Set(['aviation', 'satellites', 'cctv']),
+  flightLimit = 25,
   onSelectCCTV,
   onSelectSatellite,
   onSelectCountry,
@@ -71,9 +72,11 @@ export function OrbitView3D({
   const selectedMeshRef = useRef(null);
   const selectedFillMatRef = useRef(null);
   const updateSelectedFlightPathRef = useRef(null);
+  const update3DPlanesRef = useRef(null);
 
   const autoRotateRef = useRef(autoRotate);
   const activeLayersRef = useRef(activeLayers);
+  const flightLimitRef = useRef(flightLimit);
 
   useEffect(() => {
     autoRotateRef.current = autoRotate;
@@ -82,6 +85,13 @@ export function OrbitView3D({
   useEffect(() => {
     activeLayersRef.current = activeLayers;
   }, [activeLayers]);
+
+  useEffect(() => {
+    flightLimitRef.current = flightLimit;
+    if (update3DPlanesRef.current && flightRadarService.flights.length > 0) {
+      update3DPlanesRef.current(flightRadarService.flights);
+    }
+  }, [flightLimit]);
 
   // Sync selected flight path with inspectedTarget prop
   useEffect(() => {
@@ -703,7 +713,7 @@ export function OrbitView3D({
       if (!planesInstancedMesh || !flightsList || flightsList.length === 0) return;
       try {
         currentLiveFlights = flightsList;
-        const count = Math.min(6500, flightsList.length);
+        const count = Math.min(flightLimitRef.current || 25, flightsList.length, 6500);
         let validCount = 0;
 
         for (let i = 0; i < count; i++) {
@@ -748,6 +758,8 @@ export function OrbitView3D({
         console.warn('update3DPlanes error:', err);
       }
     };
+
+    update3DPlanesRef.current = update3DPlanes;
 
     // Immediate initial population so airplanes appear on the very first frame
     if (flightRadarService.flights.length > 0) {
@@ -2092,6 +2104,7 @@ export function OrbitView3D({
     // Cleanup on unmount
     return () => {
       cancelAnimationFrame(animationFrameId);
+      update3DPlanesRef.current = null;
       container.removeEventListener('contextmenu', onContextMenu);
       container.removeEventListener('wheel', onWheel);
       window.removeEventListener('pointerdown', onPointerDown);

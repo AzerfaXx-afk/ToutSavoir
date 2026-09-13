@@ -19,6 +19,7 @@ import { TacticalInspectionCard } from './TacticalInspectionCard';
 export function TacticalMap2D({
   activeLayer = 'satellite',
   activeLayers = new Set(['aviation', 'conflicts']),
+  flightLimit = 25,
   onSelectCCTV,
   onSelectCountry,
   targetLocation,
@@ -50,6 +51,21 @@ export function TacticalMap2D({
     setInternalInspectedTarget(target);
     if (onInspectTarget) onInspectTarget(target);
   }, [onInspectTarget]);
+
+  const flightLimitRef = useRef(flightLimit);
+  const updateFlightradarPlanesRef = useRef(null);
+  const inspectedTargetRef = useRef(inspectedTarget);
+
+  useEffect(() => {
+    inspectedTargetRef.current = inspectedTarget;
+  }, [inspectedTarget]);
+
+  useEffect(() => {
+    flightLimitRef.current = flightLimit;
+    if (updateFlightradarPlanesRef.current) {
+      updateFlightradarPlanesRef.current();
+    }
+  }, [flightLimit]);
 
   // Direct DOM refs for cursor coordinates (0 React re-renders on mousemove)
   const coordLatRef = useRef(null);
@@ -231,24 +247,26 @@ export function TacticalMap2D({
     // High-performance viewport-culled flight markers management
     const flightMarkersMap = new Map();
     let currentRawFlights = [];
-    const MAX_VISIBLE_2D_PLANES = 450; // Cap DOM elements for buttery smooth 60 FPS Leaflet panning
 
     const updateFlightradarPlanes = (flightsList) => {
       if (flightsList) currentRawFlights = flightsList;
       if (!currentRawFlights || currentRawFlights.length === 0 || !map) return;
 
+      const limit = flightLimitRef.current || 25;
+      const candidateFlights = currentRawFlights.slice(0, limit);
       const bounds = map.getBounds().pad(0.25); // 25% margin outside viewport
       const activeIds = new Set();
       let displayedCount = 0;
+      const maxDomCap = Math.min(limit, 1200);
 
-      for (let i = 0; i < currentRawFlights.length; i++) {
-        const fl = currentRawFlights[i];
-        const isSelected = inspectedTarget?.id === fl.id;
+      for (let i = 0; i < candidateFlights.length; i++) {
+        const fl = candidateFlights[i];
+        const isSelected = inspectedTargetRef.current?.id === fl.id;
         const inBounds = bounds.contains([fl.lat, fl.lng]);
 
-        // Always show selected flight; otherwise cap at MAX_VISIBLE_2D_PLANES
+        // Always show selected flight; otherwise cap at maxDomCap
         if (!inBounds && !isSelected) continue;
-        if (!isSelected && displayedCount >= MAX_VISIBLE_2D_PLANES) continue;
+        if (!isSelected && displayedCount >= maxDomCap) continue;
 
         displayedCount++;
         activeIds.add(fl.id);
@@ -299,6 +317,8 @@ export function TacticalMap2D({
         }
       }
     };
+
+    updateFlightradarPlanesRef.current = updateFlightradarPlanes;
 
     // Update on map drag / zoom end
     map.on('moveend', () => {
@@ -695,6 +715,7 @@ export function TacticalMap2D({
       .catch((err) => console.error('Error loading Subunits GeoJSON:', err));
 
     return () => {
+      updateFlightradarPlanesRef.current = null;
       unsubscribeStream();
       if (unsubscribeFR24) unsubscribeFR24();
       clearInterval(transitInterval);

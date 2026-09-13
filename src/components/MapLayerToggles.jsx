@@ -140,6 +140,8 @@ export function MapLayerToggles({
   onToggleAll,
   is3D = false,
   onSwitchTo3D,
+  flightLimit = 25,
+  onFlightLimitChange,
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [liveFlightCount, setLiveFlightCount] = useState(flightRadarService.flights.length || 2280);
@@ -248,11 +250,11 @@ export function MapLayerToggles({
                     const isActive = activeLayers.has(layer.id);
 
                     return (
-                      <div
-                        key={layer.id}
-                        className={`layer-row-glass ${isActive ? 'is-active' : 'is-inactive'}`}
-                        onClick={() => handleLayerClick(layer)}
-                      >
+                      <React.Fragment key={layer.id}>
+                        <div
+                          className={`layer-row-glass ${isActive ? 'is-active' : 'is-inactive'}`}
+                          onClick={() => handleLayerClick(layer)}
+                        >
                         <div className="layer-row-left">
                           <div
                             className="layer-glass-icon"
@@ -274,7 +276,7 @@ export function MapLayerToggles({
                               <span className="layer-row-count">
                                 <strong>
                                   {layer.id === 'aviation'
-                                    ? `${liveFlightCount.toLocaleString('fr-FR')} vols`
+                                    ? `${flightLimit.toLocaleString('fr-FR')} / ${liveFlightCount.toLocaleString('fr-FR')} vols`
                                     : layer.count}
                                 </strong>
                               </span>
@@ -299,6 +301,85 @@ export function MapLayerToggles({
                           />
                         </div>
                       </div>
+
+                      {/* Aviation Density Controller Slider */}
+                      {layer.id === 'aviation' && isActive && (
+                        <div
+                          className="layer-flight-density-panel"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flight-density-header">
+                            <span className="flight-density-title">DENSITÉ DU FLUX AÉRIEN</span>
+                            <span className="flight-density-badge">
+                              <strong>{flightLimit.toLocaleString('fr-FR')}</strong> / {liveFlightCount.toLocaleString('fr-FR')}
+                            </span>
+                          </div>
+
+                          <div className="flight-density-slider-wrap">
+                            <input
+                              type="range"
+                              min="10"
+                              max={Math.max(5000, liveFlightCount)}
+                              step="10"
+                              value={flightLimit}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                if (onFlightLimitChange) onFlightLimitChange(val);
+                              }}
+                              className="flight-density-slider"
+                              aria-label="Régler le nombre de vols affichés"
+                            />
+                          </div>
+
+                          <div className="flight-density-presets">
+                            <button
+                              type="button"
+                              className={`density-preset-btn ${flightLimit <= 30 ? 'is-active' : ''}`}
+                              onClick={() => {
+                                sound.tick();
+                                if (onFlightLimitChange) onFlightLimitChange(25);
+                              }}
+                              title="Mode ultra-fluide sans lag (25 vols)"
+                            >
+                              MIN (25)
+                            </button>
+                            <button
+                              type="button"
+                              className={`density-preset-btn ${flightLimit === 250 ? 'is-active' : ''}`}
+                              onClick={() => {
+                                sound.tick();
+                                if (onFlightLimitChange) onFlightLimitChange(250);
+                              }}
+                              title="Trafic régional équilibré (250 vols)"
+                            >
+                              250
+                            </button>
+                            <button
+                              type="button"
+                              className={`density-preset-btn ${flightLimit === 1000 ? 'is-active' : ''}`}
+                              onClick={() => {
+                                sound.tick();
+                                if (onFlightLimitChange) onFlightLimitChange(1000);
+                              }}
+                              title="Flux dense continental (1 000 vols)"
+                            >
+                              1 000
+                            </button>
+                            <button
+                              type="button"
+                              className={`density-preset-btn ${flightLimit >= 5000 ? 'is-active' : ''}`}
+                              onClick={() => {
+                                sound.tick();
+                                if (onFlightLimitChange) onFlightLimitChange(Math.max(5000, liveFlightCount));
+                              }}
+                              title="Trafic mondial total (5 000+ vols)"
+                            >
+                              MAX ({Math.max(5000, liveFlightCount).toLocaleString('fr-FR')})
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </React.Fragment>
                     );
                   })}
                 </div>

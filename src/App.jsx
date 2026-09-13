@@ -8,6 +8,7 @@ import { GlobalSpotlightModal } from './components/GlobalSpotlightModal';
 import { CCTVLiveMonitor } from './components/CCTVLiveMonitor';
 import { TacticalShortcutsModal } from './components/TacticalShortcutsModal';
 import { MapLayerToggles } from './components/MapLayerToggles';
+import { flightRadarService } from './services/flightRadarService';
 import { Play, Pause, VolumeX, Maximize2, Minimize2, HelpCircle } from 'lucide-react';
 import { sound } from './utils/soundFX';
 import './App.css';
@@ -22,6 +23,14 @@ export default function App() {
   const [activeLayers, setActiveLayers] = useState(
     () => new Set(['aviation', 'conflicts'])
   );
+
+  // Flight traffic density limit (default: 25 for maximum performance & zero lag, adjustable up to 5,000+ flights)
+  const [flightLimit, setFlightLimit] = useState(25);
+
+  const handleFlightLimitChange = useCallback((limit) => {
+    setFlightLimit(limit);
+    flightRadarService.setFlightLimit(limit);
+  }, []);
 
   const handleToggleLayer = useCallback((layerId) => {
     sound.click(0.35);
@@ -325,6 +334,8 @@ export default function App() {
         onToggleAll={handleToggleAllLayers}
         is3D={is3D}
         onSwitchTo3D={() => setIs3D(true)}
+        flightLimit={flightLimit}
+        onFlightLimitChange={handleFlightLimitChange}
       />
 
       {/* Main Map Viewport (Takes 100% Fullscreen) */}
@@ -333,6 +344,7 @@ export default function App() {
           <TacticalMap2D
             activeLayer={activeLayer}
             activeLayers={activeLayers}
+            flightLimit={flightLimit}
             onSelectCCTV={handleSelectCCTV}
             onSelectSatellite={handleSelectSatellite}
             onSelectCountry={handleSelectCountry}
@@ -346,6 +358,7 @@ export default function App() {
             autoRotate={autoRotate}
             onAutoRotateChange={setAutoRotate}
             activeLayers={activeLayers}
+            flightLimit={flightLimit}
             onSelectCCTV={handleSelectCCTV}
             onSelectSatellite={handleSelectSatellite}
             onSelectCountry={handleSelectCountry}
