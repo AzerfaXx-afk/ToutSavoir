@@ -44,8 +44,8 @@ export function TacticalInspectionCard({
 
   if (!target) return null;
 
-  const isVessel = target.type === 'vessel' || (!target.type && (target.mmsi !== undefined || target.imo !== undefined));
-  const isFlight = target.type === 'flight' || (!target.type && !isVessel && (target.aircraft !== undefined || target.flightPhase !== undefined || target.altitudeFt !== undefined));
+  const isVessel = target.isVessel || target.type === 'vessel' || target.mmsi !== undefined || target.imo !== undefined;
+  const isFlight = target.isFlight || target.type === 'flight' || (!isVessel && (target.flightNum !== undefined || target.aircraft !== undefined || target.flightPhase !== undefined || target.altitudeFt !== undefined));
   const isCCTV = target.type === 'cctv' || (!target.type && target.embedUrl !== undefined);
   const isSatellite = target.type === 'satellite' || (!target.type && target.noradId !== undefined);
   const isNuclear = target.type === 'nuclear' || (!target.type && target.capacityMwe !== undefined);

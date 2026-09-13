@@ -39,9 +39,9 @@ function pointInPolygon(point, poly) {
 export function OrbitView3D({
   autoRotate = true,
   onAutoRotateChange,
-  activeLayers = new Set(['aviation', 'satellites', 'cctv']),
-  flightLimit = 25,
-  vesselLimit = 500,
+  activeLayers = new Set(['aviation', 'maritime', 'conflicts']),
+  flightLimit = 2500,
+  vesselLimit = 5000,
   onSelectCCTV,
   onSelectSatellite,
   onSelectCountry,
@@ -77,6 +77,7 @@ export function OrbitView3D({
   const hoverMeshRef = useRef(null);
   const hoveredFeatureRef = useRef(null);
   const updateSelectedFlightPathRef = useRef(null);
+  const updateSelectedVesselMarkerRef = useRef(null);
   const update3DPlanesRef = useRef(null);
   const update3DVesselsRef = useRef(null);
 
@@ -111,6 +112,13 @@ export function OrbitView3D({
   useEffect(() => {
     if (updateSelectedFlightPathRef.current) {
       updateSelectedFlightPathRef.current(inspectedTarget?.type === 'flight' ? inspectedTarget : null);
+    }
+  }, [inspectedTarget]);
+
+  // Sync selected vessel marker with inspectedTarget prop
+  useEffect(() => {
+    if (updateSelectedVesselMarkerRef.current) {
+      updateSelectedVesselMarkerRef.current(inspectedTarget?.type === 'vessel' ? inspectedTarget : null);
     }
   }, [inspectedTarget]);
 
@@ -482,14 +490,19 @@ export function OrbitView3D({
     cloudsMap.anisotropy = maxAniso;
     cloudsMap.generateMipmaps = true;
 
-    // 8. Full Daylight Photorealistic Multi-Map Shader (Awwwards 3D Earth)
+    // 8. Photorealistic Multi-Map Earth Shader (NASA Blue Marble + City Night Lights + Specular Water)
     const earthGeo = new THREE.SphereGeometry(R_EARTH, 96, 96);
+    const sunDirection = new THREE.Vector3(1.1, 0.6, 1.2).normalize();
     const earthShader = {
       uniforms: {
         uDayMap: { value: dayMap },
+        uNightMap: { value: nightMap },
         uBumpMap: { value: bumpMap },
         uSpecMap: { value: specMap },
+        uCloudsMap: { value: cloudsMap },
+        uSunDirection: { value: sunDirection },
         uCamDist: { value: 4.8 },
+        uTime: { value: 0 },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -506,50 +519,72 @@ export function OrbitView3D({
       `,
       fragmentShader: `
         uniform sampler2D uDayMap;
+        uniform sampler2D uNightMap;
         uniform sampler2D uBumpMap;
         uniform sampler2D uSpecMap;
+        uniform sampler2D uCloudsMap;
+        uniform vec3 uSunDirection;
         uniform float uCamDist;
+        uniform float uTime;
 
         varying vec2 vUv;
         varying vec3 vWorldNormal;
         varying vec3 vWorldPosition;
 
         void main() {
-          vec4 dayColor = texture2D(uDayMap, vUv);
-          float specVal = texture2D(uSpecMap, vUv).r; // 1.0 on water, 0.0 on land
-
           vec3 normal = normalize(vWorldNormal);
           vec3 viewDir = normalize(cameraPosition - vWorldPosition);
 
           // Topographic bump perturbation along UV tangent space
-          // Gives realistic 3D elevation to mountain chains, trenches and coastlines
-          float bumpScale = 0.028;
-          vec2 dUvX = vec2(0.001, 0.0);
-          vec2 dUvY = vec2(0.0, 0.001);
-          float bX = texture2D(uBumpMap, vUv + dUvX).r - texture2D(uBumpMap, vUv - dUvX).r;
-          float bY = texture2D(uBumpMap, vUv + dUvY).r - texture2D(uBumpMap, vUv - dUvY).r;
+          float bumpScale = 0.022;
+          vec2 dUvX = vec2(0.0008, 0.0);
+          vec2 dUvY = vec2(0.0, 0.0008);
+          float bCenter = texture2D(uBumpMap, vUv).r;
+          float bX = texture2D(uBumpMap, vUv + dUvX).r - bCenter;
+          float bY = texture2D(uBumpMap, vUv + dUvY).r - bCenter;
           vec3 perturbedNormal = normalize(normal - vec3(bX, bY, 0.0) * bumpScale);
 
-          vec3 lightDir = normalize(vec3(0.8, 1.2, 1.5));
-          float NdotL = dot(perturbedNormal, lightDir);
-          float diffuse = 0.84 + 0.16 * max(NdotL, 0.0);
+          // Texture maps
+          vec4 dayColor = texture2D(uDayMap, vUv);
+          vec4 nightColor = texture2D(uNightMap, vUv);
+          float specVal = texture2D(uSpecMap, vUv).r; // 1.0 on oceans, 0.0 on continents
 
-          // Specular sunlight reflection on oceans
-          vec3 halfVector = normalize(lightDir + viewDir);
+          // Cloud shadows on ground
+          vec2 cloudUv = vec2(vUv.x + uTime * 0.00004, vUv.y);
+          float cloudCover = texture2D(uCloudsMap, cloudUv).r;
+
+          // Natural sunlight calculation
+          vec3 sunDir = normalize(uSunDirection);
+          float NdotL = dot(perturbedNormal, sunDir);
+
+          // Smooth day-to-night terminator curve with twilight
+          float dayFactor = smoothstep(-0.20, 0.25, NdotL);
+          float diffuseLight = max(NdotL, 0.0);
+
+          // Ocean specular sunlight glint (reflection)
+          vec3 halfVector = normalize(sunDir + viewDir);
           float NdotH = max(dot(perturbedNormal, halfVector), 0.0);
-          float specular = pow(NdotH, 28.0) * specVal * 0.45;
+          float specular = pow(NdotH, 64.0) * specVal * dayFactor * 0.42;
+          vec3 oceanSpecular = vec3(specular * 0.88, specular * 0.94, specular);
 
-          // High-frequency procedural micro-detail when zooming close to Earth
-          float zoomFactor = clamp((3.6 - uCamDist) / 1.4, 0.0, 1.0);
-          float microGrain = fract(sin(dot(vUv * 900.0, vec2(12.9898, 78.233))) * 43758.5453);
-          vec3 microDetail = (microGrain - 0.5) * 0.035 * zoomFactor * (1.0 - specVal);
+          // Ambient space light: deep indigo/navy tint
+          vec3 ambient = vec3(0.06, 0.08, 0.12);
 
-          vec3 surface = (dayColor.rgb + microDetail) * diffuse + vec3(specular * 0.85, specular * 0.95, specular);
+          // Daytime illuminated surface (clouds cast soft shadow on land & sea)
+          float shadowMultiplier = 1.0 - cloudCover * 0.28 * dayFactor;
+          vec3 daySurface = dayColor.rgb * (vec3(diffuseLight) * 0.95 + ambient) * shadowMultiplier + oceanSpecular;
 
-          // Crisp atmospheric rim lighting & Rayleigh blue limb haze
+          // Nighttime illuminated surface: golden amber city lights in population centers
+          vec3 cityLights = nightColor.rgb * vec3(1.35, 1.15, 0.80);
+          vec3 nightSurface = dayColor.rgb * 0.03 + cityLights;
+
+          // Blend day & night seamlessly
+          vec3 surface = mix(nightSurface, daySurface, dayFactor);
+
+          // Elegant Rayleigh limb scattering (delicate electric blue atmosphere rim on daytime limb)
           float rim = 1.0 - max(dot(normal, viewDir), 0.0);
-          float limbHaze = pow(rim, 3.8) * 0.42;
-          vec3 atmosHaze = vec3(0.06, 0.68, 1.0) * limbHaze;
+          float limbHaze = pow(rim, 3.6) * 0.55 * (0.3 + 0.7 * dayFactor);
+          vec3 atmosHaze = vec3(0.12, 0.58, 1.0) * limbHaze;
 
           gl_FragColor = vec4(surface + atmosHaze, 1.0);
         }
@@ -651,21 +686,32 @@ export function OrbitView3D({
     const cloudsMesh = new THREE.Mesh(cloudsGeo, cloudsMat);
     earthGroup.add(cloudsMesh);
 
-    // 11. Cyan / Blue Atmospheric Glow
-    const atmosGeo = new THREE.SphereGeometry(R_EARTH + 0.06, 64, 64);
+    // 11. Cyan / Blue Atmospheric Outer Halo (Limb edge only, 0.0 center)
+    const atmosGeo = new THREE.SphereGeometry(R_EARTH + 0.055, 64, 64);
     const atmosMat = new THREE.ShaderMaterial({
       vertexShader: `
         varying vec3 vNormal;
+        varying vec3 vEye;
         void main() {
           vNormal = normalize(normalMatrix * normal);
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+          vEye = -mvPos.xyz;
+          gl_Position = projectionMatrix * mvPos;
         }
       `,
       fragmentShader: `
         varying vec3 vNormal;
+        varying vec3 vEye;
         void main() {
-          float intensity = pow(0.72 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.8);
-          gl_FragColor = vec4(0.0, 0.95, 1.0, 1.0) * intensity * 0.42;
+          vec3 eye = normalize(vEye);
+          // On BackSide, normal points towards the inside of the sphere.
+          // Looking towards center: dot(-vNormal, eye) ~ 1.0 -> smoothstep gives 0.0 (transparent!)
+          // Looking towards outer limb edge: dot(-vNormal, eye) ~ 0.0 -> smoothstep gives 1.0 (luminous blue rim!)
+          float d = dot(-vNormal, eye);
+          float edgeGlow = smoothstep(0.38, 0.0, d);
+          float intensity = pow(edgeGlow, 2.4);
+          vec3 atmosColor = vec3(0.15, 0.62, 1.0);
+          gl_FragColor = vec4(atmosColor, intensity * 0.52);
         }
       `,
       blending: THREE.AdditiveBlending,
@@ -998,6 +1044,62 @@ export function OrbitView3D({
     const unsubscribeMTS_3D = marineTrafficService.subscribe((vessels) => {
       update3DVessels(vessels);
     });
+
+    // Selected vessel tactical marker on ocean surface (concentric pulse ring + vertical laser locator)
+    let selectedVesselGroup = null;
+    const updateSelectedVesselMarker = (ves) => {
+      try {
+        if (selectedVesselGroup) {
+          maritimeGroup.remove(selectedVesselGroup);
+          selectedVesselGroup.traverse((child) => {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) child.material.dispose();
+          });
+          selectedVesselGroup = null;
+        }
+        if (!ves || typeof ves.lat !== 'number' || typeof ves.lng !== 'number') return;
+
+        selectedVesselGroup = new THREE.Group();
+        const [vx, vy, vz] = coordsToVector(ves.lng, ves.lat, R_EARTH + 0.005);
+        const vShip = new THREE.Vector3(vx, vy, vz);
+        const shipNormal = vShip.clone().normalize();
+
+        // 1. Concentric target reticle on ocean surface
+        const ringGeom = new THREE.RingGeometry(0.016, 0.024, 32);
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: 0x00f5a0,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.92,
+          depthTest: true,
+        });
+        const ringMesh = new THREE.Mesh(ringGeom, ringMat);
+        ringMesh.position.copy(vShip);
+        ringMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), shipNormal);
+        selectedVesselGroup.add(ringMesh);
+
+        // 2. Subtle vertical laser beacon line pointing up into orbit
+        const beaconGeom = new THREE.CylinderGeometry(0.0015, 0.0035, 0.08, 16);
+        beaconGeom.translate(0, 0.04, 0);
+        const beaconMat = new THREE.MeshBasicMaterial({
+          color: 0x00f5a0,
+          transparent: true,
+          opacity: 0.7,
+        });
+        const beacon = new THREE.Mesh(beaconGeom, beaconMat);
+        beacon.position.copy(vShip);
+        beacon.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), shipNormal);
+        selectedVesselGroup.add(beacon);
+
+        maritimeGroup.add(selectedVesselGroup);
+      } catch (err) {
+        console.warn('updateSelectedVesselMarker error:', err);
+      }
+    };
+    updateSelectedVesselMarkerRef.current = updateSelectedVesselMarker;
+    if (inspectedTarget?.type === 'vessel') {
+      updateSelectedVesselMarker(inspectedTarget);
+    }
 
     // 11d. Cyber Warfare Layer (Kaspersky Cybermap Parabolic Laser Arcs + Multi-Spark Photons + Concentric Impact Waves)
     const cyberGroup = new THREE.Group();
@@ -1715,14 +1817,16 @@ export function OrbitView3D({
           }
         }
 
-        // 4. Check Live Maritime Vessels click
-        if (activeLayersRef.current.has('maritime')) {
-          const vesselHits = raycaster.intersectObjects(vesselClickMeshes, true);
+        // 4. Check Live Maritime Vessels click (MarineTraffic InstancedMesh Fleet)
+        if (activeLayersRef.current.has('maritime') && vesselsInstancedMesh) {
+          const vesselHits = raycaster.intersectObject(vesselsInstancedMesh);
           if (vesselHits.length > 0) {
-            const hitVes = vesselHits[0].object.userData?.vessel;
+            const hitInstanceId = vesselHits[0].instanceId;
+            const hitVes = currentLiveVessels[hitInstanceId];
             if (hitVes) {
               sound.click();
-              setInspectedTarget({ type: 'vessel', ...hitVes });
+              updateSelectedVesselMarker(hitVes);
+              setInspectedTarget({ type: 'vessel', isVessel: true, ...hitVes });
               return;
             }
           }
@@ -1825,8 +1929,8 @@ export function OrbitView3D({
           // Proximity fallback check for live MarineTraffic vessels in 3D
           if (activeLayersRef.current.has('maritime') && currentLiveVessels.length > 0) {
             let closestVes = null;
-            let minVesDistSq = 0.008;
-            const maxCheck = Math.min(vesselLimitRef.current || 500, currentLiveVessels.length);
+            let minVesDistSq = 0.012;
+            const maxCheck = Math.min(vesselLimitRef.current || 5000, currentLiveVessels.length);
             for (let k = 0; k < maxCheck; k++) {
               const ves = currentLiveVessels[k];
               const [px, py, pz] = coordsToVector(ves.lng, ves.lat, R_EARTH + 0.0042);
@@ -1841,6 +1945,7 @@ export function OrbitView3D({
             }
             if (closestVes) {
               sound.click();
+              updateSelectedVesselMarker(closestVes);
               setInspectedTarget({ type: 'vessel', isVessel: true, ...closestVes });
               return;
             }
@@ -2039,6 +2144,8 @@ export function OrbitView3D({
         earthGroup.rotation.y += 0.00065;
         starField.rotation.y += 0.0002;
         cloudsMesh.rotation.y += 0.00018;
+      } else {
+        cloudsMesh.rotation.y += 0.00008;
       }
 
       // Update real-time event pulses (deaths & births)
@@ -2199,9 +2306,14 @@ export function OrbitView3D({
         }
       }
 
-      // Update camera distance for dynamic zoom shader micro-relief
-      if (earthShaderRef.current && earthShaderRef.current.uniforms && earthShaderRef.current.uniforms.uCamDist) {
-        earthShaderRef.current.uniforms.uCamDist.value = camera.position.length();
+      // Update camera distance & time for dynamic shader micro-relief & atmospheric progression
+      if (earthShaderRef.current && earthShaderRef.current.uniforms) {
+        if (earthShaderRef.current.uniforms.uCamDist) {
+          earthShaderRef.current.uniforms.uCamDist.value = camera.position.length();
+        }
+        if (earthShaderRef.current.uniforms.uTime) {
+          earthShaderRef.current.uniforms.uTime.value = frameCount;
+        }
       }
 
       // Animate cyber attack pulses (Kaspersky Traveling Laser Beams & Ground Shockwaves)
