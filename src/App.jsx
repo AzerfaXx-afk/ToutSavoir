@@ -9,6 +9,7 @@ import { CCTVLiveMonitor } from './components/CCTVLiveMonitor';
 import { TacticalShortcutsModal } from './components/TacticalShortcutsModal';
 import { MapLayerToggles } from './components/MapLayerToggles';
 import { flightRadarService } from './services/flightRadarService';
+import { marineTrafficService } from './services/marineTrafficService';
 import { Play, Pause, VolumeX, Maximize2, Minimize2, HelpCircle } from 'lucide-react';
 import { sound } from './utils/soundFX';
 import './App.css';
@@ -30,6 +31,14 @@ export default function App() {
   const handleFlightLimitChange = useCallback((limit) => {
     setFlightLimit(limit);
     flightRadarService.setFlightLimit(limit);
+  }, []);
+
+  // Maritime traffic density limit (default: 25 for maximum performance & zero lag, adjustable up to 2,500+ vessels)
+  const [vesselLimit, setVesselLimit] = useState(25);
+
+  const handleVesselLimitChange = useCallback((limit) => {
+    setVesselLimit(limit);
+    marineTrafficService.setVesselLimit(limit);
   }, []);
 
   const handleToggleLayer = useCallback((layerId) => {
@@ -336,6 +345,8 @@ export default function App() {
         onSwitchTo3D={() => setIs3D(true)}
         flightLimit={flightLimit}
         onFlightLimitChange={handleFlightLimitChange}
+        vesselLimit={vesselLimit}
+        onVesselLimitChange={handleVesselLimitChange}
       />
 
       {/* Main Map Viewport (Takes 100% Fullscreen) */}
@@ -345,6 +356,7 @@ export default function App() {
             activeLayer={activeLayer}
             activeLayers={activeLayers}
             flightLimit={flightLimit}
+            vesselLimit={vesselLimit}
             onSelectCCTV={handleSelectCCTV}
             onSelectSatellite={handleSelectSatellite}
             onSelectCountry={handleSelectCountry}
@@ -359,6 +371,7 @@ export default function App() {
             onAutoRotateChange={setAutoRotate}
             activeLayers={activeLayers}
             flightLimit={flightLimit}
+            vesselLimit={vesselLimit}
             onSelectCCTV={handleSelectCCTV}
             onSelectSatellite={handleSelectSatellite}
             onSelectCountry={handleSelectCountry}

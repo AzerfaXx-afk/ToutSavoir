@@ -2201,3 +2201,219 @@ body.timeline-scrubbing-active * {
   font-size: 9px;
 }
 
+/* ==========================================================================
+   MarineTraffic High-Fidelity AIS CSS (Vessels, Tooltips, Pulse)
+   ========================================================================== */
+
+.marinetraffic-vessel-marker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.marinetraffic-vessel-rotator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+}
+
+.marinetraffic-vessel-svg {
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.85));
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.marinetraffic-vessel-marker:hover .marinetraffic-vessel-svg {
+  filter: drop-shadow(0 0 10px rgba(0, 245, 160, 0.8)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.9));
+  transform: scale(1.15);
+}
+
+@keyframes mtVesselPulse {
+  0% { transform: scale(0.65); opacity: 0.9; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+.leaflet-tooltip.marinetraffic-tactical-leaflet-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 9px !important;
+  pointer-events: none !important;
+}
+
+.leaflet-tooltip.marinetraffic-tactical-leaflet-tooltip::before {
+  display: none !important;
+}
+
+.marinetraffic-popup-card {
+  background: rgba(8, 18, 28, 0.94);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(0, 245, 160, 0.45);
+  border-radius: 9px;
+  padding: 10px 14px;
+  color: #e2e8f0;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.9), 0 0 18px rgba(0, 245, 160, 0.15), inset 0 0 14px rgba(6, 182, 212, 0.08);
+  min-width: 250px;
+  max-width: 310px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  pointer-events: none;
+  text-align: left;
+}
+
+.mt-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mt-card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mt-vessel-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.8px;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+}
+
+.mt-vessel-flag {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.mt-vessel-type {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid;
+}
+
+.mt-card-route {
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-family: 'Share Tech Mono', monospace;
+  color: #38bdf8;
+}
+
+.mt-port {
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.mt-route-arrow {
+  color: #00f5a0;
+  font-size: 11px;
+}
+
+.mt-corridor-tag {
+  font-size: 8.5px;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: auto;
+}
+
+.mt-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 8px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 7px;
+}
+
+.mt-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.mt-cell-full {
+  grid-column: 1 / -1;
+}
+
+.mt-cell-label {
+  font-size: 8px;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.mt-cell-value {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.mt-cell-value.cyan {
+  color: #00f5a0;
+  text-shadow: 0 0 6px rgba(0, 245, 160, 0.4);
+}
+
+.mt-cell-value.dim {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.mt-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 8.5px;
+  color: #64748b;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mt-badge-live {
+  color: #00f5a0;
+  font-weight: 700;
+  font-size: 8.5px;
+  letter-spacing: 0.4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mt-pulse-dot {
+  animation: mtBlink 1.4s infinite ease-in-out;
+  color: #00f5a0;
+}
+
+@keyframes mtBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.25; transform: scale(0.85); }
+}
+
+.mt-card-hint {
+  color: #38bdf8;
+  opacity: 0.85;
+  font-size: 8.5px;
+}
+
+

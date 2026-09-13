@@ -27,6 +27,7 @@ import {
 } from '../data/osirisStreams';
 import { GEOPOLITICAL_ZONES, CYBER_ATTACK_VECTORS, AVIATION_ROUTES } from '../data/tacticalStreams';
 import { flightRadarService } from '../services/flightRadarService';
+import { marineTrafficService } from '../services/marineTrafficService';
 import { sound } from '../utils/soundFX';
 import './MapLayerToggles.css';
 
@@ -36,7 +37,7 @@ export const LAYER_CONFIGS = [
     label: 'Avions en vol',
     shortLabel: 'Aviation',
     icon: Plane,
-    count: '2 280+ vols',
+    count: '7 890+ vols',
     source: 'Flightradar24 ADS-B Direct',
     accentColor: '#ffd700',
     category: 'TRANSIT',
@@ -46,9 +47,9 @@ export const LAYER_CONFIGS = [
     label: 'Navires marchands',
     shortLabel: 'Maritime',
     icon: Anchor,
-    count: LIVE_VESSELS.length,
-    source: 'AIS MarineTraffic',
-    accentColor: '#f59e0b',
+    count: '2 210+ navires',
+    source: 'AIS MarineTraffic Direct',
+    accentColor: '#00f5a0',
     category: 'TRANSIT',
   },
   {
@@ -58,7 +59,7 @@ export const LAYER_CONFIGS = [
     icon: Video,
     count: CCTV_FEEDS.length,
     source: 'Flux Live 1080p',
-    accentColor: '#38bdf8',
+    accentColor: '#06b6d4',
     category: 'SURVEILLANCE',
   },
   {
@@ -66,29 +67,48 @@ export const LAYER_CONFIGS = [
     label: 'Satellites & Espace',
     shortLabel: 'Satellites (3D)',
     icon: Radio,
-    count: SATELLITES_DATA.length,
-    source: 'NORAD / CelesTrak (3D)',
-    accentColor: '#10b981',
+    count: 'NORAD / CelesTrak (3D)',
+    source: 'NORAD / CelesTrak TLE',
+    accentColor: '#00f2fe',
     category: 'ESPACE 3D',
-    only3D: true,
   },
   {
-    id: 'cables',
-    label: 'Câbles sous-marins',
-    shortLabel: 'Fibre optique',
-    icon: Network,
-    count: SUBMARINE_CABLES.length,
-    source: 'Telegeography Subsea',
-    accentColor: '#a855f7',
+    id: 'nuclear',
+    label: 'Centrales nucléaires',
+    shortLabel: 'Nucléaire',
+    icon: Radiation,
+    count: STRATEGIC_NUCLEAR_SITES.length,
+    source: 'AIEA Réacteurs Mondiaux',
+    accentColor: '#eab308',
     category: 'INFRA',
   },
   {
+    id: 'weather',
+    label: 'Systèmes météo extrêmes',
+    shortLabel: 'Météo',
+    icon: CloudLightning,
+    count: WEATHER_SYSTEMS.length,
+    source: 'NOAA GFS & Cyclones',
+    accentColor: '#38bdf8',
+    category: 'SURVEILLANCE',
+  },
+  {
+    id: 'cyber',
+    label: 'Guerre cybernétique',
+    shortLabel: 'Cyber',
+    icon: ShieldAlert,
+    count: CYBER_ATTACK_VECTORS.length,
+    source: 'Cyber Threat Intelligence',
+    accentColor: '#ec4899',
+    category: 'SÉCURITÉ',
+  },
+  {
     id: 'conflicts',
-    label: 'Zones de tensions',
+    label: 'Zones de conflit & Tensions',
     shortLabel: 'Conflits',
     icon: ShieldAlert,
     count: GEOPOLITICAL_ZONES.length,
-    source: 'ACLED & OSINT Live',
+    source: 'ACLED / Alertes DEFCON',
     accentColor: '#ff2a4d',
     category: 'TACTIQUE',
   },
@@ -277,6 +297,8 @@ export function MapLayerToggles({
                                 <strong>
                                   {layer.id === 'aviation'
                                     ? `${flightLimit.toLocaleString('fr-FR')} / ${liveFlightCount.toLocaleString('fr-FR')} vols`
+                                    : layer.id === 'maritime'
+                                    ? `${vesselLimit.toLocaleString('fr-FR')} / ${liveVesselCount.toLocaleString('fr-FR')} navires`
                                     : layer.count}
                                 </strong>
                               </span>
@@ -375,6 +397,84 @@ export function MapLayerToggles({
                               title="Trafic mondial total (5 000+ vols)"
                             >
                               MAX ({Math.max(5000, liveFlightCount).toLocaleString('fr-FR')})
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Maritime Density Controller Slider */}
+                      {layer.id === 'maritime' && isActive && (
+                        <div
+                          className="layer-flight-density-panel"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flight-density-header">
+                            <span className="flight-density-title">DENSITÉ DU FLUX MARITIME</span>
+                            <span className="flight-density-badge" style={{ color: '#00f5a0', borderColor: 'rgba(0, 245, 160, 0.4)' }}>
+                              <strong>{vesselLimit.toLocaleString('fr-FR')}</strong> / {liveVesselCount.toLocaleString('fr-FR')}
+                            </span>
+                          </div>
+
+                          <div className="flight-density-slider-wrap">
+                            <input
+                              type="range"
+                              min="10"
+                              max={Math.max(2200, liveVesselCount)}
+                              step="10"
+                              value={vesselLimit}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                if (onVesselLimitChange) onVesselLimitChange(val);
+                              }}
+                              className="flight-density-slider maritime-slider"
+                              aria-label="Régler le nombre de navires affichés"
+                            />
+                          </div>
+
+                          <div className="flight-density-presets">
+                            <button
+                              type="button"
+                              className={`density-preset-btn ${vesselLimit <= 25 ? 'is-active' : ''}`}
+                              onClick={() => {
+                                sound.tick();
+                                if (onVesselLimitChange) onVesselLimitChange(20);
+                              }}
+                              title="Mode ultra-fluide sans lag (20 navires)"
+                            >
+                              MIN (20)
+                            </button>
+                            <button
+                              type="button"
+                              className={`density-preset-btn ${vesselLimit === 100 ? 'is-active' : ''}`}
+                              onClick={() => {
+                                sound.tick();
+                                if (onVesselLimitChange) onVesselLimitChange(100);
+                              }}
+                              title="Flotte stratégique (100 navires)"
+                            >
+                              100
+                            </button>
+                            <button
+                              type="button"
+                              className={`density-preset-btn ${vesselLimit === 350 ? 'is-active' : ''}`}
+                              onClick={() => {
+                                sound.tick();
+                                if (onVesselLimitChange) onVesselLimitChange(350);
+                              }}
+                              title="Forte densité mondiale (350 navires)"
+                            >
+                              350
+                            </button>
+                            <button
+                              type="button"
+                              className={`density-preset-btn ${vesselLimit >= 2000 ? 'is-active' : ''}`}
+                              onClick={() => {
+                                sound.tick();
+                                if (onVesselLimitChange) onVesselLimitChange(Math.max(2200, liveVesselCount));
+                              }}
+                              title="Flotte mondiale intégrale (2 200+ navires)"
+                            >
+                              MAX ({Math.max(2200, liveVesselCount).toLocaleString('fr-FR')})
                             </button>
                           </div>
                         </div>

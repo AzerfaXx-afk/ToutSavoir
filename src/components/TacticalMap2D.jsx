@@ -14,12 +14,14 @@ import {
 } from '../data/osirisStreams';
 import { LIVE_FLIGHTS, LIVE_VESSELS, getLiveTransitPositions, interpolateGreatCircle } from '../data/liveTransits';
 import { flightRadarService, getFlightradarPlaneSvg } from '../services/flightRadarService';
+import { marineTrafficService, getMarineTrafficVesselSvg } from '../services/marineTrafficService';
 import { TacticalInspectionCard } from './TacticalInspectionCard';
 
 export function TacticalMap2D({
   activeLayer = 'satellite',
   activeLayers = new Set(['aviation', 'conflicts']),
   flightLimit = 25,
+  vesselLimit = 25,
   onSelectCCTV,
   onSelectCountry,
   targetLocation,
@@ -54,6 +56,8 @@ export function TacticalMap2D({
 
   const flightLimitRef = useRef(flightLimit);
   const updateFlightradarPlanesRef = useRef(null);
+  const vesselLimitRef = useRef(vesselLimit);
+  const updateMarineTrafficVesselsRef = useRef(null);
   const inspectedTargetRef = useRef(inspectedTarget);
 
   useEffect(() => {
@@ -66,6 +70,13 @@ export function TacticalMap2D({
       updateFlightradarPlanesRef.current();
     }
   }, [flightLimit]);
+
+  useEffect(() => {
+    vesselLimitRef.current = vesselLimit;
+    if (updateMarineTrafficVesselsRef.current) {
+      updateMarineTrafficVesselsRef.current();
+    }
+  }, [vesselLimit]);
 
   // Direct DOM refs for cursor coordinates (0 React re-renders on mousemove)
   const coordLatRef = useRef(null);
@@ -397,45 +408,161 @@ export function TacticalMap2D({
       updateFlightradarPlanes(flights);
     });
 
-    // 2b. Maritime Shipping Lanes Layer
+    // 2b. Maritime Shipping Lanes Layer (Authentic MarineTraffic AIS Live Feed)
     const maritimeLayer = L.layerGroup();
     maritimeLayerRef.current = maritimeLayer;
     if (activeLayers.has('maritime')) {
       maritimeLayer.addTo(map);
     }
     const vesselMarkersMap = new Map();
+    let currentRawVessels = [];
 
-    const updateTransits = () => {
-      const { vessels } = getLiveTransitPositions();
-      // Update vessels
-      vessels.forEach((ves) => {
-        const iconHtml = `<div class="vessel-div-marker" title="${ves.name} (${ves.flag})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/><path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/><line x1="12" y1="1" x2="12" y2="5"/></svg></div>`;
-        const icon = L.divIcon({
-          className: 'vessel-div-icon-wrap',
-          html: iconHtml,
-          iconSize: [26, 26],
-          iconAnchor: [13, 13],
-        });
+    const renderMarineTrafficTooltipHtml = (ves) => {
+      const routeStr = (ves.originPort && ves.destinationPort)
+        ? `${ves.originPort} ➔ ${ves.destinationPort}`
+        : 'FAISANT ROUTE EN HAUTE MER';
+
+      const spdKtsStr = ves.speedKts !== undefined ? `${ves.speedKts} kts` : '--';
+      const spdKmhStr = ves.speedKmh ? `${ves.speedKmh} km/h` : '';
+      const courseStr = `${ves.course || ves.heading || 0}° COG`;
+      const dimStr = ves.lengthM ? `${ves.lengthM}m × ${ves.beamM}m • Tirant: ${ves.draughtM}m` : '';
+
+      return `
+        <div class="marinetraffic-popup-card">
+          <div class="mt-pc-head">
+            <div class="mt-pc-badge">
+              <span class="mt-pc-icon">⚓</span>
+              <span class="mt-pc-name">${ves.name}</span>
+            </div>
+            <div class="mt-pc-flag">
+              <span>${ves.flagEmoji || '🏳️'}</span>
+              <span class="mt-pc-flag-name">${ves.flag}</span>
+            </div>
+          </div>
+          <div class="mt-pc-type" style="color: ${ves.color || '#00f5a0'};">${ves.type}</div>
+          <div class="mt-pc-route">${routeStr}</div>
+          <div class="mt-pc-dims">${dimStr} • ${ves.dwt ? `DWT ${ves.dwt}` : ''}</div>
+          <div class="mt-pc-stats">
+            <div class="mt-pc-stat">
+              <span class="mt-pc-label">VITESSE SURFACE</span>
+              <span class="mt-pc-val">${spdKtsStr} <small>${spdKmhStr}</small></span>
+            </div>
+            <div class="mt-pc-stat">
+              <span class="mt-pc-label">CAP & ROUTE</span>
+              <span class="mt-pc-val">${courseStr}</span>
+            </div>
+            <div class="mt-pc-stat">
+              <span class="mt-pc-label">STATUT AIS</span>
+              <span class="mt-pc-val status-val">${ves.status || 'Faisant route au moteur'}</span>
+            </div>
+            <div class="mt-pc-stat">
+              <span class="mt-pc-label">IDENTIFIANTS</span>
+              <span class="mt-pc-val mono">IMO ${ves.imo}</span>
+            </div>
+          </div>
+          <div class="mt-pc-footer">
+            <span class="mt-pc-live-indicator"><span class="mt-pc-blink">●</span> DIRECT MARINETRAFFIC AIS</span>
+            <span class="mt-pc-zone">${ves.chokepoint || 'Haute mer'}</span>
+          </div>
+        </div>
+      `;
+    };
+
+    const updateMarineTrafficVessels = (vesselsList) => {
+      if (vesselsList) currentRawVessels = vesselsList;
+      if (!currentRawVessels || currentRawVessels.length === 0 || !map) return;
+
+      const limit = vesselLimitRef.current || 25;
+      const candidateVessels = currentRawVessels.slice(0, limit);
+      const bounds = map.getBounds().pad(0.25);
+      const activeIds = new Set();
+      let displayedCount = 0;
+      const maxDomCap = Math.min(limit, 1200);
+
+      for (let i = 0; i < candidateVessels.length; i++) {
+        const ves = candidateVessels[i];
+        const isSelected = inspectedTargetRef.current?.id === ves.id;
+        const inBounds = bounds.contains([ves.lat, ves.lng]);
+
+        if (!inBounds && !isSelected) continue;
+        if (!isSelected && displayedCount >= maxDomCap) continue;
+
+        displayedCount++;
+        activeIds.add(ves.id);
 
         if (vesselMarkersMap.has(ves.id)) {
           const m = vesselMarkersMap.get(ves.id);
           m.setLatLng([ves.lat, ves.lng]);
-          m.setIcon(icon);
+          if (Math.abs((m._lastCourse || 0) - (ves.course || ves.heading || 0)) > 2.0 || m._isSelected !== isSelected) {
+            const iconHtml = getMarineTrafficVesselSvg(ves.course || ves.heading || 0, 20, ves.category, isSelected);
+            const icon = L.divIcon({
+              className: 'marinetraffic-vessel-marker-wrap',
+              html: iconHtml,
+              iconSize: [22, 22],
+              iconAnchor: [11, 11],
+            });
+            m.setIcon(icon);
+            m._lastCourse = ves.course || ves.heading || 0;
+            m._isSelected = isSelected;
+          }
+          if (m.isTooltipOpen && m.isTooltipOpen()) {
+            m.setTooltipContent(renderMarineTrafficTooltipHtml(ves));
+          }
         } else {
+          const iconHtml = getMarineTrafficVesselSvg(ves.course || ves.heading || 0, 20, ves.category, isSelected);
+          const icon = L.divIcon({
+            className: 'marinetraffic-vessel-marker-wrap',
+            html: iconHtml,
+            iconSize: [22, 22],
+            iconAnchor: [11, 11],
+          });
           const m = L.marker([ves.lat, ves.lng], { icon, pane: 'transitsPane' });
+          m._lastCourse = ves.course || ves.heading || 0;
+          m._isSelected = isSelected;
+
+          m.bindTooltip(renderMarineTrafficTooltipHtml(ves), {
+            className: 'marinetraffic-tactical-leaflet-tooltip',
+            direction: 'top',
+            offset: [0, -12],
+            opacity: 1,
+            sticky: false,
+          });
+
+          m.on('mouseover', () => {
+            sound.hover(0.15);
+          });
+
           m.on('click', (e) => {
             if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
             sound.click();
             setInspectedTarget({ type: 'vessel', ...ves });
           });
+
           m.addTo(maritimeLayer);
           vesselMarkersMap.set(ves.id, m);
         }
-      });
+      }
+
+      // Prune vessels out of viewport
+      for (const [id, m] of vesselMarkersMap.entries()) {
+        if (!activeIds.has(id)) {
+          maritimeLayer.removeLayer(m);
+          vesselMarkersMap.delete(id);
+        }
+      }
     };
 
-    updateTransits();
-    const transitInterval = setInterval(updateTransits, 1500);
+    updateMarineTrafficVesselsRef.current = updateMarineTrafficVessels;
+
+    // Update vessels on map move
+    map.on('moveend', () => {
+      updateMarineTrafficVessels();
+    });
+
+    // Subscribe to MarineTraffic live stream
+    const unsubscribeMarine = marineTrafficService.subscribe((vessels) => {
+      updateMarineTrafficVessels(vessels);
+    });
 
     // 3. Cyber warfare layer (Kaspersky Cybermap Style Curved Trajectories + Interactive Telemetry)
     const cyberLayer = L.layerGroup();
@@ -783,9 +910,10 @@ export function TacticalMap2D({
 
     return () => {
       updateFlightradarPlanesRef.current = null;
+      updateMarineTrafficVesselsRef.current = null;
       unsubscribeStream();
       if (unsubscribeFR24) unsubscribeFR24();
-      clearInterval(transitInterval);
+      if (unsubscribeMarine) unsubscribeMarine();
       container.removeEventListener('contextmenu', onContextMenu);
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);

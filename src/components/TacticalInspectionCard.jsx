@@ -265,16 +265,40 @@ export function TacticalInspectionCard({
         {isVessel && (
           <>
             <div className="tic-metric-cell">
-              <span className="tic-label">VITESSE SURFACE</span>
-              <span className="tic-val cyan">{target.speedKts} Nœuds</span>
+              <span className="tic-label">VITESSE SURFACE (SOG)</span>
+              <span className="tic-val cyan">
+                {target.speedKts} Nœuds ({target.speedKmh || Math.round((target.speedKts || 0) * 1.852)} km/h)
+              </span>
             </div>
             <div className="tic-metric-cell">
-              <span className="tic-label">IDENTIFIANTS IMO / MMSI</span>
-              <span className="tic-val mono">IMO {target.imo} • MMSI {target.mmsi}</span>
+              <span className="tic-label">CAP & STATUT NAVIGATIONNEL</span>
+              <span className="tic-val mono">
+                {target.course !== undefined ? `${target.course}°` : '0°'} • {target.status || 'En route au moteur'}
+              </span>
+            </div>
+            <div className="tic-metric-cell">
+              <span className="tic-label">DIMENSIONS & TIRANT D'EAU</span>
+              <span className="tic-val mono">
+                {target.lengthM || '--'}m × {target.beamM || '--'}m • Draught {target.draughtM || '--'}m
+              </span>
+            </div>
+            <div className="tic-metric-cell">
+              <span className="tic-label">IDENTIFIANTS IMO / MMSI / CALL</span>
+              <span className="tic-val mono">
+                IMO {target.imo || '--'} • MMSI {target.mmsi || '--'}{target.callsign ? ` • ${target.callsign}` : ''}
+              </span>
             </div>
             <div className="tic-metric-cell full-width">
-              <span className="tic-label">CARGAISON DÉCLARÉE</span>
-              <span className="tic-val text-dim">{target.cargo}</span>
+              <span className="tic-label">CARGAISON & TONNAGE PORT EN LOURD</span>
+              <span className="tic-val text-dim">
+                {target.cargo || 'Marchandises diverses'} {target.dwt ? `(${Number(target.dwt).toLocaleString('fr-FR')} DWT)` : ''}
+              </span>
+            </div>
+            <div className="tic-metric-cell full-width">
+              <span className="tic-label">SOURCE TÉLÉMÉTRIE AIS</span>
+              <span className="tic-val mono" style={{ color: '#06b6d4' }}>
+                MARINETRAFFIC AIS LIVE FEED // RÉSEAU SATELLITAIRE & STATIONS CÔTIÈRES VDL
+              </span>
             </div>
           </>
         )}

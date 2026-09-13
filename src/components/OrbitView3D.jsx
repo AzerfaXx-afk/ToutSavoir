@@ -15,9 +15,9 @@ import {
   WEATHER_SYSTEMS,
   STRATEGIC_NUCLEAR_SITES,
 } from '../data/osirisStreams';
-import { LIVE_FLIGHTS, LIVE_VESSELS } from '../data/liveTransits';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { flightRadarService } from '../services/flightRadarService';
+import { marineTrafficService } from '../services/marineTrafficService';
 import { TacticalInspectionCard } from './TacticalInspectionCard';
 
 // Fast point-in-polygon ray-casting algorithm
@@ -41,6 +41,7 @@ export function OrbitView3D({
   onAutoRotateChange,
   activeLayers = new Set(['aviation', 'satellites', 'cctv']),
   flightLimit = 25,
+  vesselLimit = 25,
   onSelectCCTV,
   onSelectSatellite,
   onSelectCountry,
@@ -73,10 +74,12 @@ export function OrbitView3D({
   const selectedFillMatRef = useRef(null);
   const updateSelectedFlightPathRef = useRef(null);
   const update3DPlanesRef = useRef(null);
+  const update3DVesselsRef = useRef(null);
 
   const autoRotateRef = useRef(autoRotate);
   const activeLayersRef = useRef(activeLayers);
   const flightLimitRef = useRef(flightLimit);
+  const vesselLimitRef = useRef(vesselLimit);
 
   useEffect(() => {
     autoRotateRef.current = autoRotate;
@@ -92,6 +95,13 @@ export function OrbitView3D({
       update3DPlanesRef.current(flightRadarService.flights);
     }
   }, [flightLimit]);
+
+  useEffect(() => {
+    vesselLimitRef.current = vesselLimit;
+    if (update3DVesselsRef.current && marineTrafficService.vessels.length > 0) {
+      update3DVesselsRef.current(marineTrafficService.vessels);
+    }
+  }, [vesselLimit]);
 
   // Sync selected flight path with inspectedTarget prop
   useEffect(() => {
@@ -818,48 +828,96 @@ export function OrbitView3D({
       update3DPlanes(flights);
     });
 
-    // 11c-2. Maritime Shipping Lanes Layer
+    // 11c-2. Maritime Shipping Fleet Layer (MarineTraffic Worldwide AIS Fleet in 3D)
     const maritimeGroup = new THREE.Group();
     earthGroup.add(maritimeGroup);
-    const activeVessels = [];
-    const vesselClickMeshes = [];
 
-    LIVE_VESSELS.forEach((ves, idx) => {
-      const pts = ves.routeWaypoints.map(([wLat, wLng]) => {
-        return new THREE.Vector3(...coordsToVector(wLng, wLat, R_EARTH + 0.004));
-      });
-      const curve = new THREE.CatmullRomCurve3(pts);
-      const routePoints = curve.getPoints(50);
-      const routeGeom = new THREE.BufferGeometry().setFromPoints(routePoints);
-      const routeMat = new THREE.LineBasicMaterial({
-        color: 0xf59e0b,
-        transparent: true,
-        opacity: 0.25,
-      });
-      maritimeGroup.add(new THREE.Line(routeGeom, routeMat));
+    // Build authentic hydrodynamic ship hull silhouette in 3D (pointed bow, slender midship, transom stern)
+    const shipShape = new THREE.Shape();
+    const vs = 0.0022; // Visible, elegant scale for commercial vessels on orbit
+    shipShape.moveTo(0, 7.5 * vs); // Bow tip
+    shipShape.bezierCurveTo(-1.8 * vs, 4.0 * vs, -2.0 * vs, 0, -2.0 * vs, -5.5 * vs);
+    shipShape.lineTo(-1.4 * vs, -7.5 * vs); // Port stern
+    shipShape.lineTo(1.4 * vs, -7.5 * vs); // Starboard stern
+    shipShape.bezierCurveTo(2.0 * vs, -5.5 * vs, 2.0 * vs, 0, 1.8 * vs, 4.0 * vs);
+    shipShape.closePath();
 
-      // Ship Mesh
-      const shipGeom = new THREE.BoxGeometry(0.014, 0.008, 0.026);
-      const shipMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
-      const shipMesh = new THREE.Mesh(shipGeom, shipMat);
-      shipMesh.userData = { isVessel: true, vessel: ves };
-      maritimeGroup.add(shipMesh);
+    const shipGeom = new THREE.ExtrudeGeometry(shipShape, { depth: 0.0035, bevelEnabled: false });
+    shipGeom.center();
 
-      // Invisible click proxy sphere for reliable 3D raycasting
-      const shipHitGeom = new THREE.SphereGeometry(0.045, 8, 8);
-      const shipHitMat = new THREE.MeshBasicMaterial({ visible: false });
-      const shipHitMesh = new THREE.Mesh(shipHitGeom, shipHitMat);
-      shipHitMesh.userData = { isVessel: true, vessel: ves };
-      shipMesh.add(shipHitMesh);
-      vesselClickMeshes.push(shipHitMesh);
-      vesselClickMeshes.push(shipMesh);
+    // High performance instanced mesh with double-sided rendering and dynamic vertex colors
+    const shipMat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+    const vesselsInstancedMesh = new THREE.InstancedMesh(shipGeom, shipMat, 5000);
+    vesselsInstancedMesh.count = 0;
+    vesselsInstancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    maritimeGroup.add(vesselsInstancedMesh);
 
-      activeVessels.push({
-        curve,
-        shipMesh,
-        speed: 0.000030 + (idx % 3) * 0.000012, // Realistic calm maritime pace (~15-20 knots, 25x slower than flight)
-        offset: (idx * 0.16) % 1,
-      });
+    let currentLiveVessels = [];
+    const dummyVesselMatrix = new THREE.Matrix4();
+    const tempVesselColor = new THREE.Color();
+
+    const update3DVessels = (vesselsList) => {
+      if (!vesselsInstancedMesh || !vesselsList || vesselsList.length === 0) return;
+      try {
+        currentLiveVessels = vesselsList;
+        const count = Math.min(vesselLimitRef.current || 25, vesselsList.length, 5000);
+        let validCount = 0;
+
+        for (let i = 0; i < count; i++) {
+          const ves = vesselsList[i];
+          if (!ves || typeof ves.lat !== 'number' || typeof ves.lng !== 'number' || isNaN(ves.lat) || isNaN(ves.lng)) continue;
+
+          // Place ship smoothly on ocean surface
+          const [x, y, z] = coordsToVector(ves.lng, ves.lat, R_EARTH + 0.0042);
+          scratchPos.set(x, y, z);
+          scratchNormal.copy(scratchPos).normalize();
+
+          const normalDotUp = scratchNormal.dot(upWorldVector);
+          scratchNorth.copy(upWorldVector).addScaledVector(scratchNormal, -normalDotUp);
+          if (scratchNorth.lengthSq() < 0.0001) {
+            scratchNorth.set(0, 0, 1);
+          } else {
+            scratchNorth.normalize();
+          }
+          scratchEast.crossVectors(scratchNormal, scratchNorth).normalize();
+
+          // True heading/course from AIS
+          const rad = ((ves.course || 0) * Math.PI) / 180;
+          scratchHeading.copy(scratchNorth).multiplyScalar(Math.cos(rad)).addScaledVector(scratchEast, Math.sin(rad)).normalize();
+          scratchRight.crossVectors(scratchHeading, scratchNormal).normalize();
+
+          // Orientation: X -> starboard (right), Y -> bow heading (nose), Z -> normal (up from sea)
+          scratchRotMatrix.makeBasis(scratchRight, scratchHeading, scratchNormal);
+          scratchQuat.setFromRotationMatrix(scratchRotMatrix);
+
+          // Scaled according to vessel length (ULCV / VLCC appear more imposing)
+          const lengthFactor = ves.lengthM ? Math.max(0.75, Math.min(1.45, ves.lengthM / 280)) : 1.0;
+          scratchScale.set(lengthFactor, lengthFactor, lengthFactor);
+
+          dummyVesselMatrix.compose(scratchPos, scratchQuat, scratchScale);
+          vesselsInstancedMesh.setMatrixAt(validCount, dummyVesselMatrix);
+
+          // MarineTraffic category colors: Tanker (red), Cargo (cyan), LNG (emerald), Bulk (blue), Passenger (purple), Tug (amber)
+          tempVesselColor.set(ves.color || '#06b6d4');
+          vesselsInstancedMesh.setColorAt(validCount, tempVesselColor);
+
+          validCount++;
+        }
+
+        vesselsInstancedMesh.count = validCount;
+        vesselsInstancedMesh.instanceMatrix.needsUpdate = true;
+        if (vesselsInstancedMesh.instanceColor) {
+          vesselsInstancedMesh.instanceColor.needsUpdate = true;
+        }
+      } catch (err) {
+        console.warn('update3DVessels error:', err);
+      }
+    };
+
+    update3DVesselsRef.current = update3DVessels;
+
+    const unsubscribeMTS_3D = marineTrafficService.subscribe((vessels) => {
+      update3DVessels(vessels);
     });
 
     // 11d. Cyber Warfare Layer (Kaspersky Cybermap Parabolic Laser Arcs + Multi-Spark Photons + Concentric Impact Waves)
@@ -1685,6 +1743,30 @@ export function OrbitView3D({
             }
           }
 
+          // Proximity fallback check for live MarineTraffic vessels in 3D
+          if (activeLayersRef.current.has('maritime') && currentLiveVessels.length > 0) {
+            let closestVes = null;
+            let minVesDistSq = 0.008;
+            const maxCheck = Math.min(vesselLimitRef.current || 25, currentLiveVessels.length);
+            for (let k = 0; k < maxCheck; k++) {
+              const ves = currentLiveVessels[k];
+              const [px, py, pz] = coordsToVector(ves.lng, ves.lat, R_EARTH + 0.0042);
+              const dx = hitWorld.x - px;
+              const dy = hitWorld.y - py;
+              const dz = hitWorld.z - pz;
+              const dSq = dx * dx + dy * dy + dz * dz;
+              if (dSq < minVesDistSq) {
+                minVesDistSq = dSq;
+                closestVes = ves;
+              }
+            }
+            if (closestVes) {
+              sound.click();
+              setInspectedTarget({ type: 'vessel', isVessel: true, ...closestVes });
+              return;
+            }
+          }
+
           const localPoint = earthMesh.worldToLocal(intersects[0].point.clone());
           const { lat, lng } = updateCoordsFromLocalPoint(localPoint);
 
@@ -1964,16 +2046,12 @@ export function OrbitView3D({
         }
       }
 
-      // Animate maritime cargo vessels
+      // Animate maritime fleet (MarineTraffic Commercial Fleet - 10 Hz refresh, optimal 60 FPS)
       maritimeGroup.visible = layers.has('maritime');
-      if (maritimeGroup.visible) {
-        activeVessels.forEach((ves) => {
-          const t = (frameCount * ves.speed + ves.offset) % 1;
-          const pos = ves.curve.getPoint(t);
-          ves.shipMesh.position.copy(pos);
-          const tangent = ves.curve.getTangent(t).normalize();
-          ves.shipMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tangent);
-        });
+      if (maritimeGroup.visible && vesselsInstancedMesh) {
+        if (marineTrafficService.vessels.length > 0 && frameCount % 6 === 0) {
+          update3DVessels(marineTrafficService.vessels);
+        }
       }
 
       // Animate cyber attack pulses (Kaspersky Traveling Laser Beams & Ground Shockwaves)
@@ -2069,6 +2147,7 @@ export function OrbitView3D({
     return () => {
       cancelAnimationFrame(animationFrameId);
       update3DPlanesRef.current = null;
+      update3DVesselsRef.current = null;
       container.removeEventListener('contextmenu', onContextMenu);
       container.removeEventListener('wheel', onWheel);
       window.removeEventListener('pointerdown', onPointerDown);
@@ -2079,6 +2158,7 @@ export function OrbitView3D({
 
       unsubscribeStream();
       if (unsubscribeFR24_3D) unsubscribeFR24_3D();
+      if (unsubscribeMTS_3D) unsubscribeMTS_3D();
       activePulses.forEach((p) => {
         pulsesGroup.remove(p.mesh);
         p.mesh.geometry.dispose();

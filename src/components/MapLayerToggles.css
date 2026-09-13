@@ -514,3 +514,40 @@
   box-shadow: 0 0 8px rgba(255, 215, 0, 0.25);
 }
 
+/* Maritime AIS Specific Slider Styling */
+.flight-density-slider.maritime-slider:hover {
+  background: rgba(0, 245, 160, 0.2);
+}
+
+.flight-density-slider.maritime-slider::-webkit-slider-thumb {
+  background: #00f5a0;
+  box-shadow: 0 0 8px #00f5a0, 0 0 2px #000;
+}
+
+.flight-density-slider.maritime-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 12px #00f5a0, 0 0 3px #000;
+}
+
+.flight-density-slider.maritime-slider::-moz-range-thumb {
+  background: #00f5a0;
+  box-shadow: 0 0 8px #00f5a0, 0 0 2px #000;
+}
+
+.layer-flight-density-panel:has(.maritime-slider) {
+  border-color: rgba(0, 245, 160, 0.25);
+}
+
+.layer-flight-density-panel:has(.maritime-slider) .density-preset-btn:hover {
+  background: rgba(0, 245, 160, 0.1);
+  border-color: rgba(0, 245, 160, 0.3);
+  color: #00f5a0;
+}
+
+.layer-flight-density-panel:has(.maritime-slider) .density-preset-btn.is-active {
+  background: rgba(0, 245, 160, 0.18);
+  border-color: #00f5a0;
+  color: #00f5a0;
+  box-shadow: 0 0 8px rgba(0, 245, 160, 0.25);
+}
+
+
