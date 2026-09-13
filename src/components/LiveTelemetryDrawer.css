@@ -100,21 +100,62 @@
   background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.5), transparent);
 }
 
-/* Top Bar with Single Live / Refresh Arrow Button */
-.chrono-top-bar {
+/* Realtime Live Header Row */
+.chrono-live-top-row {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  height: 20px;
+  justify-content: space-between;
+  padding: 0 4px;
+  height: 22px;
+}
+
+.chrono-live-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 245, 160, 0.08);
+  border: 1px solid rgba(0, 245, 160, 0.25);
+  box-shadow: 0 0 10px rgba(0, 245, 160, 0.1);
+}
+
+.chrono-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00f5a0;
+  box-shadow: 0 0 8px #00f5a0;
+  animation: livePillBlink 1.5s infinite ease-in-out;
+}
+
+@keyframes livePillBlink {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
+.chrono-live-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #00f5a0;
+  text-transform: uppercase;
 }
 
 .chrono-sync-arrow-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 7px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
@@ -135,156 +176,40 @@
   transform: scale(0.94);
 }
 
-.chrono-sync-arrow-btn.is-shifted {
-  color: #00f5a0;
-  border-color: rgba(0, 245, 160, 0.45);
-  background: rgba(0, 245, 160, 0.12);
-  box-shadow: 0 0 14px rgba(0, 245, 160, 0.35);
-  animation: syncShiftPulse 2s infinite ease-in-out;
-}
-
-.chrono-sync-arrow-btn.is-shifted:hover {
-  color: #ffffff;
-  background: rgba(0, 245, 160, 0.25);
-  border-color: rgba(0, 245, 160, 0.7);
-  box-shadow: 0 0 20px rgba(0, 245, 160, 0.6);
-}
-
-@keyframes syncShiftPulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 10px rgba(0, 245, 160, 0.25);
-  }
-  50% {
-    transform: scale(1.08);
-    box-shadow: 0 0 18px rgba(0, 245, 160, 0.55);
-  }
-}
-
 .chrono-sync-arrow-btn.is-spinning svg {
   animation: spinRefresh 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Time Display & Stepper Row */
-.chrono-time-stepper-row {
+/* Big Monospace Time Display Clean */
+.drawer-time-display-clean {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  width: 100%;
-  margin: 2px 0 4px;
-}
-
-.chrono-time-stepper-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--neo-text-secondary);
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.chrono-time-stepper-btn:hover {
-  color: #00f2fe;
-  background: rgba(0, 242, 254, 0.12);
-  border-color: rgba(0, 242, 254, 0.4);
-  box-shadow: 0 0 14px rgba(0, 242, 254, 0.25);
-  transform: scale(1.08);
-}
-
-.chrono-time-stepper-btn:active {
-  transform: scale(0.93);
-}
-
-/* Big Monospace Time Display */
-.drawer-time-display {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px 8px;
-  border-radius: 8px;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
-}
-
-.drawer-time-display:hover {
-  background: rgba(0, 242, 254, 0.05);
+  padding: 4px 0 2px;
 }
 
 .drawer-time-big {
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 34px;
+  font-size: 36px;
   font-weight: 800;
   color: #ffffff;
   letter-spacing: 4px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 20px rgba(0, 242, 254, 0.45), 0 0 45px rgba(0, 242, 254, 0.18);
+  text-shadow: 0 0 20px rgba(0, 242, 254, 0.5), 0 0 45px rgba(0, 242, 254, 0.2);
   user-select: none;
 }
 
-.chrono-hidden-time-input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-
-/* Date Stepper Bar */
-.chrono-date-stepper-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-}
-
-.chrono-stepper-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--neo-text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.chrono-stepper-btn:hover {
-  color: #00f2fe;
-  background: rgba(0, 242, 254, 0.1);
-  border-color: rgba(0, 242, 254, 0.35);
-  box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
-}
-
-.chrono-date-trigger {
+/* Date Subtitle Row */
+.drawer-date-subtitle-row {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 4px 14px;
-  border-radius: 7px;
-  background: rgba(0, 242, 254, 0.04);
-  border: 1px solid rgba(0, 242, 254, 0.2);
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
-}
-
-.chrono-date-trigger:hover {
-  background: rgba(0, 242, 254, 0.12);
-  border-color: rgba(0, 242, 254, 0.4);
-  box-shadow: 0 0 14px rgba(0, 242, 254, 0.18);
+  padding: 3px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .chrono-calendar-icon {
@@ -295,17 +220,9 @@
   font-family: var(--font-mono, monospace);
   font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 1.8px;
   color: #e2e8f0;
   user-select: none;
-}
-
-.chrono-hidden-date-input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-  pointer-events: none;
 }
 
 .spin-live-icon {
@@ -678,7 +595,64 @@
   margin-top: auto;
 }
 
-/* ── 8. CCTV Live Cards & Categories ───────────────────────────────── */
+/* ── 8. CCTV Live Cards & World TV Categories ────────────────────── */
+.cctv-mode-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 12px 16px;
+  position: relative;
+}
+
+.cctv-mode-tab-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--neo-border-subtle, rgba(255, 255, 255, 0.08));
+  background: rgba(10, 16, 26, 0.85);
+  color: var(--neo-text-secondary, #94a3b8);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.cctv-mode-tab-btn:hover {
+  color: #ffffff;
+  border-color: rgba(56, 189, 248, 0.4);
+  background: rgba(16, 28, 44, 0.95);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.15);
+}
+
+.cctv-mode-tab-btn.is-active {
+  color: #00f2fe;
+  border-color: rgba(0, 242, 254, 0.65);
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(10, 25, 45, 0.8));
+  box-shadow: 0 0 16px rgba(0, 242, 254, 0.25), inset 0 0 10px rgba(0, 242, 254, 0.1);
+}
+
+.cctv-mode-count {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+}
+
+.cctv-mode-count.tv-count {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
 .cctv-subfilter-bar {
   display: flex;
   align-items: center;
@@ -762,17 +736,98 @@
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: #000;
+  background: #060b13;
   overflow: hidden;
 }
 
-.cctv-iframe-wrap iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
+.cctv-card-thumb-img {
   width: 100%;
   height: 100%;
-  border: none;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+  filter: brightness(0.85) contrast(1.1);
+}
+
+.cctv-live-card:hover .cctv-card-thumb-img {
+  transform: scale(1.08);
+  filter: brightness(1.05) contrast(1.15);
+}
+
+.cctv-card-scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.25) 0px,
+    rgba(0, 0, 0, 0.25) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  opacity: 0.65;
+  z-index: 1;
+}
+
+.cctv-resolution-pill {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.5px;
+  z-index: 2;
+}
+
+.cctv-card-play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(6, 11, 20, 0.55);
+  opacity: 0;
+  backdrop-filter: blur(2px);
+  transition: opacity 0.25s ease;
+  z-index: 3;
+}
+
+.cctv-live-card:hover .cctv-card-play-overlay {
+  opacity: 1;
+}
+
+.cctv-play-btn-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(0, 242, 254, 0.15);
+  border: 1.5px solid #00f2fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 16px rgba(0, 242, 254, 0.5);
+  transform: scale(0.9);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cctv-live-card:hover .cctv-play-btn-circle {
+  transform: scale(1.1);
+}
+
+.cctv-card-play-overlay span {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(0, 242, 254, 0.8);
 }
 
 .cctv-live-badge {
@@ -878,6 +933,106 @@
   color: var(--neo-cyan);
   font-weight: 700;
   letter-spacing: 0.3px;
+}
+
+/* ── DOT Snapshot & Traffic Live Badges ───────────────────────────── */
+.cctv-live-card.is-dot-snapshot {
+  border-color: rgba(0, 245, 160, 0.18);
+}
+
+.cctv-live-card.is-dot-snapshot:hover {
+  border-color: rgba(0, 245, 160, 0.4);
+  box-shadow: 0 0 20px rgba(0, 245, 160, 0.15);
+}
+
+.cctv-live-badge.is-dot-badge {
+  border-color: rgba(0, 245, 160, 0.5);
+  color: #00f5a0;
+}
+
+.cctv-rec-dot.is-dot-dot {
+  background: #00f5a0;
+  box-shadow: 0 0 8px #00f5a0;
+}
+
+.cctv-category-tag.is-dot-tag {
+  background: rgba(0, 245, 160, 0.1);
+  color: #00f5a0;
+}
+
+/* ── TV Channels & DRM Gateway Styling ────────────────────────────── */
+.tv-country-bar {
+  padding-bottom: 14px;
+}
+
+.tv-country-btn {
+  padding: 6px 12px;
+}
+
+.tv-country-flag {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.tv-country-btn.is-active {
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.6);
+  background: rgba(245, 158, 11, 0.12);
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.2);
+}
+
+.tv-channel-card {
+  border-left: 3px solid rgba(56, 189, 248, 0.4);
+}
+
+.tv-channel-card.is-drm-card {
+  border-left: 3px solid #f59e0b;
+}
+
+.cctv-live-badge.is-tv-badge {
+  border-color: rgba(0, 245, 160, 0.4);
+  color: #00f5a0;
+}
+
+.cctv-rec-dot.is-tv-dot {
+  background: #00f5a0;
+  box-shadow: 0 0 8px #00f5a0;
+}
+
+.cctv-category-tag.is-tv-tag {
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+}
+
+.cctv-live-badge.is-drm-badge {
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+}
+
+.cctv-rec-dot.is-drm-dot {
+  background: #fbbf24;
+  box-shadow: 0 0 8px #fbbf24;
+}
+
+.cctv-category-tag.is-drm-tag {
+  background: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
+}
+
+.tv-card-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tv-card-flag {
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.tv-card-network {
+  color: #00f2fe;
+  font-weight: 700;
 }
 
 /* ── 9. Satellite Cards ───────────────────────────────────────────── */

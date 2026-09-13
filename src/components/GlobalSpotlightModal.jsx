@@ -9,16 +9,19 @@ import {
   Crosshair,
   Flame,
   ArrowRight,
+  Tv,
 } from 'lucide-react';
 import { TERRITORY_NAMES_FR } from '../utils/countryData';
 import { METRIC_DEFINITIONS } from '../utils/worldometerMetrics';
 import {
   SATELLITES_DATA,
   CCTV_FEEDS,
+  LIVE_NEWS_CHANNELS,
   SUBMARINE_CABLES,
   THERMAL_ANOMALIES,
   WEATHER_SYSTEMS,
 } from '../data/osirisStreams';
+import { WORLD_TV_CHANNELS } from '../data/worldTvChannels';
 import { GEOPOLITICAL_ZONES } from '../data/tacticalStreams';
 import { HOTSPOTS } from '../data/mockData';
 import { sound } from '../utils/soundFX';
@@ -122,6 +125,38 @@ export function GlobalSpotlightModal({
         badgeBg: 'rgba(56, 189, 248, 0.15)',
         badgeColor: '#38bdf8',
         action: () => onSelectCCTV && onSelectCCTV(cam),
+      });
+    });
+
+    // 4.5. Live News Channels 24/7
+    (LIVE_NEWS_CHANNELS || []).forEach((news) => {
+      items.push({
+        id: `news-${news.id}`,
+        type: 'cctv',
+        typeLabel: 'INFO DIRECT 24/7',
+        title: `${news.name} [${news.country}]`,
+        subtitle: `Canal d'information mondial en direct — ${news.resolution} (${news.city})`,
+        icon: Tv,
+        color: '#f59e0b',
+        badgeBg: 'rgba(245, 158, 11, 0.15)',
+        badgeColor: '#f59e0b',
+        action: () => onSelectCCTV && onSelectCCTV(news),
+      });
+    });
+
+    // 4.6. World TV Channels (National & Generalist Broadcasters)
+    (WORLD_TV_CHANNELS || []).forEach((tv) => {
+      items.push({
+        id: `tv-${tv.id}`,
+        type: 'cctv',
+        typeLabel: tv.isDrmProtected ? 'TÉLÉVISION (PORTAIL)' : 'TÉLÉVISION DIRECT 24/7',
+        title: `${tv.logo || '📺'} ${tv.name} [${tv.country}]`,
+        subtitle: `${tv.network} — ${tv.category} (${tv.city})`,
+        icon: Tv,
+        color: tv.isDrmProtected ? '#fbbf24' : '#00f5a0',
+        badgeBg: tv.isDrmProtected ? 'rgba(251, 191, 36, 0.15)' : 'rgba(0, 245, 160, 0.15)',
+        badgeColor: tv.isDrmProtected ? '#fbbf24' : '#00f5a0',
+        action: () => onSelectCCTV && onSelectCCTV(tv),
       });
     });
 

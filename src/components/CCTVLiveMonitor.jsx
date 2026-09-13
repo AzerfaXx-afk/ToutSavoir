@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import Hls from 'hls.js';
 import {
   X,
   ChevronLeft,
@@ -15,9 +16,11 @@ import {
   ZoomOut,
   RotateCcw,
   Navigation,
+  ExternalLink,
 } from 'lucide-react';
 import { sound } from '../utils/soundFX';
-import { CCTV_FEEDS } from '../data/osirisStreams';
+import { CCTV_FEEDS, LIVE_NEWS_CHANNELS } from '../data/osirisStreams';
+import { WORLD_TV_CHANNELS } from '../data/worldTvChannels';
 import './CCTVLiveMonitor.css';
 
 export function CCTVLiveMonitor({
@@ -32,8 +35,106 @@ export function CCTVLiveMonitor({
   const [reloadKey, setReloadKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Vision Mode: 'optical' (Direct Optique HD), 'thermal' (FLIR), 'night' (NVG), 'stream' (YouTube/Web)
+  const videoRef = useRef(null);
+  const hlsRef = useRef(null);
+
+  // Vision Mode: 'optical' (Direct Optique HD), 'thermal' (FLIR), 'night' (NVG), 'snapshot' (Photo HD)
   const [visionMode, setVisionMode] = useState('optical');
+
+  // Automatically reset vision mode and PTZ when camera changes
+  useEffect(() => {
+    setVisionMode('optical');
+    setZoomLevel(1);
+    setPanOffset({ x: 0, y: 0 });
+  }, [camera?.id]);
+
+  // Live Snapshot Auto-Refresh (every 2-3 seconds for traffic and city DOT cams)
+  const [snapshotTimestamp, setSnapshotTimestamp] = useState(Date.now());
+  useEffect(() => {
+    if (!camera?.isLiveSnapshot) return;
+    const interval = setInterval(() => {
+      setSnapshotTimestamp(Date.now());
+    }, camera.refreshInterval || 2500);
+    return () => clearInterval(interval);
+  }, [camera?.id, camera?.isLiveSnapshot, camera?.refreshInterval]);
+
+  const currentMediaUrl = useMemo(() => {
+    if (!camera) return '';
+    if (camera.isLiveSnapshot && camera.feedUrl) {
+      return `${camera.feedUrl}?_t=${snapshotTimestamp}`;
+    }
+    return camera.thumbnail || camera.feedUrl || '';
+  }, [camera, snapshotTimestamp]);
+
+  const isHls = Boolean(
+    camera?.type === 'hls' ||
+    camera?.stream_type === 'hls' ||
+    camera?.stream_url?.includes('.m3u8') ||
+    camera?.feedUrl?.includes('.m3u8')
+  );
+  const isMp4 = Boolean(
+    camera?.type === 'mp4' ||
+    camera?.stream_type === 'mp4' ||
+    camera?.stream_url?.endsWith('.mp4') ||
+    camera?.feedUrl?.endsWith('.mp4')
+  );
+  const isMjpeg = Boolean(
+    camera?.type === 'mjpeg' ||
+    camera?.stream_type === 'mjpeg'
+  );
+  const isIframe = Boolean(
+    camera?.embedUrl ||
+    camera?.type === 'yt' ||
+    camera?.stream_type === 'iframe' ||
+    (camera?.stream_url && (camera.stream_url.includes('youtube') || camera.stream_url.includes('embed') || camera.stream_url.includes('ipcamlive')))
+  );
+  const iframeSrc = camera?.embedUrl || camera?.stream_url;
+  const streamVideoUrl = camera?.stream_url || camera?.feedUrl;
+
+  // HLS Engine Integration (Osiris / Broadcast Standards)
+  useEffect(() => {
+    if (!isHls || !streamVideoUrl || !videoRef.current) return;
+    if (Hls.isSupported()) {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+      }
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true,
+        backBufferLength: 30,
+      });
+      hlsRef.current = hls;
+      hls.loadSource(streamVideoUrl);
+      hls.attachMedia(videoRef.current);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        videoRef.current?.play().catch(() => {});
+      });
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              hls.startLoad();
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              hls.recoverMediaError();
+              break;
+            default:
+              hls.destroy();
+              break;
+          }
+        }
+      });
+    } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
+      videoRef.current.src = streamVideoUrl;
+      videoRef.current.play().catch(() => {});
+    }
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [camera?.id, streamVideoUrl, isHls, reloadKey]);
 
   // PTZ Controls
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -59,22 +160,30 @@ export function CCTVLiveMonitor({
     return () => cancelAnimationFrame(animId);
   }, []);
 
+  const allStreams = useMemo(() => {
+    if (camera?.countryCode) return WORLD_TV_CHANNELS;
+    const isNews = camera?.category?.includes('Info');
+    return isNews ? (LIVE_NEWS_CHANNELS || []) : CCTV_FEEDS;
+  }, [camera?.category, camera?.countryCode]);
+
   if (!camera) return null;
 
-  const currentIndex = CCTV_FEEDS.findIndex((c) => c.id === camera.id);
+  const currentIndex = allStreams.findIndex((c) => c.id === camera.id);
 
   const handlePrev = () => {
     sound.tick();
-    const prevIndex = (currentIndex - 1 + CCTV_FEEDS.length) % CCTV_FEEDS.length;
-    if (onSelectCamera) onSelectCamera(CCTV_FEEDS[prevIndex]);
+    const len = allStreams.length || 1;
+    const prevIndex = (currentIndex - 1 + len) % len;
+    if (onSelectCamera) onSelectCamera(allStreams[prevIndex]);
     setZoomLevel(1);
     setPanOffset({ x: 0, y: 0 });
   };
 
   const handleNext = () => {
     sound.tick();
-    const nextIndex = (currentIndex + 1) % CCTV_FEEDS.length;
-    if (onSelectCamera) onSelectCamera(CCTV_FEEDS[nextIndex]);
+    const len = allStreams.length || 1;
+    const nextIndex = (currentIndex + 1) % len;
+    if (onSelectCamera) onSelectCamera(allStreams[nextIndex]);
     setZoomLevel(1);
     setPanOffset({ x: 0, y: 0 });
   };
@@ -152,7 +261,11 @@ export function CCTVLiveMonitor({
       <div className="cctv-monitor-header">
         <div className="cctv-live-tag">
           <span className="cctv-rec-dot" />
-          <span>FLUX EN DIRECT // CAM {currentIndex + 1}/{CCTV_FEEDS.length}</span>
+          <span>
+            {camera?.category?.includes('Info')
+              ? `INFO 24/7 EN DIRECT // CANAL ${currentIndex + 1}/${allStreams.length}`
+              : `FLUX EN DIRECT // CAM ${currentIndex >= 0 ? currentIndex + 1 : 1}/${CCTV_FEEDS.length}`}
+          </span>
         </div>
 
         <div className="cctv-header-actions">
@@ -231,7 +344,7 @@ export function CCTVLiveMonitor({
             sound.click(0.3);
             setVisionMode('optical');
           }}
-          title="Direct optique haute définition 1080p garanti"
+          title="Direct optique haute définition temps réel"
         >
           <Eye size={11} />
           <span>DIRECT OPTIQUE</span>
@@ -244,7 +357,7 @@ export function CCTVLiveMonitor({
             sound.click(0.3);
             setVisionMode('night');
           }}
-          title="Vision nocturne tactique (phosphore vert NVG)"
+          title="Vision nocturne tactique (phosphore vert NVG Gen 3)"
         >
           <Moon size={11} />
           <span>NOCTURNE NVG</span>
@@ -263,31 +376,29 @@ export function CCTVLiveMonitor({
           <span>THERMIQUE FLIR</span>
         </button>
 
-        {camera.embedUrl && (
-          <button
-            type="button"
-            className={`cctv-vision-btn ${visionMode === 'stream' ? 'is-active is-stream' : ''}`}
-            onClick={() => {
-              sound.click(0.3);
-              setVisionMode('stream');
-            }}
-            title="Canal vidéo web externe (YouTube)"
-          >
-            <Tv size={11} />
-            <span>CANAL WEB</span>
-          </button>
-        )}
+        <button
+          type="button"
+          className={`cctv-vision-btn ${visionMode === 'snapshot' ? 'is-active is-snapshot' : ''}`}
+          onClick={() => {
+            sound.click(0.3);
+            setVisionMode('snapshot');
+          }}
+          title="Capture photo haute résolution instantanée"
+        >
+          <Camera size={11} />
+          <span>PHOTO HD</span>
+        </button>
       </div>
 
       {/* ─── Écran Vidéo de Surveillance (Scanlines, Shaders & PTZ) ─── */}
       <div
         className={`cctv-video-viewport mode-${visionMode}`}
-        style={{ height: isFullscreen ? '430px' : '220px' }}
+        style={{ height: isFullscreen ? '480px' : '230px' }}
       >
         {/* Flash de capture snapshot */}
         {snapshotAlert && (
           <div className="cctv-snapshot-flash">
-            <span className="cctv-snapshot-text">CLICHÉ SATELLITE ENREGISTRÉ</span>
+            <span className="cctv-snapshot-text">CLICHÉ ENREGISTRÉ</span>
           </div>
         )}
 
@@ -299,25 +410,73 @@ export function CCTVLiveMonitor({
             transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          {visionMode === 'stream' && camera.embedUrl ? (
-            <iframe
-              key={`${camera.id}-${reloadKey}`}
-              className="cctv-iframe"
-              src={camera.embedUrl}
-              title={camera.name}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              loading="lazy"
-            />
-          ) : (
-            <div className="cctv-optical-stream-wrap">
+          {isHls ? (
+            <div className="cctv-stream-container">
+              <video
+                ref={videoRef}
+                key={`hls-${camera.id}-${reloadKey}`}
+                className="cctv-video-element"
+                autoPlay
+                muted
+                playsInline
+                loop
+              />
+            </div>
+          ) : isMp4 ? (
+            <div className="cctv-stream-container">
+              <video
+                key={`mp4-${camera.id}-${reloadKey}`}
+                src={streamVideoUrl}
+                className="cctv-video-element"
+                autoPlay
+                muted
+                playsInline
+                loop
+              />
+            </div>
+          ) : isIframe ? (
+            <div className="cctv-stream-container">
+              <iframe
+                key={`iframe-${camera.id}-${reloadKey}`}
+                className="cctv-iframe"
+                src={iframeSrc}
+                title={camera.name}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                loading="eager"
+              />
+            </div>
+          ) : isMjpeg ? (
+            <div className="cctv-stream-container">
               <img
-                src={camera.thumbnail}
+                key={`mjpeg-${camera.id}-${reloadKey}`}
+                src={streamVideoUrl}
+                alt={camera.name}
+                className="cctv-optical-media"
+              />
+            </div>
+          ) : camera.isLiveSnapshot ? (
+            <div className="cctv-live-dot-wrap">
+              <img
+                key={`dot-${camera.id}-${snapshotTimestamp}`}
+                src={currentMediaUrl}
                 alt={camera.name}
                 className="cctv-optical-media"
                 loading="eager"
               />
-              {/* Shimmer atmosphérique simulé en direct */}
+              <div className="cctv-dot-live-indicator">
+                <span className="dot-pulse" />
+                <span>DIRECT CAPTEUR DOT // AUTO-RAFRAÎCHISSEMENT 2S</span>
+              </div>
+            </div>
+          ) : (
+            <div className="cctv-optical-stream-wrap">
+              <img
+                src={currentMediaUrl}
+                alt={camera.name}
+                className="cctv-optical-media"
+                loading="eager"
+              />
               <div className="cctv-ambient-shimmer" />
             </div>
           )}
@@ -337,31 +496,60 @@ export function CCTVLiveMonitor({
 
         {/* Télémétrie Capteur Gauche / Droite */}
         <div className="cctv-coords-badge">
-          {camera.lat.toFixed(4)}° N, {camera.lng.toFixed(4)}° E
+          {camera.category?.includes('Espace')
+            ? 'ORBITE LEO // 418 KM ALT'
+            : `${Math.abs(camera.lat).toFixed(4)}° ${camera.lat >= 0 ? 'N' : 'S'}, ${Math.abs(camera.lng).toFixed(4)}° ${camera.lng >= 0 ? 'E' : 'O'}`}
         </div>
 
         <div className="cctv-stream-stats-badge">
           <span>{camera.fps || 30}.0 FPS</span>
           <span className="stat-sep">•</span>
-          <span>5.2 Mbps</span>
+          <span>{camera.resolution || '1080p HD'}</span>
           <span className="stat-sep">•</span>
-          <span className="stat-codec">H.265</span>
+          <span className="stat-codec">{camera.category?.includes('Espace') ? 'NASA H.265' : 'H.265 HD'}</span>
         </div>
 
         {/* Boussole d'Azimut & Inclinaison */}
         <div className="cctv-telemetry-angles">
-          <span>AZ: {Math.abs(Math.round(camera.lat * 5.3) % 360)}°</span>
+          <span>AZ: {Math.abs(Math.round((camera.lat || 0) * 5.3) % 360)}°</span>
           <span>EL: -07.4°</span>
           {zoomLevel > 1 && <span className="cctv-zoom-indicator">ZOOM {zoomLevel}X</span>}
         </div>
 
-        {/* Overlay Thermique Température si mode FLIR */}
-        {visionMode === 'thermal' && (
-          <div className="cctv-flir-hud">
-            <span className="flir-target-box" />
-            <span className="flir-temp-tag">T_CIBLE: +36.8°C [HUMAIN / VÉHICULE]</span>
+        {/* Live Snapshot Auto-Refresh Badge */}
+        {camera.isLiveSnapshot && (
+          <div className="cctv-live-refresh-pill">
+            <span className="cctv-refresh-dot" />
+            <span>AUTO-REFRESH 5S</span>
           </div>
         )}
+
+        {/* Telemetry Spatiale si présente */}
+        {camera.telemetry && (
+          <div className="cctv-space-telemetry-badge">
+            <span>ALT: {camera.telemetry.alt}</span>
+            <span className="stat-sep">•</span>
+            <span>VIT: {camera.telemetry.speed}</span>
+          </div>
+        )}
+
+        {/* Overlay Thermique Température si mode FLIR */}
+        {visionMode === 'thermal' && (
+          <>
+            <div className="cctv-flir-hud">
+              <span className="flir-target-box" />
+              <span className="flir-temp-tag">T_CIBLE: +36.8°C [SIGNATURE FLIR]</span>
+            </div>
+            <div className="cctv-thermal-scale-bar">
+              <span className="thermal-scale-max">+42°C</span>
+              <div className="thermal-scale-gradient" />
+              <span className="thermal-scale-min">-04°C</span>
+            </div>
+          </>
+        )}
+
+        {/* Vignette tube intensificateur de lumière NVG Gen 3 */}
+        {visionMode === 'night' && <div className="cctv-nvg-vignette" />}
       </div>
 
       {/* ─── Barre de Contrôle PTZ (Zoom & Panoramique) ─── */}
@@ -421,6 +609,21 @@ export function CCTVLiveMonitor({
         <div className="cctv-meta-row">
           <span>{camera.description}</span>
         </div>
+
+        {camera.externalUrl && (
+          <div className="cctv-external-link-row">
+            <a
+              href={camera.externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cctv-external-source-link"
+              onClick={() => sound.click(0.25)}
+            >
+              <ExternalLink size={10} />
+              <span>SOURCE OFFICIELLE / RADAR TEMPS RÉEL</span>
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );

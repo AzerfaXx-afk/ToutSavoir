@@ -9,8 +9,13 @@ import { sound } from '../utils/soundFX';
 import {
   SATELLITES_DATA,
   CCTV_FEEDS,
+  LIVE_NEWS_CHANNELS,
   DEFENSE_COMMODITIES_MARKETS,
 } from '../data/osirisStreams';
+import {
+  TV_COUNTRIES,
+  WORLD_TV_CHANNELS,
+} from '../data/worldTvChannels';
 import {
   CYBER_ATTACK_VECTORS,
   TOP_ATTACKED_COUNTRIES,
@@ -31,6 +36,7 @@ import {
   X,
   Crosshair,
   Video,
+  Tv,
   ShieldAlert,
   Calendar,
   Maximize2,
@@ -45,6 +51,7 @@ import {
   Server,
   Zap,
   Plane,
+  Play,
 } from 'lucide-react';
 import { flightRadarService } from '../services/flightRadarService';
 import { ChronoJournalTab } from './ChronoJournalTab';
@@ -166,7 +173,9 @@ export function LiveTelemetryDrawer({
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [drawerMode, setDrawerMode] = useState('metrics'); // 'metrics' | 'journal'
+  const [cctvSubMode, setCctvSubMode] = useState('cameras'); // 'cameras' | 'tv'
   const [cctvFilter, setCctvFilter] = useState('all');
+  const [tvCountry, setTvCountry] = useState('all');
   const [cyberFilter, setCyberFilter] = useState('ALL');
   const [cyberDetectionsTick, setCyberDetectionsTick] = useState(148291530);
   const [liveFlights, setLiveFlights] = useState([]);
@@ -251,12 +260,12 @@ export function LiveTelemetryDrawer({
     }
   }, []);
 
-  /* ── Live Clock & Date Display Engine ──────────────────────────── */
+  /* ── Live Clock & Date Display Engine (100% Direct Temps Réel) ─── */
   useEffect(() => {
     const update = () => {
-      const target = customDateRef.current || new Date();
+      const now = new Date();
       setLocalTime(
-        target.toLocaleTimeString('fr-FR', {
+        now.toLocaleTimeString('fr-FR', {
           hour: '2-digit',
           minute: '2-digit',
           second: '2-digit',
@@ -264,11 +273,11 @@ export function LiveTelemetryDrawer({
         })
       );
       setLocalDate(
-        target
+        now
           .toLocaleDateString('fr-FR', {
-            weekday: 'short',
+            weekday: 'long',
             day: 'numeric',
-            month: 'short',
+            month: 'long',
             year: 'numeric',
           })
           .toUpperCase()
@@ -276,12 +285,7 @@ export function LiveTelemetryDrawer({
     };
 
     update();
-    const id = setInterval(() => {
-      if (customDateRef.current) {
-        customDateRef.current = new Date(customDateRef.current.getTime() + 1000);
-      }
-      update();
-    }, 1000);
+    const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, []);
 
@@ -380,22 +384,43 @@ export function LiveTelemetryDrawer({
       const matchesSearch =
         !q ||
         c.name.toLowerCase().includes(q) ||
-        c.city.toLowerCase().includes(q) ||
-        c.country.toLowerCase().includes(q) ||
-        (c.category && c.category.toLowerCase().includes(q));
+        (c.city && c.city.toLowerCase().includes(q)) ||
+        (c.country && c.country.toLowerCase().includes(q)) ||
+        (c.category && c.category.toLowerCase().includes(q)) ||
+        (c.source && c.source.toLowerCase().includes(q));
 
       if (!matchesSearch) return false;
 
       if (cctvFilter === 'all') return true;
       const cat = (c.category || '').toLowerCase();
+      if (cctvFilter === 'traffic') return cat.includes('trafic') || cat.includes('autoroute') || cat.includes('dot') || c.isLiveSnapshot;
       if (cctvFilter === 'megapoles') return cat.includes('mégapole') || cat.includes('capitale') || cat.includes('ville');
-      if (cctvFilter === 'maritime') return cat.includes('maritime') || cat.includes('chokepoint') || cat.includes('canal') || cat.includes('détroit');
+      if (cctvFilter === 'maritime') return cat.includes('maritime') || cat.includes('chokepoint') || cat.includes('canal') || cat.includes('détroit') || cat.includes('port');
       if (cctvFilter === 'aeroports') return cat.includes('aéroport') || cat.includes('piste');
       if (cctvFilter === 'nature') return cat.includes('nature') || cat.includes('volcan') || cat.includes('monument') || cat.includes('site');
-      if (cctvFilter === 'espace') return cat.includes('espace') || cat.includes('atmosphère');
+      if (cctvFilter === 'espace') return cat.includes('espace') || cat.includes('orbite');
       return true;
     });
   }, [searchQuery, cctvFilter]);
+
+  const filteredTV = useMemo(() => {
+    return WORLD_TV_CHANNELS.filter((tv) => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch =
+        !q ||
+        tv.name.toLowerCase().includes(q) ||
+        (tv.network && tv.network.toLowerCase().includes(q)) ||
+        (tv.city && tv.city.toLowerCase().includes(q)) ||
+        (tv.country && tv.country.toLowerCase().includes(q)) ||
+        (tv.category && tv.category.toLowerCase().includes(q)) ||
+        (tv.countryCode && tv.countryCode.toLowerCase().includes(q));
+
+      if (!matchesSearch) return false;
+
+      if (tvCountry === 'all') return true;
+      return tv.countryCode === tvCountry;
+    });
+  }, [searchQuery, tvCountry]);
 
   const filteredSatellites = useMemo(() => {
     if (!searchQuery) return SATELLITES_DATA;
@@ -607,11 +632,11 @@ export function LiveTelemetryDrawer({
     if (activeType === 'aviation') return filteredFlights.length;
     if (activeType === 'markets') return DEFENSE_COMMODITIES_MARKETS.length;
     if (activeType === 'cyber') return filteredCyber.length;
-    if (activeType === 'cctv') return filteredCCTV.length;
+    if (activeType === 'cctv') return cctvSubMode === 'cameras' ? filteredCCTV.length : filteredTV.length;
     if (activeType === 'satellites') return filteredSatellites.length;
     if (activeType === 'osint') return Object.keys(OSINT_DOSSIERS).length;
     return null;
-  }, [activeType, filteredMetrics, filteredFlights, filteredCyber, filteredCCTV, filteredSatellites]);
+  }, [activeType, filteredMetrics, filteredFlights, filteredCyber, filteredCCTV, filteredTV, cctvSubMode, filteredSatellites]);
 
   /* ── Render ────────────────────────────────────────────────────── */
   return (
@@ -654,107 +679,32 @@ export function LiveTelemetryDrawer({
         {/* ─── Centered Cockpit Chronometer Header ─── */}
         <div className="drawer-header">
           <div className="drawer-chrono-frame">
-            {/* Top Bar with Single Live / Refresh Arrow Button */}
-            <div className="chrono-top-bar">
+            {/* Realtime Live Header Row */}
+            <div className="chrono-live-top-row">
+              <div className="chrono-live-status-pill">
+                <span className="chrono-live-dot" />
+                <span className="chrono-live-label">TEMPS RÉEL // DIRECT</span>
+              </div>
               <button
                 type="button"
-                className={`chrono-sync-arrow-btn ${!isLive ? 'is-shifted' : ''} ${isRefreshing ? 'is-spinning' : ''}`}
+                className={`chrono-sync-arrow-btn ${isRefreshing ? 'is-spinning' : ''}`}
                 onClick={handleTopRightArrowClick}
-                title={!isLive ? "Remettre en direct (Temps réel)" : "Actualiser les indicateurs"}
-                aria-label={!isLive ? "Remettre en direct" : "Actualiser"}
+                title="Actualiser les métriques en direct"
+                aria-label="Actualiser les métriques"
               >
-                <RefreshCw size={13} />
+                <RefreshCw size={12} />
               </button>
             </div>
 
-            {/* Centered Digital Time Display with Stepper Arrows */}
-            <div className="chrono-time-stepper-row">
-              <button
-                type="button"
-                className="chrono-time-stepper-btn"
-                onClick={handlePrevHour}
-                title="Heure précédente (-1h)"
-                aria-label="Heure précédente"
-              >
-                <ChevronLeft size={16} />
-              </button>
-
-              <div
-                className="drawer-time-display"
-                onClick={triggerTimePicker}
-                onWheel={handleTimeWheel}
-                title="Cliquer pour régler l'heure ou utiliser la molette / flèches"
-              >
-                <span className="drawer-time-big">{localTime}</span>
-                <input
-                  ref={timeInputRef}
-                  type="time"
-                  step="1"
-                  className="chrono-hidden-time-input"
-                  value={currentIsoTime}
-                  onChange={handleSelectTimeInput}
-                  aria-label="Modifier l'heure"
-                />
-              </div>
-
-              <button
-                type="button"
-                className="chrono-time-stepper-btn"
-                onClick={handleNextHour}
-                title="Heure suivante (+1h)"
-                aria-label="Heure suivante"
-              >
-                <ChevronRight size={16} />
-              </button>
+            {/* Big Prominent Digital Monospace Clock */}
+            <div className="drawer-time-display-clean">
+              <span className="drawer-time-big">{localTime}</span>
             </div>
 
-            {/* Centered Date Stepper & Picker Bar */}
-            <div className="chrono-date-stepper-bar">
-              <button
-                type="button"
-                className="chrono-stepper-btn"
-                onClick={handlePrevDay}
-                title="Jour précédent (-1 jour)"
-                aria-label="Jour précédent"
-              >
-                <ChevronLeft size={13} />
-              </button>
-
-              <div
-                className="chrono-date-trigger"
-                onClick={() => {
-                  sound.click();
-                  if (dateInputRef.current) {
-                    if (typeof dateInputRef.current.showPicker === 'function') {
-                      dateInputRef.current.showPicker();
-                    } else {
-                      dateInputRef.current.focus();
-                    }
-                  }
-                }}
-                title="Cliquer pour choisir une date spécifique dans le calendrier"
-              >
-                <Calendar size={12} className="chrono-calendar-icon" />
-                <span className="drawer-date-text">{localDate}</span>
-                <input
-                  ref={dateInputRef}
-                  type="date"
-                  className="chrono-hidden-date-input"
-                  value={currentIsoDate}
-                  onChange={handleSelectDateInput}
-                  aria-label="Sélectionner une date"
-                />
-              </div>
-
-              <button
-                type="button"
-                className="chrono-stepper-btn"
-                onClick={handleNextDay}
-                title="Jour suivant (+1 jour)"
-                aria-label="Jour suivant"
-              >
-                <ChevronRight size={13} />
-              </button>
+            {/* Current Day Subtitle */}
+            <div className="drawer-date-subtitle-row">
+              <Calendar size={11} className="chrono-calendar-icon" />
+              <span className="drawer-date-text">{localDate}</span>
             </div>
           </div>
         </div>
@@ -821,7 +771,7 @@ export function LiveTelemetryDrawer({
                       : cat.type === 'cyber'
                       ? CYBER_ATTACK_VECTORS.length
                       : cat.type === 'cctv'
-                      ? CCTV_FEEDS.length
+                      ? CCTV_FEEDS.length + WORLD_TV_CHANNELS.length
                       : cat.type === 'satellites'
                       ? SATELLITES_DATA.length
                       : cat.type === 'osint'
@@ -1361,108 +1311,254 @@ export function LiveTelemetryDrawer({
             </div>
           )}
 
-          {/* ── CCTV EN DIRECT ── */}
+          {/* ── CCTV & TÉLÉVISION MONDIALE EN DIRECT ── */}
           {activeType === 'cctv' && (
             <>
-              {/* Sub-category filter pills */}
-              <div className="cctv-subfilter-bar">
-                {[
-                  { id: 'all', label: 'Tous', count: CCTV_FEEDS.length },
-                  {
-                    id: 'megapoles',
-                    label: 'Villes & Capitales',
-                    count: CCTV_FEEDS.filter((c) => {
-                      const k = (c.category || '').toLowerCase();
-                      return k.includes('mégapole') || k.includes('capitale') || k.includes('ville');
-                    }).length,
-                  },
-                  {
-                    id: 'maritime',
-                    label: 'Maritime & Détroits',
-                    count: CCTV_FEEDS.filter((c) => (c.category || '').toLowerCase().includes('maritime')).length,
-                  },
-                  {
-                    id: 'aeroports',
-                    label: 'Aéroports & Pistes',
-                    count: CCTV_FEEDS.filter((c) => (c.category || '').toLowerCase().includes('aéroport')).length,
-                  },
-                  {
-                    id: 'nature',
-                    label: 'Nature & Monuments',
-                    count: CCTV_FEEDS.filter((c) => {
-                      const k = (c.category || '').toLowerCase();
-                      return k.includes('nature') || k.includes('monument') || k.includes('site');
-                    }).length,
-                  },
-                  {
-                    id: 'espace',
-                    label: 'Espace & Orbite',
-                    count: CCTV_FEEDS.filter((c) => (c.category || '').toLowerCase().includes('espace')).length,
-                  },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={`cctv-subfilter-btn ${cctvFilter === item.id ? 'is-active' : ''}`}
-                    onClick={() => {
-                      sound.click(0.4);
-                      setCctvFilter(item.id);
-                    }}
-                    onMouseEnter={() => sound.hover()}
-                  >
-                    <span>{item.label}</span>
-                    <span className="subfilter-count">{item.count}</span>
-                  </button>
-                ))}
+              {/* Primary Dual Cyber Switch */}
+              <div className="cctv-mode-selector">
+                <button
+                  type="button"
+                  className={`cctv-mode-tab-btn ${cctvSubMode === 'cameras' ? 'is-active' : ''}`}
+                  onClick={() => {
+                    sound.click(0.4);
+                    setCctvSubMode('cameras');
+                  }}
+                  onMouseEnter={() => sound.hover()}
+                >
+                  <Video size={13} />
+                  <span>SURVEILLANCE DU MONDE & DOT</span>
+                  <span className="cctv-mode-count">{CCTV_FEEDS.length}</span>
+                </button>
+
+                <button
+                  type="button"
+                  className={`cctv-mode-tab-btn ${cctvSubMode === 'tv' ? 'is-active' : ''}`}
+                  onClick={() => {
+                    sound.click(0.4);
+                    setCctvSubMode('tv');
+                  }}
+                  onMouseEnter={() => sound.hover()}
+                >
+                  <Tv size={13} />
+                  <span>TÉLÉVISION MONDIALE (PAR PAYS)</span>
+                  <span className="cctv-mode-count tv-count">{WORLD_TV_CHANNELS.length}</span>
+                </button>
               </div>
 
-              {filteredCCTV.length === 0 ? (
-                <div className="empty-state">Aucun flux trouvé dans cette catégorie.</div>
-              ) : (
-                <div className="cctv-live-grid">
-                  {filteredCCTV.map((cam, i) => (
-                    <div
-                      key={cam.id}
-                      className="cctv-live-card"
-                      style={{ animationDelay: `${i * 0.06}s` }}
-                    >
-                      <div className="cctv-iframe-wrap">
-                        <iframe
-                          src={getPlayableUrl(cam.embedUrl)}
-                          title={cam.name}
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                          allowFullScreen
-                          loading="lazy"
-                        />
-                        <div className="cctv-live-badge">
-                          <span className="cctv-rec-dot" />
-                          <span>EN DIRECT</span>
-                        </div>
-                        <button
-                          type="button"
-                          className="cctv-pip-expand-btn"
+              {/* Submode 1: CAMERAS & DOT */}
+              {cctvSubMode === 'cameras' && (
+                <>
+                  <div className="cctv-subfilter-bar">
+                    {[
+                      { id: 'all', label: 'Toutes les Caméras', count: CCTV_FEEDS.length },
+                      {
+                        id: 'traffic',
+                        label: '🚦 Trafic & DOT (Live 5s)',
+                        count: CCTV_FEEDS.filter((c) => {
+                          const k = (c.category || '').toLowerCase();
+                          return k.includes('trafic') || k.includes('autoroute') || k.includes('dot') || c.isLiveSnapshot;
+                        }).length,
+                      },
+                      {
+                        id: 'megapoles',
+                        label: '🏙️ Villes & Capitales',
+                        count: CCTV_FEEDS.filter((c) => {
+                          const k = (c.category || '').toLowerCase();
+                          return k.includes('mégapole') || k.includes('capitale') || k.includes('ville');
+                        }).length,
+                      },
+                      {
+                        id: 'aeroports',
+                        label: '✈️ Aéroports Internationaux',
+                        count: CCTV_FEEDS.filter((c) => (c.category || '').toLowerCase().includes('aéroport')).length,
+                      },
+                      {
+                        id: 'maritime',
+                        label: '⚓ Maritime & Détroits',
+                        count: CCTV_FEEDS.filter((c) => {
+                          const k = (c.category || '').toLowerCase();
+                          return k.includes('maritime') || k.includes('chokepoint') || k.includes('canal') || k.includes('détroit') || k.includes('port');
+                        }).length,
+                      },
+                      {
+                        id: 'espace',
+                        label: '🚀 Espace & Orbite',
+                        count: CCTV_FEEDS.filter((c) => (c.category || '').toLowerCase().includes('espace')).length,
+                      },
+                      {
+                        id: 'nature',
+                        label: '🌋 Nature & Volcans',
+                        count: CCTV_FEEDS.filter((c) => {
+                          const k = (c.category || '').toLowerCase();
+                          return k.includes('nature') || k.includes('volcan');
+                        }).length,
+                      },
+                    ].map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={`cctv-subfilter-btn ${cctvFilter === item.id ? 'is-active' : ''}`}
+                        onClick={() => {
+                          sound.click(0.4);
+                          setCctvFilter(item.id);
+                        }}
+                        onMouseEnter={() => sound.hover()}
+                      >
+                        <span>{item.label}</span>
+                        <span className="subfilter-count">{item.count}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {filteredCCTV.length === 0 ? (
+                    <div className="empty-state">Aucun flux trouvé dans cette catégorie ou recherche.</div>
+                  ) : (
+                    <div className="cctv-live-grid">
+                      {filteredCCTV.map((cam, i) => (
+                        <div
+                          key={cam.id}
+                          className={`cctv-live-card ${cam.isLiveSnapshot ? 'is-dot-snapshot' : ''}`}
+                          style={{ animationDelay: `${i * 0.03}s`, cursor: 'pointer' }}
                           onClick={() => {
                             sound.click();
                             if (onSelectCCTV) onSelectCCTV(cam);
                           }}
-                          title="Ouvrir dans le moniteur de surveillance PiP"
                         >
-                          <Maximize2 size={11} />
-                        </button>
-                      </div>
-                      <div className="cctv-live-info">
-                        <div className="cctv-live-title">{cam.name}</div>
-                        <div className="cctv-live-location">
-                          {cam.city}, {cam.country}
+                          <div className="cctv-iframe-wrap">
+                            <img
+                              src={cam.thumbnail || 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&q=80'}
+                              alt={cam.name}
+                              className="cctv-card-thumb-img"
+                              loading="lazy"
+                            />
+                            <div className="cctv-card-scanlines" />
+                            <div className={`cctv-live-badge ${cam.isLiveSnapshot ? 'is-dot-badge' : ''}`}>
+                              <span className={`cctv-rec-dot ${cam.isLiveSnapshot ? 'is-dot-dot' : ''}`} />
+                              <span>{cam.isLiveSnapshot ? 'AUTO-REFRESH 5S' : cam.category?.includes('Info') ? 'INFO 24/7' : 'DIRECT OPTIQUE'}</span>
+                            </div>
+                            <div className="cctv-resolution-pill">{cam.resolution || '1080p HD'}</div>
+                            <div className="cctv-card-play-overlay">
+                              <div className="cctv-play-btn-circle">
+                                <Play size={15} fill="#00f2fe" color="#00f2fe" />
+                              </div>
+                              <span>{cam.isLiveSnapshot ? 'SURVEILLANCE ROUTIÈRE DIRECTE' : 'ACTIVER SURVEILLANCE DIRECTE'}</span>
+                            </div>
+                            <button
+                              type="button"
+                              className="cctv-pip-expand-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                sound.click();
+                                if (onSelectCCTV) onSelectCCTV(cam);
+                              }}
+                              title="Ouvrir dans le moniteur de surveillance PiP"
+                            >
+                              <Maximize2 size={11} />
+                            </button>
+                          </div>
+                          <div className="cctv-live-info">
+                            <div className="cctv-live-title">{cam.name}</div>
+                            <div className="cctv-live-location">
+                              {cam.city}, {cam.country}
+                            </div>
+                            <div className="cctv-live-meta">
+                              <span>{cam.resolution}</span>
+                              <span className={`cctv-category-tag ${cam.isLiveSnapshot ? 'is-dot-tag' : ''}`}>{cam.category}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="cctv-live-meta">
-                          <span>{cam.resolution}</span>
-                          <span className="cctv-category-tag">{cam.category}</span>
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
+              )}
+
+              {/* Submode 2: WORLD TELEVISION BY COUNTRY */}
+              {cctvSubMode === 'tv' && (
+                <>
+                  <div className="cctv-subfilter-bar tv-country-bar">
+                    {TV_COUNTRIES.map((cty) => (
+                      <button
+                        key={cty.id}
+                        type="button"
+                        className={`cctv-subfilter-btn tv-country-btn ${tvCountry === cty.id ? 'is-active' : ''}`}
+                        onClick={() => {
+                          sound.click(0.4);
+                          setTvCountry(cty.id);
+                        }}
+                        onMouseEnter={() => sound.hover()}
+                      >
+                        <span className="tv-country-flag">{cty.flag}</span>
+                        <span>{cty.label}</span>
+                        <span className="subfilter-count">{cty.count}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {filteredTV.length === 0 ? (
+                    <div className="empty-state">Aucune chaîne trouvée pour ce pays ou cette recherche.</div>
+                  ) : (
+                    <div className="cctv-live-grid">
+                      {filteredTV.map((tv, i) => (
+                        <div
+                          key={tv.id}
+                          className={`cctv-live-card tv-channel-card ${tv.isDrmProtected ? 'is-drm-card' : ''}`}
+                          style={{ animationDelay: `${i * 0.03}s`, cursor: 'pointer' }}
+                          onClick={() => {
+                            sound.click();
+                            if (onSelectCCTV) onSelectCCTV(tv);
+                          }}
+                        >
+                          <div className="cctv-iframe-wrap">
+                            <img
+                              src={tv.thumbnail || 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&q=80'}
+                              alt={tv.name}
+                              className="cctv-card-thumb-img"
+                              loading="lazy"
+                            />
+                            <div className="cctv-card-scanlines" />
+                            <div className={`cctv-live-badge ${tv.isDrmProtected ? 'is-drm-badge' : 'is-tv-badge'}`}>
+                              <span className={`cctv-rec-dot ${tv.isDrmProtected ? 'is-drm-dot' : 'is-tv-dot'}`} />
+                              <span>{tv.isDrmProtected ? 'PASSERELLE DRM' : 'EN DIRECT 24/7'}</span>
+                            </div>
+                            <div className="cctv-resolution-pill">{tv.resolution || '1080p HD'}</div>
+                            <div className="cctv-card-play-overlay">
+                              <div className="cctv-play-btn-circle">
+                                <Play size={15} fill={tv.isDrmProtected ? '#fbbf24' : '#00f5a0'} color={tv.isDrmProtected ? '#fbbf24' : '#00f5a0'} />
+                              </div>
+                              <span>{tv.isDrmProtected ? 'ACCÉDER AU DIRECT OFFICIEL' : 'ACTIVER DIRECT VIDÉO'}</span>
+                            </div>
+                            <button
+                              type="button"
+                              className="cctv-pip-expand-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                sound.click();
+                                if (onSelectCCTV) onSelectCCTV(tv);
+                              }}
+                              title="Ouvrir dans le moniteur de surveillance PiP"
+                            >
+                              <Maximize2 size={11} />
+                            </button>
+                          </div>
+                          <div className="cctv-live-info">
+                            <div className="tv-card-header-row">
+                              <span className="tv-card-flag">{tv.logo || '📺'}</span>
+                              <div className="cctv-live-title">{tv.name}</div>
+                            </div>
+                            <div className="cctv-live-location">
+                              <span className="tv-card-network">{tv.network}</span> • {tv.city}, {tv.country}
+                            </div>
+                            <div className="cctv-live-meta">
+                              <span>{tv.resolution}</span>
+                              <span className={`cctv-category-tag ${tv.isDrmProtected ? 'is-drm-tag' : 'is-tv-tag'}`}>{tv.category}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
@@ -1509,17 +1605,56 @@ export function LiveTelemetryDrawer({
                         <span className="sat-norad">
                           NORAD {sat.noradId} • {sat.status}
                         </span>
-                        <button
-                          type="button"
-                          className="sat-target-btn"
-                          onClick={() => {
-                            sound.click();
-                            if (onSelectSatellite) onSelectSatellite(sat);
-                          }}
-                        >
-                          <Crosshair size={10} />
-                          <span>Cibler</span>
-                        </button>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          {sat.hasLiveVideo && (
+                            <button
+                              type="button"
+                              className="sat-live-direct-btn"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '4px 8px',
+                                fontSize: '10px',
+                                fontWeight: 600,
+                                background: 'rgba(56, 189, 248, 0.2)',
+                                border: '1px solid #38bdf8',
+                                color: '#38bdf8',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => {
+                                sound.click();
+                                const cctv = CCTV_FEEDS.find((c) => c.id === sat.liveStreamId) || {
+                                  id: sat.liveStreamId || 'cctv-iss-hdev',
+                                  name: 'Station Spatiale Internationale (ISS)',
+                                  location: 'Orbite Basse Terrestre (LEO)',
+                                  country: 'Espace International',
+                                  category: 'Espace & Orbite',
+                                  embedUrl: 'https://www.youtube-nocookie.com/embed/P9C25Un7xaM?autoplay=1&mute=1',
+                                  resolution: '1080p HD',
+                                  fps: 60,
+                                };
+                                if (onSelectCCTV) onSelectCCTV(cctv);
+                              }}
+                              title="Ouvrir le flux vidéo 4K en direct de l'ISS"
+                            >
+                              <Video size={10} />
+                              <span>DIRECT ISS 4K</span>
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="sat-target-btn"
+                            onClick={() => {
+                              sound.click();
+                              if (onSelectSatellite) onSelectSatellite(sat);
+                            }}
+                          >
+                            <Crosshair size={10} />
+                            <span>Cibler</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}

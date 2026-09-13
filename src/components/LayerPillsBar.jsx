@@ -3,7 +3,7 @@ import { LAYER_DEFINITIONS } from '../data/layerDefinitions';
 import { sound } from '../utils/soundFX';
 import './LayerPillsBar.css';
 
-export function LayerPillsBar({ activeLayers = new Set(['aviation', 'satellites', 'cctv']), onToggleLayer, onSetAllLayers }) {
+export function LayerPillsBar({ activeLayers = new Set(), onToggleLayer, onSetAllLayers }) {
   const handleToggle = (layerId) => {
     sound.click(0.4);
     if (onToggleLayer) onToggleLayer(layerId);

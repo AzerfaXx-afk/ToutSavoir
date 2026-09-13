@@ -20,9 +20,9 @@ export default function App() {
   const [autoRotate, setAutoRotate] = useState(true);
   const [selectedYear, setSelectedYear] = useState(2026);
 
-  // Curated default entry: Aviation, Maritime, and Conflicts active for immediate authentic live tracking
+  // All layers disabled by default for zero clutter, maximum performance, and 100% fluid live experience
   const [activeLayers, setActiveLayers] = useState(
-    () => new Set(['aviation', 'maritime', 'conflicts'])
+    () => new Set()
   );
 
   // Flight traffic density limit (default: 2500 for authentic dense Flightradar24 experience at 60 FPS)
@@ -232,8 +232,9 @@ export default function App() {
     setIsDrawerOpen(true);
   }, []);
 
-  // Satellite select handler
+  // Satellite select handler (strictly exclusive to 3D Orbit view)
   const handleSelectSatellite = useCallback((sat) => {
+    setIs3D(true);
     setDrawerTab('satellites');
     setIsDrawerOpen(true);
     setTargetLocation({ lat: (sat.inclination || 45) * 0.6, lng: 15, zoom: 4 });
@@ -242,12 +243,16 @@ export default function App() {
   // CCTV select handler
   const handleSelectCCTV = useCallback((cam) => {
     setActiveCCTV(cam);
-    setTargetLocation({ lat: cam.lat, lng: cam.lng, zoom: 6 });
+    if (cam && typeof cam.lat === 'number' && typeof cam.lng === 'number' && !isNaN(cam.lat) && !isNaN(cam.lng)) {
+      setTargetLocation({ lat: cam.lat, lng: cam.lng, zoom: 6 });
+    }
   }, []);
 
   // Generic coordinate target handler
   const handleSelectLocation = useCallback((lat, lng, zoom = 5) => {
-    setTargetLocation({ lat, lng, zoom });
+    if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
+      setTargetLocation({ lat, lng, zoom });
+    }
   }, []);
 
   return (

@@ -7,11 +7,13 @@ import { realtimeStream } from '../utils/realtimeEvents';
 import { AVIATION_ROUTES, CYBER_ATTACK_VECTORS, GEOPOLITICAL_ZONES } from '../data/tacticalStreams';
 import {
   CCTV_FEEDS,
+  LIVE_NEWS_CHANNELS,
   SUBMARINE_CABLES,
   THERMAL_ANOMALIES,
   WEATHER_SYSTEMS,
   STRATEGIC_NUCLEAR_SITES,
 } from '../data/osirisStreams';
+import { WORLD_TV_CHANNELS } from '../data/worldTvChannels';
 import { LIVE_FLIGHTS, LIVE_VESSELS, getLiveTransitPositions, interpolateGreatCircle } from '../data/liveTransits';
 import { flightRadarService, getFlightradarPlaneSvg } from '../services/flightRadarService';
 import { marineTrafficService, getMarineTrafficVesselSvg } from '../services/marineTrafficService';
@@ -19,7 +21,7 @@ import { TacticalInspectionCard } from './TacticalInspectionCard';
 
 export function TacticalMap2D({
   activeLayer = 'satellite',
-  activeLayers = new Set(['aviation', 'conflicts']),
+  activeLayers = new Set(),
   flightLimit = 25,
   vesselLimit = 500,
   onSelectCCTV,
@@ -1257,7 +1259,7 @@ export function TacticalMap2D({
       });
     };
 
-    // 6. CCTV live cameras layer (46 strategic global webcams)
+    // 6. CCTV live cameras & Live News Channels layer (Global OSINT streams)
     const cctvLayer = L.layerGroup();
     cctvLayerRef.current = cctvLayer;
     CCTV_FEEDS.forEach((cam) => {
@@ -1272,6 +1274,25 @@ export function TacticalMap2D({
         if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
         sound.click();
         setInspectedTarget({ type: 'cctv', ...cam });
+        if (onSelectCCTV) onSelectCCTV(cam);
+      });
+      marker.addTo(cctvLayer);
+    });
+
+    // 6.2. World TV Channels (National & Generalist Networks)
+    (WORLD_TV_CHANNELS || []).forEach((tv) => {
+      const icon = L.divIcon({
+        className: 'news-div-icon-wrapper',
+        html: `<div class="news-div-marker" title="${tv.name} (${tv.network})"><span class="news-marker-dot"></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg></div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+      const marker = L.marker([tv.lat, tv.lng], { icon, pane: 'transitsPane' });
+      marker.on('click', (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        sound.click();
+        setInspectedTarget({ type: 'cctv', ...tv });
+        if (onSelectCCTV) onSelectCCTV(tv);
       });
       marker.addTo(cctvLayer);
     });
@@ -1590,6 +1611,14 @@ export function TacticalMap2D({
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !targetLocation) return;
+    if (
+      typeof targetLocation.lat !== 'number' ||
+      typeof targetLocation.lng !== 'number' ||
+      isNaN(targetLocation.lat) ||
+      isNaN(targetLocation.lng)
+    ) {
+      return;
+    }
     map.flyTo([targetLocation.lat, targetLocation.lng], targetLocation.zoom || 5.5, {
       duration: 1.4,
       easeLinearity: 0.25,
@@ -1758,7 +1787,9 @@ export function TacticalMap2D({
           if (onSelectCCTV) onSelectCCTV(target);
         }}
         onCenter={(lat, lng) => {
-          mapInstanceRef.current?.flyTo([lat, lng], 6, { duration: 1.2 });
+          if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
+            mapInstanceRef.current?.flyTo([lat, lng], 6, { duration: 1.2 });
+          }
         }}
         isDrawerOpen={isDrawerOpen}
       />

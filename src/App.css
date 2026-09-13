@@ -1639,6 +1639,40 @@ body.timeline-scrubbing-active * {
   animation: recPulse 1.2s infinite ease-in-out;
 }
 
+.news-div-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(18, 12, 4, 0.92);
+  border: 1.5px solid #f59e0b;
+  color: #f59e0b;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.55);
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+  position: relative;
+}
+
+.news-div-marker:hover {
+  transform: scale(1.25);
+  box-shadow: 0 0 22px #f59e0b;
+  border-color: #ffffff;
+}
+
+.news-marker-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b;
+  animation: recPulse 1s infinite ease-in-out;
+}
+
 .satellite-div-marker {
   display: flex;
   align-items: center;

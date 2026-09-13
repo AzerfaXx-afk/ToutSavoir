@@ -17,6 +17,7 @@ import {
   Wifi,
 } from 'lucide-react';
 import { sound } from '../utils/soundFX';
+import { CCTV_FEEDS } from '../data/osirisStreams';
 import './TacticalInspectionCard.css';
 
 export function TacticalInspectionCard({
@@ -591,6 +592,38 @@ export function TacticalInspectionCard({
           >
             <Video size={13} />
             <span>VISIONNER EN DIRECT</span>
+          </button>
+        )}
+
+        {isSatellite && (target.hasLiveVideo || target.liveStreamId) && (
+          <button
+            type="button"
+            className="tic-action-btn primary"
+            style={{
+              background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(0, 242, 254, 0.15))',
+              borderColor: '#38bdf8',
+              color: '#38bdf8',
+            }}
+            onClick={() => {
+              sound.click();
+              if (onOpenLive) {
+                const cctv = CCTV_FEEDS.find((c) => c.id === target.liveStreamId) || {
+                  id: target.liveStreamId || 'cctv-iss-hdev',
+                  name: 'Station Spatiale Internationale (ISS)',
+                  location: 'Orbite Basse Terrestre (LEO)',
+                  country: 'Espace International',
+                  category: 'Espace & Orbite',
+                  embedUrl: 'https://www.youtube-nocookie.com/embed/P9C25Un7xaM?autoplay=1&mute=1',
+                  resolution: '1080p HD',
+                  fps: 60,
+                };
+                onOpenLive(cctv);
+              }
+            }}
+            onMouseEnter={() => sound.hover()}
+          >
+            <Video size={13} />
+            <span>DIRECT DE L'ESPACE (ISS 4K)</span>
           </button>
         )}
 

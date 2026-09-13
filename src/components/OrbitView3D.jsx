@@ -10,11 +10,13 @@ import {
   SATELLITES_DATA,
   STARLINK_SWARM_NODES,
   CCTV_FEEDS,
+  LIVE_NEWS_CHANNELS,
   SUBMARINE_CABLES,
   THERMAL_ANOMALIES,
   WEATHER_SYSTEMS,
   STRATEGIC_NUCLEAR_SITES,
 } from '../data/osirisStreams';
+import { WORLD_TV_CHANNELS } from '../data/worldTvChannels';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { flightRadarService } from '../services/flightRadarService';
 import { marineTrafficService } from '../services/marineTrafficService';
@@ -39,7 +41,7 @@ function pointInPolygon(point, poly) {
 export function OrbitView3D({
   autoRotate = true,
   onAutoRotateChange,
-  activeLayers = new Set(['aviation', 'maritime', 'conflicts']),
+  activeLayers = new Set(),
   flightLimit = 2500,
   vesselLimit = 5000,
   onSelectCCTV,
@@ -1492,10 +1494,12 @@ export function OrbitView3D({
     const cctvGroup = new THREE.Group();
     earthGroup.add(cctvGroup);
     const cctvMeshes = [];
+    const allCCTVAndNews = [...CCTV_FEEDS, ...(WORLD_TV_CHANNELS || [])];
 
-    CCTV_FEEDS.forEach((cam) => {
+    allCCTVAndNews.forEach((cam) => {
       const [x, y, z] = coordsToVector(cam.lng, cam.lat, R_EARTH + 0.008);
       const pos = new THREE.Vector3(x, y, z);
+      const isNews = (cam.category || '').toLowerCase().includes('info');
 
       const beaconGroup = new THREE.Group();
       beaconGroup.position.copy(pos);
@@ -1503,23 +1507,32 @@ export function OrbitView3D({
 
       const ringGeom = new THREE.RingGeometry(0.01, 0.026, 20);
       const ringMat = new THREE.MeshBasicMaterial({
-        color: 0x38bdf8,
+        color: isNews ? 0xf59e0b : 0x38bdf8,
         transparent: true,
-        opacity: 0.85,
+        opacity: 0.9,
         side: THREE.DoubleSide,
       });
       const ringMesh = new THREE.Mesh(ringGeom, ringMat);
       beaconGroup.add(ringMesh);
 
       const pinGeom = new THREE.SphereGeometry(0.012, 12, 12);
-      const pinMat = new THREE.MeshBasicMaterial({ color: 0xff3366 });
+      const pinMat = new THREE.MeshBasicMaterial({ color: isNews ? 0xffb703 : 0xff3366 });
       const pinMesh = new THREE.Mesh(pinGeom, pinMat);
       pinMesh.position.z = 0.012;
       pinMesh.userData = { isCCTV: true, camera: cam };
       beaconGroup.add(pinMesh);
 
+      // Ergonomic invisible hit target (0.045 radius) for effortless raycast picking in 3D
+      const hitGeom = new THREE.SphereGeometry(0.045, 8, 8);
+      const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+      const hitMesh = new THREE.Mesh(hitGeom, hitMat);
+      hitMesh.position.z = 0.012;
+      hitMesh.userData = { isCCTV: true, camera: cam };
+      beaconGroup.add(hitMesh);
+
       beaconGroup.userData = { isCCTV: true, camera: cam };
       cctvGroup.add(beaconGroup);
+      cctvMeshes.push(hitMesh);
       cctvMeshes.push(pinMesh);
     });
 
@@ -1800,6 +1813,7 @@ export function OrbitView3D({
             if (hitCam) {
               sound.click();
               setInspectedTarget({ type: 'cctv', ...hitCam });
+              if (onSelectCCTV) onSelectCCTV(hitCam);
               return;
             }
           }
@@ -1985,6 +1999,31 @@ export function OrbitView3D({
           const localPoint = earthMesh.worldToLocal(intersects[0].point.clone());
           const { lat, lng } = updateCoordsFromLocalPoint(localPoint);
 
+          // Proximity fallback check for live CCTV cameras & News channels in 3D (clic direct immédiat sans pixel-hunting)
+          const allStreams3D = [...CCTV_FEEDS, ...(WORLD_TV_CHANNELS || [])];
+          if (activeLayersRef.current.has('cctv') && allStreams3D.length > 0) {
+            let closestCam = null;
+            let minCamDistSq = 0.009; // Rayon d'attraction ergonomique (~30px)
+            for (let k = 0; k < allStreams3D.length; k++) {
+              const cam = allStreams3D[k];
+              const [px, py, pz] = coordsToVector(cam.lng, cam.lat, R_EARTH + 0.008);
+              const dx = localPoint.x - px;
+              const dy = localPoint.y - py;
+              const dz = localPoint.z - pz;
+              const dSq = dx * dx + dy * dy + dz * dz;
+              if (dSq < minCamDistSq) {
+                minCamDistSq = dSq;
+                closestCam = cam;
+              }
+            }
+            if (closestCam) {
+              sound.click();
+              setInspectedTarget({ type: 'cctv', ...closestCam });
+              if (onSelectCCTV) onSelectCCTV(closestCam);
+              return;
+            }
+          }
+
           const foundFeature = findCountryFeature(lat, lng);
 
           if (foundFeature) {
@@ -2121,7 +2160,13 @@ export function OrbitView3D({
         }
 
         if (!isRightDragging && !(e.buttons & 2)) {
-          container.style.cursor = foundFeature ? 'pointer' : 'default';
+          // Check hover on CCTV beacon meshes
+          let isHoveringCCTV = false;
+          if (activeLayersRef.current.has('cctv') && cctvMeshes.length > 0) {
+            const cctvHits = raycaster.intersectObjects(cctvMeshes, true);
+            if (cctvHits.length > 0) isHoveringCCTV = true;
+          }
+          container.style.cursor = (foundFeature || isHoveringCCTV) ? 'pointer' : 'default';
         }
       } else {
         if (hoveredFeatureRef.current) {
@@ -2134,7 +2179,12 @@ export function OrbitView3D({
         updateCoordsFromLocalPoint(localPoint);
 
         if (!isRightDragging && !(e.buttons & 2)) {
-          container.style.cursor = 'default';
+          let isHoveringCCTV = false;
+          if (activeLayersRef.current.has('cctv') && cctvMeshes.length > 0) {
+            const cctvHits = raycaster.intersectObjects(cctvMeshes, true);
+            if (cctvHits.length > 0) isHoveringCCTV = true;
+          }
+          container.style.cursor = isHoveringCCTV ? 'pointer' : 'default';
         }
       }
 

@@ -55,7 +55,7 @@ export const LAYER_CONFIGS = [
   {
     id: 'cctv',
     label: 'Caméras direct',
-    shortLabel: 'CCTV (46)',
+    shortLabel: `CCTV (${CCTV_FEEDS.length})`,
     icon: Video,
     count: CCTV_FEEDS.length,
     source: 'Flux Live 1080p',
