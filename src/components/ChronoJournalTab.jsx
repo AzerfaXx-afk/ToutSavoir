@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { fetchDailyBriefing } from '../utils/historicalEventsApi';
+import { fetchWorldDailyIntel } from '../utils/worldEventsLiveApi';
 import { sound } from '../utils/soundFX';
 import {
   BookOpen,
@@ -11,86 +11,76 @@ import {
   X,
   Clock,
   Globe,
-  Sparkles,
-  Shield,
-  Layers,
+  Radio,
+  Compass,
+  Crosshair,
+  MapPin,
 } from 'lucide-react';
 import './ChronoJournalTab.css';
 
-export function ChronoJournalTab({ selectedDate = new Date(), metrics = {} }) {
-  const [briefing, setBriefing] = useState(null);
+export function ChronoJournalTab({
+  selectedDate = new Date(),
+  metrics = {},
+  onSelectLocation,
+}) {
+  const [intelData, setIntelData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAll24h, setShowAll24h] = useState(false);
+  const [targetedId, setTargetedId] = useState(null);
+
+  // Charger les données mondiales en temps réel
+  const loadDailyIntel = async (forceRefresh = false) => {
+    if (forceRefresh) setIsRefreshing(true);
+    else setIsLoading(true);
+
+    try {
+      const data = await fetchWorldDailyIntel(selectedDate, { showAll24h });
+      setIntelData(data);
+    } catch (err) {
+      console.error('[ChronoJournal] Erreur chargement direct:', err);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    let isCancelled = false;
-    setIsLoading(true);
+    loadDailyIntel();
+  }, [selectedDate, showAll24h]);
 
-    fetchDailyBriefing(selectedDate)
-      .then((data) => {
-        if (!isCancelled) {
-          setBriefing(data);
-          setIsLoading(false);
-        }
-      })
-      .catch(() => {
-        if (!isCancelled) setIsLoading(false);
-      });
+  // Liste active selon le filtre horaire
+  const activeTimeline = useMemo(() => {
+    if (!intelData) return [];
+    return showAll24h ? (intelData.allItems24h || []) : (intelData.filteredItems || []);
+  }, [intelData, showAll24h]);
 
-    return () => {
-      isCancelled = true;
+  // Compteurs par catégorie
+  const categoryCounts = useMemo(() => {
+    const list = activeTimeline;
+    return {
+      all: list.length,
+      geopolitics: list.filter((i) => i.category === 'GÉOPOLITIQUE').length,
+      quakes: list.filter((i) => i.category === 'SÉISME' || i.category === 'CLIMAT & NATURE').length,
+      diplomacy: list.filter((i) => i.category === 'DIPLOMATIE').length,
+      science: list.filter((i) => i.category === 'SCIENCE & ESPACE' || i.category === 'SOCIÉTÉ & MONDE').length,
     };
-  }, [selectedDate]);
+  }, [activeTimeline]);
 
-  // Combine historical events & earthquakes into a single unified 24h timeline
-  const unifiedTimeline = useMemo(() => {
-    if (!briefing) return [];
-
-    const eventsList = (briefing.events || []).map((e) => ({
-      ...e,
-      itemType: 'event',
-    }));
-
-    const quakesList = (briefing.earthquakes || []).map((q) => {
-      const timeStr = `${q.time} UTC`;
-      const [h, m] = q.time.split(':').map(Number);
-      const minutesOfDay = (h || 0) * 60 + (m || 0);
-
-      return {
-        id: `quake-${q.id}`,
-        itemType: 'quake',
-        time: timeStr,
-        minutesOfDay,
-        year: briefing.year,
-        title: `Séisme M ${q.mag} — ${q.place}`,
-        text: `Magnitude sismique ${q.mag} enregistrée à une profondeur de ${q.depthKm} km sous la croûte terrestre. Donnée télémétrique certifiée par l'USGS.`,
-        category: 'SÉISME',
-        mag: q.mag,
-        depthKm: q.depthKm,
-        place: q.place,
-        url: q.url,
-      };
-    });
-
-    const combined = [...eventsList, ...quakesList];
-    // Sort strictly chronologically by minute of the 24-hour day
-    combined.sort((a, b) => (a.minutesOfDay || 0) - (b.minutesOfDay || 0));
-    return combined;
-  }, [briefing]);
-
-  // Filter items by category tab & search query
+  // Filtrage par onglet & recherche
   const filteredTimeline = useMemo(() => {
-    let list = unifiedTimeline;
+    let list = activeTimeline;
 
     if (activeFilter === 'geopolitics') {
-      list = list.filter((i) => i.category === 'GEOPOLITIQUE' || i.category === 'DIPLOMATIE');
+      list = list.filter((i) => i.category === 'GÉOPOLITIQUE');
     } else if (activeFilter === 'quakes') {
-      list = list.filter((i) => i.itemType === 'quake' || i.category === 'CATASTROPHE' || i.category === 'SÉISME');
+      list = list.filter((i) => i.category === 'SÉISME' || i.category === 'CLIMAT & NATURE');
+    } else if (activeFilter === 'diplomacy') {
+      list = list.filter((i) => i.category === 'DIPLOMATIE');
     } else if (activeFilter === 'science') {
-      list = list.filter((i) => i.category === 'SCIENCE & ESPACE');
-    } else if (activeFilter === 'history') {
-      list = list.filter((i) => i.itemType === 'event' && i.category !== 'GEOPOLITIQUE');
+      list = list.filter((i) => i.category === 'SCIENCE & ESPACE' || i.category === 'SOCIÉTÉ & MONDE');
     }
 
     if (searchQuery.trim()) {
@@ -100,57 +90,117 @@ export function ChronoJournalTab({ selectedDate = new Date(), metrics = {} }) {
           (i.title && i.title.toLowerCase().includes(q)) ||
           (i.text && i.text.toLowerCase().includes(q)) ||
           (i.category && i.category.toLowerCase().includes(q)) ||
+          (i.source && i.source.toLowerCase().includes(q)) ||
+          (i.placeName && i.placeName.toLowerCase().includes(q)) ||
           (i.time && i.time.toLowerCase().includes(q))
       );
     }
 
     return list;
-  }, [unifiedTimeline, activeFilter, searchQuery]);
+  }, [activeTimeline, activeFilter, searchQuery]);
 
   const handleFilterClick = (filterId) => {
     sound.click(0.35);
     setActiveFilter(filterId);
   };
 
-  if (isLoading) {
+  const handleToggleRange = () => {
+    sound.tick();
+    setShowAll24h((prev) => !prev);
+  };
+
+  // Centrage immédiat sur la carte lors d'un clic sur l'événement
+  const handleLocateItem = (item, e) => {
+    if (e) e.stopPropagation();
+    sound.click(0.45);
+    setTargetedId(item.id);
+
+    if (onSelectLocation && item.lat !== undefined && item.lng !== undefined) {
+      onSelectLocation(item.lat, item.lng, item.zoom || 6);
+    }
+  };
+
+  if (isLoading && !intelData) {
     return (
       <div className="journal-loading-state">
         <RefreshCw size={26} className="journal-spin-icon" />
-        <span className="journal-loading-text">SYNCHRONISATION DES REGISTRES MONDIAUX DU JOUR...</span>
-        <span className="journal-loading-sub">Interrogation des archives officielles Wikipédia & sismographes USGS</span>
+        <span className="journal-loading-text">ACQUISITION DES FLUX MONDIAUX EN DIRECT...</span>
+        <span className="journal-loading-sub">
+          Agrégation France 24, RFI, Nations Unies, Euronews, sismographes USGS & NASA EONET
+        </span>
       </div>
     );
   }
 
   return (
     <div className="chrono-journal-container">
-      {/* ─── Daily Summary Header Banner ─── */}
+      {/* ─── Entête Journal du Jour ─── */}
       <div className="journal-header-card">
         <div className="journal-header-top">
           <div className="journal-title-tag">
-            <BookOpen size={13} />
-            <span>JOURNAL DU JOUR // CHRONIQUE DU MONDE</span>
+            <Radio size={13} className="journal-pulse-icon" />
+            <span>JOURNAL DU JOUR // MONDE EN DIRECT</span>
           </div>
-          <span className="journal-source-tag">ARCHIVES ONTHISDAY & USGS EN CONTINU</span>
+          <button
+            type="button"
+            className="journal-refresh-btn"
+            onClick={() => {
+              sound.tick();
+              loadDailyIntel(true);
+            }}
+            title="Actualiser les dépêches mondiales"
+          >
+            <RefreshCw size={11} className={isRefreshing ? 'journal-spin-icon' : ''} />
+            <span>ACTUALISER</span>
+          </button>
         </div>
 
         <div className="journal-date-large">
-          {briefing?.formattedDate || 'Aujourd’hui'}
+          {intelData?.formattedDate || 'Aujourd’hui'}
+        </div>
+
+        {/* Sélecteur de fenêtre horaire */}
+        <div className="journal-time-window-row">
+          <div className="time-window-badge">
+            <Clock size={11} />
+            <span>
+              {showAll24h
+                ? 'Cycle complet 24 heures (00:00 - 23:59 UTC)'
+                : `Flux direct : depuis 00:00 jusqu’à ${intelData?.currentTimeStr || 'l’heure actuelle'}`}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className="time-window-toggle"
+            onClick={handleToggleRange}
+            title={showAll24h ? "Filtrer jusqu'à maintenant" : "Afficher l'ensemble de la journée"}
+          >
+            {showAll24h ? 'Filtrer jusqu’à maintenant' : 'Voir tout le fil (24h)'}
+          </button>
         </div>
 
         <div className="journal-stats-pills">
           <div className="journal-stat-pill">
             <Clock size={11} />
-            <span>Chronologie 24h : <strong>{unifiedTimeline.length} entrées</strong></span>
+            <span>
+              Événements recensés : <strong>{activeTimeline.length}</strong>
+            </span>
           </div>
           <div className="journal-stat-pill">
             <Activity size={11} />
-            <span>Séismes M4.5+ : <strong>{briefing?.earthquakes?.length || 0}</strong></span>
+            <span>
+              Séismes USGS : <strong>{intelData?.earthquakes?.length || 0}</strong>
+            </span>
+          </div>
+          <div className="journal-stat-pill is-source-summary">
+            <Globe size={11} />
+            <span>France 24, RFI, ONU, Euronews, USGS, NASA</span>
           </div>
         </div>
       </div>
 
-      {/* ─── Daily Vital Figures (Worldometer Verified Baseline) ─── */}
+      {/* ─── Indicateurs Vitaux du Monde (Worldometer) ─── */}
       <div className="journal-figures-grid">
         <div className="journal-fig-card">
           <span className="journal-fig-label">Naissances aujourd’hui</span>
@@ -178,13 +228,13 @@ export function ChronoJournalTab({ selectedDate = new Date(), metrics = {} }) {
         </div>
       </div>
 
-      {/* ─── Quick Search Bar in Daily Journal ─── */}
+      {/* ─── Barre de Recherche Rapide ─── */}
       <div className="journal-search-wrap">
         <Search size={13} className="journal-search-icon" />
         <input
           type="text"
           className="journal-search-input"
-          placeholder="Rechercher un fait marquant, traité, ville..."
+          placeholder="Rechercher une dépêche, séisme, pays, ville..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -200,84 +250,126 @@ export function ChronoJournalTab({ selectedDate = new Date(), metrics = {} }) {
         )}
       </div>
 
-      {/* ─── Filter Tabs Bar ─── */}
+      {/* ─── Onglets de Filtrage Thématique ─── */}
       <div className="journal-filter-bar">
         <button
           type="button"
           className={`journal-filter-btn ${activeFilter === 'all' ? 'is-active' : ''}`}
           onClick={() => handleFilterClick('all')}
         >
-          Tout le fil 24h ({unifiedTimeline.length})
+          Tout le direct ({categoryCounts.all})
         </button>
         <button
           type="button"
           className={`journal-filter-btn ${activeFilter === 'geopolitics' ? 'is-active' : ''}`}
           onClick={() => handleFilterClick('geopolitics')}
         >
-          Géopolitique & Traités
+          Géopolitique ({categoryCounts.geopolitics})
         </button>
         <button
           type="button"
           className={`journal-filter-btn ${activeFilter === 'quakes' ? 'is-active' : ''}`}
           onClick={() => handleFilterClick('quakes')}
         >
-          Séismes ({briefing?.earthquakes?.length || 0})
+          Séismes & Nature ({categoryCounts.quakes})
+        </button>
+        <button
+          type="button"
+          className={`journal-filter-btn ${activeFilter === 'diplomacy' ? 'is-active' : ''}`}
+          onClick={() => handleFilterClick('diplomacy')}
+        >
+          Diplomatie & ONU ({categoryCounts.diplomacy})
         </button>
         <button
           type="button"
           className={`journal-filter-btn ${activeFilter === 'science' ? 'is-active' : ''}`}
           onClick={() => handleFilterClick('science')}
         >
-          Sciences & Espace
-        </button>
-        <button
-          type="button"
-          className={`journal-filter-btn ${activeFilter === 'history' ? 'is-active' : ''}`}
-          onClick={() => handleFilterClick('history')}
-        >
-          Histoire
+          Sciences & Société ({categoryCounts.science})
         </button>
       </div>
 
-      {/* ─── 24-Hour Chronological Spine Feed ─── */}
+      {/* ─── Fil Chronologique Connecté à la Carte ─── */}
       <div className="journal-timeline-feed">
         <div className="timeline-spine-rail" />
 
         {filteredTimeline.length === 0 ? (
           <div className="journal-empty-state">
             <Globe size={24} className="journal-empty-icon" />
-            <span>Aucun événement correspondant aux critères pour cette journée.</span>
+            <span>Aucune dépêche ou événement dans cette tranche horaire.</span>
+            {!showAll24h && (
+              <button
+                type="button"
+                className="journal-empty-btn"
+                onClick={() => setShowAll24h(true)}
+              >
+                Afficher l'ensemble des 24 heures
+              </button>
+            )}
           </div>
         ) : (
           filteredTimeline.map((item, index) => {
-            const isQuake = item.itemType === 'quake';
+            const isQuake = item.category === 'SÉISME';
+            const isTargeted = targetedId === item.id;
 
             return (
               <div
                 key={item.id || index}
                 className={`journal-timeline-node ${isQuake ? 'is-earthquake-node' : ''}`}
               >
-                {/* Visual Hour Node on the Spine */}
+                {/* Repère temporel sur l'axe vertical */}
                 <div className="timeline-node-marker">
                   <span className="node-dot" />
                   <span className="node-time-badge">{item.time}</span>
                 </div>
 
-                {/* Event Card Content */}
-                <div className={`journal-item-card ${isQuake ? 'is-earthquake' : ''}`}>
+                {/* Carte de l'événement cliquable pour centrer sur la carte */}
+                <div
+                  className={`journal-item-card ${isQuake ? 'is-earthquake' : ''} ${
+                    isTargeted ? 'is-targeted' : ''
+                  }`}
+                  onClick={() => handleLocateItem(item)}
+                  title="Cliquer pour afficher et centrer sur la carte"
+                >
                   <div className="journal-item-top">
-                    {isQuake ? (
-                      <div className={`quake-mag-badge ${item.mag >= 6.0 ? 'critical' : (item.mag >= 5.2 ? 'high' : 'moderate')}`}>
-                        <Flame size={12} />
-                        <span>M {item.mag}</span>
-                      </div>
-                    ) : (
-                      <span className="journal-year-badge">{item.year}</span>
-                    )}
+                    <div className="journal-source-badge-wrap">
+                      <span
+                        className="journal-source-pill"
+                        style={{
+                          borderColor: item.sourceColor ? `${item.sourceColor}44` : 'rgba(0, 242, 254, 0.3)',
+                          color: item.sourceColor || '#00f2fe',
+                        }}
+                      >
+                        <span
+                          className="source-pulse-dot"
+                          style={{ background: item.sourceColor || '#00f2fe' }}
+                        />
+                        {item.source}
+                      </span>
+                      {item.sourceType && (
+                        <span className="journal-source-type">{item.sourceType}</span>
+                      )}
+                    </div>
 
-                    <span className={`journal-cat-badge ${(item.category || '').toLowerCase().replace(/[^a-z]/g, '')}`}>
-                      {item.category || 'HISTOIRE'}
-                    </span>
+                    <div className="journal-right-badges">
+                      {isQuake && item.mag && (
+                        <div
+                          className={`quake-mag-badge ${
+                            item.mag >= 6.0 ? 'critical' : item.mag >= 5.0 ? 'high' : 'moderate'
+                          }`}
+                        >
+                          <Flame size={11} />
+                          <span>M {item.mag}</span>
+                        </div>
+                      )}
+                      <span
+                        className={`journal-cat-badge ${(item.category || '')
+                          .toLowerCase()
+                          .replace(/[^a-z]/g, '')}`}
+                      >
+                        {item.category}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="journal-item-title">{item.title}</div>
@@ -289,24 +381,49 @@ export function ChronoJournalTab({ selectedDate = new Date(), metrics = {} }) {
                         alt={item.title}
                         className="journal-item-thumb"
                         loading="lazy"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
                       />
                     )}
-                    <div className="journal-item-text">
-                      {item.text}
-                    </div>
+                    <div className="journal-item-text">{item.text}</div>
                   </div>
 
-                  {item.url && (
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="journal-item-link"
+                  {/* Barre d'action : Localisation sur la carte & Source externe */}
+                  <div className="journal-item-actions-row">
+                    <button
+                      type="button"
+                      className={`journal-locate-btn ${isTargeted ? 'is-active-target' : ''}`}
+                      onClick={(e) => handleLocateItem(item, e)}
+                      title="Centrer la carte sur ce point géographique"
                     >
-                      <span>{isQuake ? 'Consulter le bulletin sismique USGS' : 'Consulter la notice d’archive Wikipédia'}</span>
-                      <ExternalLink size={10} />
-                    </a>
-                  )}
+                      <Crosshair size={11} />
+                      <span>{isTargeted ? 'Cible verrouillée' : 'Localiser sur la carte'}</span>
+                      {item.placeName && (
+                        <span className="locate-place-pill">
+                          <MapPin size={9} />
+                          {item.placeName}
+                        </span>
+                      )}
+                    </button>
+
+                    {item.url && (
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="journal-item-link"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span>
+                          {isQuake
+                            ? 'Bulletin officiel USGS'
+                            : `Dépêche ${item.source}`}
+                        </span>
+                        <ExternalLink size={9} />
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             );

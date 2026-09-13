@@ -1,5 +1,5 @@
 /* ==========================================================================
-   CHRONO-JOURNAL TAB — AWWWARDS 24-HOUR CHRONOLOGICAL INTELLIGENCE TIMELINE
+   CHRONO-JOURNAL TAB — AWWWARDS REAL-TIME WORLD DISPATCHES & INTEL TIMELINE
    ========================================================================== */
 
 .chrono-journal-container {
@@ -20,12 +20,12 @@
 .journal-header-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   padding: 16px 18px;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(0, 242, 254, 0.1) 0%, rgba(10, 16, 28, 0.95) 100%);
-  border: 1px solid rgba(0, 242, 254, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.12) 0%, rgba(8, 14, 26, 0.95) 100%);
+  border: 1px solid rgba(0, 242, 254, 0.32);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.12);
   position: relative;
   overflow: hidden;
 }
@@ -37,7 +37,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #00f2fe, transparent);
+  background: linear-gradient(90deg, transparent, #00f2fe, #00f5a0, transparent);
 }
 
 .journal-header-top {
@@ -51,21 +51,49 @@
 .journal-title-tag {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 1.5px;
   color: var(--cyan-bright, #00f2fe);
+  text-transform: uppercase;
 }
 
-.journal-source-tag {
+.journal-pulse-icon {
+  color: #00f5a0;
+  animation: pulseGlow 1.8s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 6px #00f5a0); }
+  50% { opacity: 0.6; transform: scale(1.15); filter: drop-shadow(0 0 12px #00f5a0); }
+}
+
+.journal-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: rgba(0, 242, 254, 0.08);
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  color: #00f2fe;
   font-size: 8.5px;
-  color: #64748b;
+  font-weight: 800;
   letter-spacing: 0.8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.journal-refresh-btn:hover {
+  background: rgba(0, 242, 254, 0.2);
+  border-color: rgba(0, 242, 254, 0.5);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+  transform: translateY(-1px);
 }
 
 .journal-date-large {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 800;
   color: #ffffff;
   text-transform: capitalize;
@@ -73,12 +101,54 @@
   line-height: 1.2;
 }
 
+/* Time Window Row */
+.journal-time-window-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(0, 242, 254, 0.18);
+  border-radius: 8px;
+}
+
+.time-window-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.4px;
+}
+
+.time-window-toggle {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.time-window-toggle:hover {
+  background: rgba(0, 242, 254, 0.15);
+  color: #ffffff;
+  border-color: rgba(0, 242, 254, 0.4);
+}
+
 .journal-stats-pills {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .journal-stat-pill {
@@ -95,6 +165,11 @@
 
 .journal-stat-pill strong {
   color: #00f2fe;
+}
+
+.journal-stat-pill.is-source-summary {
+  color: #64748b;
+  font-size: 8px;
 }
 
 /* 2. Figures Snapshot Grid */
@@ -173,79 +248,88 @@
 
 .journal-search-input {
   width: 100%;
-  padding: 8px 32px 8px 32px;
-  background: rgba(8, 12, 20, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 9px 36px 9px 34px;
+  background: rgba(10, 16, 26, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 9px;
   color: #ffffff;
-  font-family: var(--font-mono, monospace);
-  font-size: 10px;
-  letter-spacing: 0.5px;
+  font-family: inherit;
+  font-size: 11px;
   outline: none;
   transition: all 0.2s ease;
 }
 
 .journal-search-input:focus {
   border-color: rgba(0, 242, 254, 0.5);
-  box-shadow: 0 0 12px rgba(0, 242, 254, 0.2);
-  background: rgba(12, 18, 30, 0.95);
+  box-shadow: 0 0 14px rgba(0, 242, 254, 0.15);
+  background: rgba(14, 22, 36, 0.85);
+}
+
+.journal-search-input::placeholder {
+  color: #475569;
 }
 
 .journal-search-clear {
   position: absolute;
   right: 10px;
-  background: transparent;
+  background: none;
   border: none;
-  color: #94a3b8;
+  color: #64748b;
   cursor: pointer;
-  padding: 2px;
+  padding: 4px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
 }
 
 .journal-search-clear:hover {
   color: #ffffff;
 }
 
-/* 4. Filters Bar */
+/* 4. Filter Tabs Bar */
 .journal-filter-bar {
   display: flex;
   align-items: center;
   gap: 6px;
   overflow-x: auto;
-  padding-bottom: 2px;
-  scrollbar-width: thin;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.journal-filter-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .journal-filter-btn {
-  padding: 5px 10px;
-  border-radius: 7px;
-  font-family: var(--font-mono, monospace);
-  font-size: 9px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: #94a3b8;
+  font-family: inherit;
+  font-size: 9.5px;
   font-weight: 700;
-  letter-spacing: 0.6px;
-  color: #64748b;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  letter-spacing: 0.5px;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
 }
 
 .journal-filter-btn:hover {
-  color: #e2e8f0;
-  border-color: rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 .journal-filter-btn.is-active {
-  color: #00f2fe;
   background: rgba(0, 242, 254, 0.12);
   border-color: rgba(0, 242, 254, 0.4);
+  color: #00f2fe;
   box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
 }
 
-/* 5. Chronological 24-Hour Timeline Feed */
+/* 5. 24-Hour Chronological Spine Feed */
 .journal-timeline-feed {
   position: relative;
   display: flex;
@@ -261,7 +345,7 @@
   bottom: 12px;
   left: 7px;
   width: 2px;
-  background: linear-gradient(180deg, rgba(0, 242, 254, 0.5) 0%, rgba(0, 242, 254, 0.1) 100%);
+  background: linear-gradient(180deg, rgba(0, 242, 254, 0.6) 0%, rgba(0, 242, 254, 0.1) 100%);
   border-radius: 2px;
 }
 
@@ -294,8 +378,8 @@
 }
 
 .is-earthquake-node .node-dot {
-  border-color: #f59e0b;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+  border-color: #f43f5e;
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.6);
 }
 
 .node-time-badge {
@@ -311,9 +395,9 @@
 }
 
 .is-earthquake-node .node-time-badge {
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.08);
-  border-color: rgba(245, 158, 11, 0.25);
+  color: #f43f5e;
+  background: rgba(244, 63, 94, 0.08);
+  border-color: rgba(244, 63, 94, 0.25);
 }
 
 /* Event Card */
@@ -339,7 +423,7 @@
 }
 
 .journal-item-card.is-earthquake {
-  border-left-color: #f59e0b;
+  border-left-color: #f43f5e;
 }
 
 .journal-item-top {
@@ -347,16 +431,47 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
-.journal-year-badge {
-  font-size: 11px;
+.journal-source-badge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.journal-source-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
   font-weight: 800;
-  color: #00f2fe;
-  background: rgba(0, 242, 254, 0.1);
+  letter-spacing: 0.8px;
   padding: 2px 7px;
-  border-radius: 4px;
-  border: 1px solid rgba(0, 242, 254, 0.2);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid;
+}
+
+.source-pulse-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  animation: beaconPulse 1.8s infinite ease-in-out;
+}
+
+.journal-source-type {
+  font-size: 7.5px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.8px;
+}
+
+.journal-right-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .journal-cat-badge {
@@ -368,10 +483,16 @@
   text-transform: uppercase;
 }
 
-.journal-cat-badge.geopolitique {
+.journal-cat-badge.gopolitique {
   background: rgba(239, 68, 68, 0.15);
   color: #ef4444;
   border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.journal-cat-badge.diplomatie {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
 }
 
 .journal-cat-badge.scienceespace {
@@ -380,24 +501,23 @@
   border: 1px solid rgba(168, 85, 247, 0.3);
 }
 
-.journal-cat-badge.catastrophe,
-.journal-cat-badge.sisme {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+.journal-cat-badge.ssme {
+  background: rgba(244, 63, 94, 0.15);
+  color: #f43f5e;
+  border: 1px solid rgba(244, 63, 94, 0.3);
 }
 
-.journal-cat-badge.histoire {
-  background: rgba(148, 163, 184, 0.15);
-  color: #cbd5e1;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+.journal-cat-badge.climatnature {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .quake-mag-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 900;
   padding: 3px 8px;
   border-radius: 6px;
@@ -410,12 +530,12 @@
 }
 
 .quake-mag-badge.high {
-  background: #f59e0b;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+  background: #f43f5e;
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
 }
 
 .quake-mag-badge.moderate {
-  background: #00f2fe;
+  background: #f59e0b;
   color: #050b14;
 }
 
@@ -434,8 +554,8 @@
 }
 
 .journal-item-thumb {
-  width: 72px;
-  height: 72px;
+  width: 76px;
+  height: 76px;
   border-radius: 8px;
   object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -457,62 +577,152 @@
   gap: 5px;
   font-size: 9.5px;
   font-weight: 700;
-  color: var(--cyan-bright, #00f2fe);
+  color: #00f2fe;
   text-decoration: none;
-  margin-top: 2px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: rgba(0, 242, 254, 0.08);
+  border: 1px solid rgba(0, 242, 254, 0.2);
   transition: all 0.2s ease;
+  margin-top: 2px;
 }
 
 .journal-item-link:hover {
-  color: #ffffff;
-  text-decoration: underline;
+  background: rgba(0, 242, 254, 0.2);
+  border-color: rgba(0, 242, 254, 0.5);
+  box-shadow: 0 0 8px rgba(0, 242, 254, 0.3);
   transform: translateX(2px);
 }
 
-/* Empty State */
+/* Card Targeted State */
+.journal-item-card.is-targeted {
+  border-color: #00f2fe;
+  border-left-color: #00f2fe;
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.35), inset 0 0 10px rgba(0, 242, 254, 0.1);
+  transform: translateX(4px);
+}
+
+/* Actions Row (Locate on map + Source Link) */
+.journal-item-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.journal-locate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(0, 242, 254, 0.12);
+  border: 1px solid rgba(0, 242, 254, 0.35);
+  color: #00f2fe;
+  font-family: inherit;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.journal-locate-btn:hover {
+  background: rgba(0, 242, 254, 0.25);
+  border-color: rgba(0, 242, 254, 0.6);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.4);
+  transform: translateY(-1px);
+}
+
+.journal-locate-btn.is-active-target {
+  background: #00f2fe;
+  color: #050b14;
+  border-color: #00f2fe;
+  box-shadow: 0 0 14px rgba(0, 242, 254, 0.6);
+}
+
+.locate-place-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-left: 2px;
+}
+
+.journal-locate-btn.is-active-target .locate-place-pill {
+  background: rgba(0, 0, 0, 0.2);
+  color: #050b14;
+}
+
+/* Empty & Loading States */
 .journal-empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  gap: 12px;
+  gap: 10px;
+  padding: 32px 16px;
   color: #64748b;
-  text-align: center;
   font-size: 11px;
+  text-align: center;
 }
 
 .journal-empty-icon {
-  opacity: 0.5;
+  color: #475569;
 }
 
-/* Loading State */
+.journal-empty-btn {
+  margin-top: 6px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  background: rgba(0, 242, 254, 0.1);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  color: #00f2fe;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.journal-empty-btn:hover {
+  background: rgba(0, 242, 254, 0.2);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.25);
+}
+
 .journal-loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 50px 20px;
-  gap: 14px;
-  color: #00f2fe;
+  gap: 12px;
+  padding: 60px 20px;
   text-align: center;
 }
 
 .journal-spin-icon {
-  animation: spinJournal 1.2s infinite linear;
-  filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.6));
+  animation: spin 1s linear infinite;
+  color: #00f2fe;
 }
 
-@keyframes spinJournal {
+@keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
 .journal-loading-text {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 800;
-  letter-spacing: 1.2px;
-  color: #e2e8f0;
+  color: #ffffff;
+  letter-spacing: 1px;
 }
 
 .journal-loading-sub {

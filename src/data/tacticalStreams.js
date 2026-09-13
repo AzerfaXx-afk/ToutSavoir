@@ -21,17 +21,8 @@ export const AVIATION_ROUTES = [
   { id: 'fl-12', origin: 'Johannesburg (JNB)', dest: 'Le Caire (CAI)', from: [-26.1367, 28.2411], to: [30.1219, 31.4056], code: 'MS840', airline: 'EgyptAir', alt: '11 300 m' },
 ];
 
-// 2. Real-time Cyber Attack Simulation Nodes (Source -> Target Vectors)
-export const CYBER_ATTACK_VECTORS = [
-  { id: 'cy-1', fromCountry: 'Russie', fromCity: 'Moscou', from: [55.7558, 37.6173], toCountry: 'États-Unis', toCity: 'Washington DC', to: [38.9072, -77.0369], type: 'DDoS SYN Flood', port: 443, severity: 'HIGH' },
-  { id: 'cy-2', fromCountry: 'Chine', fromCity: 'Shanghai', from: [31.2304, 121.4737], toCountry: 'Allemagne', toCity: 'Francfort', to: [50.1109, 8.6821], type: 'Zero-Day Exploit', port: 8080, severity: 'CRITICAL' },
-  { id: 'cy-3', fromCountry: 'Corée du Nord', fromCity: 'Pyongyang', from: [39.0392, 125.7625], toCountry: 'Japon', toCity: 'Tokyo', to: [35.6762, 139.6503], type: 'Crypto Ransomware', port: 445, severity: 'CRITICAL' },
-  { id: 'cy-4', fromCountry: 'Iran', fromCity: 'Téhéran', from: [35.6892, 51.3890], toCountry: 'Arabie Saoudite', toCity: 'Riyad', to: [24.7136, 46.6753], type: 'SCADA Manipulation', port: 502, severity: 'HIGH' },
-  { id: 'cy-5', fromCountry: 'États-Unis', fromCity: 'San Jose', from: [37.3382, -121.8863], toCountry: 'Brésil', toCity: 'São Paulo', to: [-23.5505, -46.6333], type: 'BGP Hijacking Probe', port: 179, severity: 'MEDIUM' },
-  { id: 'cy-6', fromCountry: 'Brésil', fromCity: 'Rio de Janeiro', from: [-22.9068, -43.1729], toCountry: 'France', toCity: 'Paris', to: [48.8566, 2.3522], type: 'Credential Stuffing', port: 80, severity: 'LOW' },
-  { id: 'cy-7', fromCountry: 'Inde', fromCity: 'Bangalore', from: [12.9716, 77.5946], toCountry: 'Royaume-Uni', toCity: 'Londres', to: [51.5074, -0.1278], type: 'API Botnet Sweep', port: 8443, severity: 'MEDIUM' },
-  { id: 'cy-8', fromCountry: 'Vietnam', fromCity: 'Hanoï', from: [21.0285, 105.8542], toCountry: 'Corée du Sud', toCity: 'Séoul', to: [37.5665, 126.9780], type: 'DNS Amplification', port: 53, severity: 'HIGH' },
-];
+// 2. Real-time Cyber Attack Simulation Nodes (Exported from cyberThreats.js)
+export { CYBER_ATTACK_VECTORS } from './cyberThreats';
 
 // 3. Geopolitical Hotspots & Active Conflict Watch
 export const GEOPOLITICAL_ZONES = [

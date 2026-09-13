@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { X, Maximize2 } from 'lucide-react';
@@ -8,6 +8,7 @@ import { realtimeStream } from '../utils/realtimeEvents';
 import { AVIATION_ROUTES, CYBER_ATTACK_VECTORS, GEOPOLITICAL_ZONES } from '../data/tacticalStreams';
 import {
   SATELLITES_DATA,
+  STARLINK_SWARM_NODES,
   CCTV_FEEDS,
   SUBMARINE_CABLES,
   THERMAL_ANOMALIES,
@@ -15,6 +16,8 @@ import {
   STRATEGIC_NUCLEAR_SITES,
 } from '../data/osirisStreams';
 import { LIVE_FLIGHTS, LIVE_VESSELS } from '../data/liveTransits';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { flightRadarService } from '../services/flightRadarService';
 import { TacticalInspectionCard } from './TacticalInspectionCard';
 
 // Fast point-in-polygon ray-casting algorithm
@@ -42,14 +45,19 @@ export function OrbitView3D({
   onSelectCountry,
   targetLocation,
   isDrawerOpen = false,
+  inspectedTarget: propInspectedTarget,
+  onInspectTarget,
 }) {
   const mountRef = useRef(null);
   const [coords, setCoords] = useState({ lat: '48.85° N', lng: '2.35° E' });
   const [altitude, setAltitude] = useState(12450);
-  const [hoveredCountry, setHoveredCountry] = useState(null);
-  const [hoverScreenPos, setHoverScreenPos] = useState({ x: 0, y: 0 });
   const [selectedTerritory, setSelectedTerritory] = useState(null);
-  const [inspectedTarget, setInspectedTarget] = useState(null);
+  const [internalInspectedTarget, setInternalInspectedTarget] = useState(null);
+  const inspectedTarget = propInspectedTarget !== undefined ? propInspectedTarget : internalInspectedTarget;
+  const setInspectedTarget = useCallback((target) => {
+    setInternalInspectedTarget(target);
+    if (onInspectTarget) onInspectTarget(target);
+  }, [onInspectTarget]);
 
   // References
   const controlsRef = useRef(null);
@@ -60,9 +68,7 @@ export function OrbitView3D({
   const geoFeaturesRef = useRef([]);
   const selectedMeshRef = useRef(null);
   const selectedFillMatRef = useRef(null);
-  const hoverMeshRef = useRef(null);
-  const hoverFillMatRef = useRef(null);
-  const lastHoveredFeatureRef = useRef(null);
+  const updateSelectedFlightPathRef = useRef(null);
 
   const autoRotateRef = useRef(autoRotate);
   const activeLayersRef = useRef(activeLayers);
@@ -75,13 +81,18 @@ export function OrbitView3D({
     activeLayersRef.current = activeLayers;
   }, [activeLayers]);
 
+  // Sync selected flight path with inspectedTarget prop
+  useEffect(() => {
+    if (updateSelectedFlightPathRef.current) {
+      updateSelectedFlightPathRef.current(inspectedTarget?.type === 'flight' ? inspectedTarget : null);
+    }
+  }, [inspectedTarget]);
+
   // Radius constants
   const R_EARTH = 2.0;
   const R_BORDERS = 2.003;
   const R_HOVER_BASE = 2.002;
-  const R_HOVER_SURFACE = 2.025; // 25km equivalent orbital elevation
-  const R_HOVER_BORDER = 2.028;
-  const R_SELECT = 2.038; // Selection lifts even higher
+  const R_SELECT = 2.038; // Selection lifts higher
 
   const coordsToVector = (lng, lat, radius = R_BORDERS) => {
     const phi = (90 - lat) * (Math.PI / 180);
@@ -90,18 +101,6 @@ export function OrbitView3D({
     const y = radius * Math.cos(phi);
     const z = radius * Math.sin(phi) * Math.sin(theta);
     return [x, y, z];
-  };
-
-  const removeHoverMesh = () => {
-    if (hoverMeshRef.current && earthGroupRef.current) {
-      earthGroupRef.current.remove(hoverMeshRef.current);
-      hoverMeshRef.current.traverse((child) => {
-        if (child.geometry) child.geometry.dispose();
-        if (child.material) child.material.dispose();
-      });
-      hoverMeshRef.current = null;
-      hoverFillMatRef.current = null;
-    }
   };
 
   const removeSelectedMesh = () => {
@@ -644,54 +643,155 @@ export function OrbitView3D({
       }
     });
 
-    // 11c. Aviation Layer (3D Geodesic Arcs + Moving Aircraft Nodes)
+    // 11c. Aviation Layer (Flightradar24 Live Commercial Fleet in 3D)
     const aviationGroup = new THREE.Group();
     earthGroup.add(aviationGroup);
-    const activeFlights = [];
-    const flightClickMeshes = [];
 
-    LIVE_FLIGHTS.forEach((fl, idx) => {
+    // Build authentic Flightradar24 yellow airplane silhouette in 3D (identical to 2D icon)
+    const planeShape = new THREE.Shape();
+    const s = 0.00085; // Perfect proportion, slender & elegant
+    planeShape.moveTo(0, 10 * s);
+    planeShape.bezierCurveTo(-0.7 * s, 10 * s, -1.4 * s, 9.2 * s, -1.4 * s, 7.8 * s);
+    planeShape.lineTo(-1.4 * s, 2.5 * s);
+    planeShape.lineTo(-10.0 * s, -2.2 * s);
+    planeShape.lineTo(-10.0 * s, -4.5 * s);
+    planeShape.lineTo(-1.4 * s, -2.0 * s);
+    planeShape.lineTo(-1.4 * s, -7.5 * s);
+    planeShape.lineTo(-3.8 * s, -9.2 * s);
+    planeShape.lineTo(-3.8 * s, -10.8 * s);
+    planeShape.lineTo(0, -9.8 * s);
+    planeShape.lineTo(3.8 * s, -10.8 * s);
+    planeShape.lineTo(3.8 * s, -9.2 * s);
+    planeShape.lineTo(1.4 * s, -7.5 * s);
+    planeShape.lineTo(1.4 * s, -2.0 * s);
+    planeShape.lineTo(10.0 * s, -4.5 * s);
+    planeShape.lineTo(10.0 * s, -2.2 * s);
+    planeShape.lineTo(1.4 * s, 2.5 * s);
+    planeShape.bezierCurveTo(1.4 * s, 9.2 * s, 0.7 * s, 10 * s, 0, 10 * s);
+
+    const airplaneGeom = new THREE.ExtrudeGeometry(planeShape, { depth: 0.0016, bevelEnabled: false });
+    airplaneGeom.center();
+
+    // Flightradar24 signature gold yellow with double-sided rendering
+    const airplaneMat = new THREE.MeshBasicMaterial({ color: 0xffd700, side: THREE.DoubleSide });
+    const planesInstancedMesh = new THREE.InstancedMesh(airplaneGeom, airplaneMat, 6500);
+    planesInstancedMesh.count = 0;
+    planesInstancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    aviationGroup.add(planesInstancedMesh);
+
+    let currentLiveFlights = [];
+    const dummyPlaneMatrix = new THREE.Matrix4();
+    const upWorldVector = new THREE.Vector3(0, 1, 0);
+
+    // Pre-allocated scratch objects for zero-allocation 60 FPS performance
+    const scratchPos = new THREE.Vector3();
+    const scratchNormal = new THREE.Vector3();
+    const scratchNorth = new THREE.Vector3();
+    const scratchEast = new THREE.Vector3();
+    const scratchHeading = new THREE.Vector3();
+    const scratchRight = new THREE.Vector3();
+    const scratchRotMatrix = new THREE.Matrix4();
+    const scratchQuat = new THREE.Quaternion();
+    const scratchScale = new THREE.Vector3();
+
+    const update3DPlanes = (flightsList) => {
+      if (!planesInstancedMesh || !flightsList || flightsList.length === 0) return;
+      currentLiveFlights = flightsList;
+      const count = Math.min(6500, flightsList.length);
+      planesInstancedMesh.count = count;
+
+      for (let i = 0; i < count; i++) {
+        const fl = flightsList[i];
+        const [x, y, z] = coordsToVector(fl.lng, fl.lat, R_EARTH + 0.006 + ((fl.altitudeFt || 30000) / 60000) * 0.008);
+        scratchPos.set(x, y, z);
+        scratchNormal.copy(scratchPos).normalize();
+
+        scratchNorth.copy(upWorldVector).sub(scratchNormal.clone().multiplyScalar(scratchNormal.dot(upWorldVector)));
+        if (scratchNorth.lengthSq() < 0.0001) {
+          scratchNorth.set(0, 0, 1);
+        } else {
+          scratchNorth.normalize();
+        }
+        scratchEast.crossVectors(scratchNormal, scratchNorth).normalize();
+
+        const rad = ((fl.track || fl.heading || 0) * Math.PI) / 180;
+        scratchHeading.copy(scratchNorth).multiplyScalar(Math.cos(rad)).addScaledVector(scratchEast, Math.sin(rad)).normalize();
+        scratchRight.crossVectors(scratchHeading, scratchNormal).normalize();
+
+        // Map shape: X -> right, Y -> heading (nose), Z -> normal (surface altitude)
+        scratchRotMatrix.makeBasis(scratchRight, scratchHeading, scratchNormal);
+        scratchQuat.setFromRotationMatrix(scratchRotMatrix);
+
+        const isWidebody = fl.aircraftCode?.startsWith('A38') || fl.aircraftCode?.startsWith('B77') || fl.aircraftCode?.startsWith('B74') || fl.aircraftCode?.startsWith('A35');
+        const sVal = isWidebody ? 1.25 : 1.0;
+        scratchScale.set(sVal, sVal, sVal);
+
+        dummyPlaneMatrix.compose(scratchPos, scratchQuat, scratchScale);
+        planesInstancedMesh.setMatrixAt(i, dummyPlaneMatrix);
+      }
+
+      planesInstancedMesh.instanceMatrix.needsUpdate = true;
+    };
+
+    // Selected flight corridor line & airport pins
+    let selectedFlightGroup = null;
+    const updateSelectedFlightPath = (fl) => {
+      if (selectedFlightGroup) {
+        aviationGroup.remove(selectedFlightGroup);
+        selectedFlightGroup.traverse((child) => {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) child.material.dispose();
+        });
+        selectedFlightGroup = null;
+      }
+      if (!fl || !fl.origin?.coords || !fl.destination?.coords) return;
+
+      selectedFlightGroup = new THREE.Group();
+
       const [fromLat, fromLng] = fl.origin.coords;
       const [toLat, toLng] = fl.destination.coords;
       const vFrom = new THREE.Vector3(...coordsToVector(fromLng, fromLat, R_EARTH + 0.005));
       const vTo = new THREE.Vector3(...coordsToVector(toLng, toLat, R_EARTH + 0.005));
       const dist = vFrom.distanceTo(vTo);
-      const arcApex = R_EARTH + Math.min(0.38, 0.06 + dist * 0.12);
+      const arcApex = R_EARTH + Math.min(0.38, 0.08 + dist * 0.14);
       const vMid = vFrom.clone().add(vTo).multiplyScalar(0.5).normalize().multiplyScalar(arcApex);
 
+      // Great-circle parabolic corridor curve
       const curve = new THREE.QuadraticBezierCurve3(vFrom, vMid, vTo);
-      const points = curve.getPoints(40);
+      const points = curve.getPoints(50);
       const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
       const lineMat = new THREE.LineBasicMaterial({
-        color: 0x00f5a0,
+        color: 0x00f2fe,
         transparent: true,
-        opacity: 0.35,
+        opacity: 0.9,
       });
-      const arcLine = new THREE.Line(lineGeom, lineMat);
-      aviationGroup.add(arcLine);
+      const trajLine = new THREE.Line(lineGeom, lineMat);
+      selectedFlightGroup.add(trajLine);
 
-      // Moving Aircraft Node
-      const planeGeom = new THREE.ConeGeometry(0.014, 0.04, 6);
-      const planeMat = new THREE.MeshBasicMaterial({ color: 0x00f5a0 });
-      const planeMesh = new THREE.Mesh(planeGeom, planeMat);
-      planeMesh.userData = { isFlight: true, flight: fl };
-      aviationGroup.add(planeMesh);
-      flightClickMeshes.push(planeMesh);
+      // Departure Pin (Emerald)
+      const depGeom = new THREE.SphereGeometry(0.015, 12, 12);
+      const depMat = new THREE.MeshBasicMaterial({ color: 0x00f5a0 });
+      const depPin = new THREE.Mesh(depGeom, depMat);
+      depPin.position.copy(vFrom);
+      selectedFlightGroup.add(depPin);
 
-      // Airport Hub Dots
-      const hubGeom = new THREE.CircleGeometry(0.008, 12);
-      const hubMat = new THREE.MeshBasicMaterial({ color: 0x00f5a0, side: THREE.DoubleSide });
-      const hubFrom = new THREE.Mesh(hubGeom, hubMat);
-      hubFrom.position.copy(vFrom);
-      hubFrom.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), vFrom.clone().normalize());
-      aviationGroup.add(hubFrom);
+      // Arrival Pin (Cyan)
+      const arrGeom = new THREE.SphereGeometry(0.015, 12, 12);
+      const arrMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+      const arrPin = new THREE.Mesh(arrGeom, arrMat);
+      arrPin.position.copy(vTo);
+      selectedFlightGroup.add(arrPin);
 
-      activeFlights.push({
-        curve,
-        planeMesh,
-        speed: 0.0016 + (idx % 3) * 0.0005,
-        offset: (idx * 0.14) % 1,
-      });
+      aviationGroup.add(selectedFlightGroup);
+    };
+
+    updateSelectedFlightPathRef.current = updateSelectedFlightPath;
+    if (inspectedTarget?.type === 'flight') {
+      updateSelectedFlightPath(inspectedTarget);
+    }
+
+    const unsubscribeFR24_3D = flightRadarService.subscribe((flights) => {
+      update3DPlanes(flights);
     });
 
     // 11c-2. Maritime Shipping Lanes Layer
@@ -720,20 +820,29 @@ export function OrbitView3D({
       const shipMesh = new THREE.Mesh(shipGeom, shipMat);
       shipMesh.userData = { isVessel: true, vessel: ves };
       maritimeGroup.add(shipMesh);
+
+      // Invisible click proxy sphere for reliable 3D raycasting
+      const shipHitGeom = new THREE.SphereGeometry(0.045, 8, 8);
+      const shipHitMat = new THREE.MeshBasicMaterial({ visible: false });
+      const shipHitMesh = new THREE.Mesh(shipHitGeom, shipHitMat);
+      shipHitMesh.userData = { isVessel: true, vessel: ves };
+      shipMesh.add(shipHitMesh);
+      vesselClickMeshes.push(shipHitMesh);
       vesselClickMeshes.push(shipMesh);
 
       activeVessels.push({
         curve,
         shipMesh,
-        speed: 0.000035 + (idx % 3) * 0.000015, // Realistic calm maritime pace (~15-20 knots)
+        speed: 0.000030 + (idx % 3) * 0.000012, // Realistic calm maritime pace (~15-20 knots, 25x slower than flight)
         offset: (idx * 0.16) % 1,
       });
     });
 
-    // 11d. Cyber Warfare Layer (Parabolic Laser Arcs + Traveling Attack Heads)
+    // 11d. Cyber Warfare Layer (Kaspersky Cybermap Parabolic Laser Arcs + Multi-Spark Photons + Concentric Impact Waves)
     const cyberGroup = new THREE.Group();
     earthGroup.add(cyberGroup);
     const activeAttacks = [];
+    const cyberClickMeshes = [];
 
     CYBER_ATTACK_VECTORS.forEach((vec, idx) => {
       const [fromLat, fromLng] = vec.from;
@@ -741,33 +850,56 @@ export function OrbitView3D({
       const vFrom = new THREE.Vector3(...coordsToVector(fromLng, fromLat, R_EARTH + 0.006));
       const vTo = new THREE.Vector3(...coordsToVector(toLng, toLat, R_EARTH + 0.006));
       const dist = vFrom.distanceTo(vTo);
-      const apex = R_EARTH + Math.min(0.48, 0.10 + dist * 0.18);
+      const apex = R_EARTH + Math.min(0.52, 0.12 + dist * 0.22);
       const vMid = vFrom.clone().add(vTo).multiplyScalar(0.5).normalize().multiplyScalar(apex);
 
       const curve = new THREE.QuadraticBezierCurve3(vFrom, vMid, vTo);
-      const points = curve.getPoints(45);
+      const points = curve.getPoints(55);
       const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
-      const arcColor = vec.severity === 'CRITICAL' ? 0xff0055 : vec.severity === 'HIGH' ? 0xffaa00 : 0xaa00ff;
+      const arcColor = new THREE.Color(vec.color || (vec.severity === 'CRITICAL' ? '#ef4444' : '#8b5cf6'));
       const lineMat = new THREE.LineBasicMaterial({
         color: arcColor,
         transparent: true,
-        opacity: 0.42,
+        opacity: 0.55,
       });
       const arcLine = new THREE.Line(lineGeom, lineMat);
+      arcLine.userData = { isCyber: true, cyber: vec };
       cyberGroup.add(arcLine);
 
-      // Traveling Attack Photon Head
-      const headGeom = new THREE.SphereGeometry(0.014, 12, 12);
+      // 1. Origin Emitter Pulse Ring
+      const originGeom = new THREE.RingGeometry(0.005, 0.016, 16);
+      const originMat = new THREE.MeshBasicMaterial({
+        color: arcColor,
+        transparent: true,
+        opacity: 0.85,
+        side: THREE.DoubleSide,
+      });
+      const originMesh = new THREE.Mesh(originGeom, originMat);
+      originMesh.position.copy(vFrom);
+      originMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), vFrom.clone().normalize());
+      cyberGroup.add(originMesh);
+
+      // 2. Traveling Laser Packet: Leading Photon Head + Trailing Spark
+      const headGeom = new THREE.SphereGeometry(0.016, 10, 10);
       const headMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
       const headMesh = new THREE.Mesh(headGeom, headMat);
       cyberGroup.add(headMesh);
 
-      // Impact ring at target
-      const impactGeom = new THREE.RingGeometry(0.008, 0.024, 20);
+      const trailGeom = new THREE.SphereGeometry(0.011, 8, 8);
+      const trailMat = new THREE.MeshBasicMaterial({
+        color: arcColor,
+        transparent: true,
+        opacity: 0.8,
+      });
+      const trailMesh = new THREE.Mesh(trailGeom, trailMat);
+      cyberGroup.add(trailMesh);
+
+      // 3. Concentric Impact Shockwave Ripple Ring (Expanding on ground arrival)
+      const impactGeom = new THREE.RingGeometry(0.010, 0.032, 24);
       const impactMat = new THREE.MeshBasicMaterial({
         color: arcColor,
         transparent: true,
-        opacity: 0.7,
+        opacity: 0.9,
         side: THREE.DoubleSide,
       });
       const impactMesh = new THREE.Mesh(impactGeom, impactMat);
@@ -775,12 +907,34 @@ export function OrbitView3D({
       impactMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), vTo.clone().normalize());
       cyberGroup.add(impactMesh);
 
+      // 4. Click Hitbox Proxies for effortless 3D selection
+      const targetHitGeom = new THREE.SphereGeometry(0.052, 8, 8);
+      const targetHitMat = new THREE.MeshBasicMaterial({ visible: false });
+      const targetHitMesh = new THREE.Mesh(targetHitGeom, targetHitMat);
+      targetHitMesh.position.copy(vTo);
+      targetHitMesh.userData = { isCyber: true, cyber: vec };
+      cyberGroup.add(targetHitMesh);
+      cyberClickMeshes.push(targetHitMesh);
+
+      const sourceHitGeom = new THREE.SphereGeometry(0.045, 8, 8);
+      const sourceHitMat = new THREE.MeshBasicMaterial({ visible: false });
+      const sourceHitMesh = new THREE.Mesh(sourceHitGeom, sourceHitMat);
+      sourceHitMesh.position.copy(vFrom);
+      sourceHitMesh.userData = { isCyber: true, cyber: vec };
+      cyberGroup.add(sourceHitMesh);
+      cyberClickMeshes.push(sourceHitMesh);
+
+      // Realistic pulse speed: laser beam takes ~1.8 to 2.8 seconds across globe
       activeAttacks.push({
         curve,
         headMesh,
+        trailMesh,
         impactMesh,
-        speed: 0.0035 + (idx % 3) * 0.001,
-        offset: (idx * 0.23) % 1,
+        impactMat,
+        originMesh,
+        arcLine,
+        speed: 0.0055 + (idx % 4) * 0.0018,
+        offset: (idx * 0.19) % 1,
       });
     });
 
@@ -788,6 +942,7 @@ export function OrbitView3D({
     const conflictsGroup = new THREE.Group();
     earthGroup.add(conflictsGroup);
     const activeHotspots = [];
+    const conflictClickMeshes = [];
 
     GEOPOLITICAL_ZONES.forEach((zone) => {
       const [x, y, z] = coordsToVector(zone.lng, zone.lat, R_EARTH + 0.007);
@@ -805,6 +960,15 @@ export function OrbitView3D({
       radarMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), pos.clone().normalize());
       conflictsGroup.add(radarMesh);
 
+      // Click proxy for conflict zone
+      const conflictHitGeom = new THREE.SphereGeometry(0.06, 8, 8);
+      const conflictHitMat = new THREE.MeshBasicMaterial({ visible: false });
+      const conflictHitMesh = new THREE.Mesh(conflictHitGeom, conflictHitMat);
+      conflictHitMesh.position.copy(pos);
+      conflictHitMesh.userData = { isConflict: true, conflict: zone };
+      conflictsGroup.add(conflictHitMesh);
+      conflictClickMeshes.push(conflictHitMesh);
+
       activeHotspots.push({
         radarMesh,
         radarMat,
@@ -815,6 +979,7 @@ export function OrbitView3D({
     const earthquakesGroup = new THREE.Group();
     earthGroup.add(earthquakesGroup);
     let earthquakeMeshes = [];
+    let earthquakeClickMeshes = [];
 
     const updateEarthquakeMeshes = (eqList) => {
       earthquakeMeshes.forEach((m) => {
@@ -822,7 +987,13 @@ export function OrbitView3D({
         m.mesh.geometry.dispose();
         m.mat.dispose();
       });
+      earthquakeClickMeshes.forEach((m) => {
+        earthquakesGroup.remove(m);
+        m.geometry.dispose();
+        m.material.dispose();
+      });
       earthquakeMeshes = [];
+      earthquakeClickMeshes = [];
 
       (eqList || []).slice(0, 15).forEach((eq) => {
         const mag = parseFloat(eq.mag) || 3.0;
@@ -843,62 +1014,183 @@ export function OrbitView3D({
         mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), pos.clone().normalize());
         earthquakesGroup.add(mesh);
 
+        // Click proxy for reliable selection in 3D
+        const hitGeom = new THREE.SphereGeometry(Math.max(0.045, radius * 1.8), 8, 8);
+        const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+        const hitMesh = new THREE.Mesh(hitGeom, hitMat);
+        hitMesh.position.copy(pos);
+        hitMesh.userData = { isEarthquake: true, earthquake: eq };
+        earthquakesGroup.add(hitMesh);
+        earthquakeClickMeshes.push(hitMesh);
+
         earthquakeMeshes.push({ mesh, mat, baseRadius: radius });
       });
     };
 
-    // 11g. Satellites Layer (Orbital Rings & Satellites in 3D)
+    // 11g. Satellites Layer (Keplerian Orbital Trajectory Rings & Starlink Swarm in 3D)
     const satellitesGroup = new THREE.Group();
     earthGroup.add(satellitesGroup);
     const activeSatellites = [];
     const satelliteClickMeshes = [];
 
-    SATELLITES_DATA.forEach((sat, idx) => {
-      const R_orb = R_EARTH + 0.22 + (sat.altitudeKm / 30000) * 0.45;
-      const inclinationRad = (sat.inclination * Math.PI) / 180;
+    // Helper: Compute Keplerian 3D orbital position from altitude radius, inclination, RAAN, and orbital angle
+    const getKeplerianOrbitalVector = (radius, inclinationDeg, raanDeg, thetaRad) => {
+      const v = new THREE.Vector3(radius * Math.cos(thetaRad), 0, radius * Math.sin(thetaRad));
+      v.applyAxisAngle(new THREE.Vector3(1, 0, 0), (inclinationDeg * Math.PI) / 180);
+      v.applyAxisAngle(new THREE.Vector3(0, 1, 0), (raanDeg * Math.PI) / 180);
+      return v;
+    };
 
-      // 3D Orbital Trajectory Ring
+    SATELLITES_DATA.forEach((sat, idx) => {
+      let R_orb;
+      if (sat.orbitType === 'GEO' || sat.altitudeKm > 30000) {
+        R_orb = R_EARTH + 0.88; // GEO outer shell
+      } else if (sat.orbitType === 'MEO' || sat.altitudeKm > 1500) {
+        R_orb = R_EARTH + 0.44 + ((sat.altitudeKm - 2000) / 25000) * 0.28; // MEO GPS & Galileo
+      } else {
+        R_orb = R_EARTH + 0.16 + (sat.altitudeKm / 1200) * 0.14; // LEO ISS & Starlink
+      }
+
+      const raan = sat.raan !== undefined ? sat.raan : (idx * 37) % 360;
+
+      // 1. Continuous 3D Orbital Trajectory Ring
       const orbitPoints = [];
-      const segments = 64;
+      const segments = 120;
       for (let j = 0; j <= segments; j++) {
         const theta = (j / segments) * Math.PI * 2;
-        const x = R_orb * Math.cos(theta);
-        const y = R_orb * Math.sin(theta) * Math.sin(inclinationRad);
-        const z = R_orb * Math.sin(theta) * Math.cos(inclinationRad);
-        orbitPoints.push(new THREE.Vector3(x, y, z));
+        orbitPoints.push(getKeplerianOrbitalVector(R_orb, sat.inclination, raan, theta));
       }
       const ringGeo = new THREE.BufferGeometry().setFromPoints(orbitPoints);
       const ringMat = new THREE.LineBasicMaterial({
         color: sat.color ? new THREE.Color(sat.color) : 0x00f2fe,
         transparent: true,
-        opacity: 0.35,
+        opacity: sat.orbitType === 'GEO' ? 0.6 : 0.35,
       });
       const ringLine = new THREE.Line(ringGeo, ringMat);
       satellitesGroup.add(ringLine);
 
-      // Satellite Diamond / Solar Array Mesh
+      // 2. High-Precision Satellite Avionics Mesh
       const satGroup = new THREE.Group();
-      const bodyGeom = new THREE.OctahedronGeometry(0.018, 0);
+
+      // Main Bus / Chassis
+      const bodyGeom = new THREE.OctahedronGeometry(sat.orbitType === 'GEO' ? 0.022 : 0.016, 0);
       const bodyMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
       const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
       satGroup.add(bodyMesh);
 
-      const panelGeom = new THREE.BoxGeometry(0.045, 0.008, 0.002);
-      const panelMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+      // Solar Array Wings
+      const panelGeom = new THREE.BoxGeometry(sat.orbitType === 'GEO' ? 0.06 : 0.042, 0.008, 0.002);
+      const panelMat = new THREE.MeshBasicMaterial({ color: sat.color ? new THREE.Color(sat.color) : 0x00f2fe });
       const panelMesh = new THREE.Mesh(panelGeom, panelMat);
       satGroup.add(panelMesh);
 
+      // Glowing Orbital Beacon Halo
+      const haloGeom = new THREE.RingGeometry(0.012, 0.025, 18);
+      const haloMat = new THREE.MeshBasicMaterial({
+        color: sat.color ? new THREE.Color(sat.color) : 0x00f2fe,
+        transparent: true,
+        opacity: 0.75,
+        side: THREE.DoubleSide,
+      });
+      const haloMesh = new THREE.Mesh(haloGeom, haloMat);
+      satGroup.add(haloMesh);
+
+      // Invisible click proxy sphere for reliable 3D raycasting
+      const satHitGeom = new THREE.SphereGeometry(0.048, 8, 8);
+      const satHitMat = new THREE.MeshBasicMaterial({ visible: false });
+      const satHitMesh = new THREE.Mesh(satHitGeom, satHitMat);
+      satHitMesh.userData = { satellite: sat };
+      satGroup.add(satHitMesh);
+
       satGroup.userData = { satellite: sat };
       satellitesGroup.add(satGroup);
+      satelliteClickMeshes.push(satHitMesh);
       satelliteClickMeshes.push(bodyMesh);
       bodyMesh.userData = { satellite: sat };
+
+      // Physics angular velocity scaling:
+      // Real physical proportions:
+      // GEO: 24h period (geostationary) -> matches Earth rotation exactly!
+      // MEO: 12h period -> ~2x Earth rotation
+      // LEO: 90min period -> ~16x Earth rotation (smooth majestic glide)
+      let speedFactor;
+      if (sat.orbitType === 'GEO') {
+        speedFactor = 0.00010; // strictly synchronized with Earth auto-rotation
+      } else if (sat.orbitType === 'MEO') {
+        speedFactor = 0.00022; // ~12h period
+      } else {
+        speedFactor = 0.00085 + (idx % 3) * 0.00010; // LEO majestic slow crawl (~90 min period)
+      }
 
       activeSatellites.push({
         sat,
         R_orb,
-        inclination: inclinationRad,
+        inclination: sat.inclination,
+        raan,
         mesh: satGroup,
-        speed: 0.0025 + (idx % 3) * 0.0008,
+        haloMesh,
+        speed: speedFactor,
+        phase: (idx * 0.8) % (Math.PI * 2),
+      });
+    });
+
+    // Starlink Constellation Swarm (32 active nodes across 4 orbital planes)
+    const starlinkSwarmGroup = new THREE.Group();
+    satellitesGroup.add(starlinkSwarmGroup);
+    const starlinkNodes = [];
+    const starlinkPlanes = [0, 90, 180, 270];
+
+    // 4 Glowing Orbital Plane Rings
+    starlinkPlanes.forEach((planeRaan) => {
+      const planePoints = [];
+      const R_STARLINK = R_EARTH + 0.20;
+      for (let j = 0; j <= 80; j++) {
+        const theta = (j / 80) * Math.PI * 2;
+        planePoints.push(getKeplerianOrbitalVector(R_STARLINK, 53.2, planeRaan, theta));
+      }
+      const planeGeo = new THREE.BufferGeometry().setFromPoints(planePoints);
+      const planeMat = new THREE.LineBasicMaterial({
+        color: 0x00f5a0,
+        transparent: true,
+        opacity: 0.22,
+      });
+      starlinkSwarmGroup.add(new THREE.Line(planeGeo, planeMat));
+    });
+
+    STARLINK_SWARM_NODES.forEach((node) => {
+      const R_STARLINK = R_EARTH + 0.20;
+      const nodeGeom = new THREE.SphereGeometry(0.0065, 8, 8);
+      const nodeMat = new THREE.MeshBasicMaterial({ color: 0x00f5a0 });
+      const nodeMesh = new THREE.Mesh(nodeGeom, nodeMat);
+      starlinkSwarmGroup.add(nodeMesh);
+      satelliteClickMeshes.push(nodeMesh);
+      nodeMesh.userData = {
+        satellite: {
+          id: node.id,
+          name: node.name,
+          noradId: 60000 + Math.floor(Math.random() * 5000),
+          type: 'MÉGACONSTELLATION INTERNET BROADBAND',
+          orbitType: 'LEO',
+          country: 'SpaceX / USA',
+          altitudeKm: 550,
+          speedKmh: 27350,
+          inclination: 53.2,
+          raan: node.raan,
+          periodMin: 95.5,
+          status: 'MAILLAGE LASER INTER-SATELLITES ACTIF',
+          color: '#00f5a0',
+          description: 'Nœud actif du maillage orbital Starlink assurant le relais de télécommunications mondial.',
+        },
+      };
+
+      starlinkNodes.push({
+        node,
+        mesh: nodeMesh,
+        R_orb: R_STARLINK,
+        inclination: node.inclination,
+        raan: node.raan,
+        phase: node.phase,
+        speed: 0.00085, // Realistic LEO velocity
       });
     });
 
@@ -956,43 +1248,132 @@ export function OrbitView3D({
       cablesGroup.add(cableLine);
     });
 
-    // 11j. Extreme Weather & Thermal Anomalies (Wildfires & Cyclones)
+    // 11j. Extreme Weather, Global Wind Streamlines & Rotating Cyclonic Vortices
     const weatherGroup = new THREE.Group();
     earthGroup.add(weatherGroup);
     const weatherMeshes = [];
+    const weatherClickMeshes = [];
+    const activeCyclones = [];
 
+    // 1. Global Wind Streamlines Particle System (Zoom.earth & Nullschool inspired)
+    // 900 wind streamline segments flowing across the globe in physical circulation bands
+    const WIND_PARTICLES_COUNT = 900;
+    const windPositions = new Float32Array(WIND_PARTICLES_COUNT * 6);
+    const windColors = new Float32Array(WIND_PARTICLES_COUNT * 6);
+    const windParticles = [];
+
+    for (let i = 0; i < WIND_PARTICLES_COUNT; i++) {
+      const lat = (Math.random() - 0.5) * 160;
+      const lng = (Math.random() - 0.5) * 360;
+      windParticles.push({
+        lat,
+        lng,
+        prevLat: lat,
+        prevLng: lng,
+        speed: 0.18 + Math.random() * 0.22,
+        life: Math.floor(Math.random() * 80),
+        maxLife: 60 + Math.floor(Math.random() * 60),
+      });
+    }
+
+    const windGeo = new THREE.BufferGeometry();
+    windGeo.setAttribute('position', new THREE.BufferAttribute(windPositions, 3));
+    windGeo.setAttribute('color', new THREE.BufferAttribute(windColors, 3));
+    const windMat = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+    });
+    const windLines = new THREE.LineSegments(windGeo, windMat);
+    weatherGroup.add(windLines);
+
+    // 2. NASA FIRMS Thermal Anomalies (Wildfire Clusters)
     THERMAL_ANOMALIES.forEach((fire) => {
       const [x, y, z] = coordsToVector(fire.lng, fire.lat, R_EARTH + 0.007);
       const pos = new THREE.Vector3(x, y, z);
-      const geom = new THREE.CircleGeometry(0.016, 16);
+      const geom = new THREE.CircleGeometry(0.018, 16);
       const mat = new THREE.MeshBasicMaterial({
         color: 0xfb923c,
+        transparent: true,
+        opacity: 0.92,
+        side: THREE.DoubleSide,
+      });
+      const mesh = new THREE.Mesh(geom, mat);
+      mesh.position.copy(pos);
+      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), pos.clone().normalize());
+      mesh.userData = { weather: { type: 'wildfire', ...fire } };
+      weatherGroup.add(mesh);
+      weatherMeshes.push(mesh);
+      weatherClickMeshes.push(mesh);
+    });
+
+    // 3. Rotating Cyclonic Storm Vortices (Typhoons, Hurricanes & Winter Storms)
+    WEATHER_SYSTEMS.forEach((w) => {
+      const [x, y, z] = coordsToVector(w.lng, w.lat, R_EARTH + 0.008);
+      const pos = new THREE.Vector3(x, y, z);
+      const cycloneGroup = new THREE.Group();
+      cycloneGroup.position.copy(pos);
+      cycloneGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), pos.clone().normalize());
+
+      // Eye of the storm (calm central ring)
+      const eyeGeom = new THREE.RingGeometry(0.012, 0.024, 24);
+      const eyeMat = new THREE.MeshBasicMaterial({
+        color: 0xf43f5e,
         transparent: true,
         opacity: 0.9,
         side: THREE.DoubleSide,
       });
-      const mesh = new THREE.Mesh(geom, mat);
-      mesh.position.copy(pos);
-      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), pos.clone().normalize());
-      weatherGroup.add(mesh);
-      weatherMeshes.push(mesh);
-    });
+      const eyeMesh = new THREE.Mesh(eyeGeom, eyeMat);
+      cycloneGroup.add(eyeMesh);
 
-    WEATHER_SYSTEMS.forEach((w) => {
-      const [x, y, z] = coordsToVector(w.lng, w.lat, R_EARTH + 0.008);
-      const pos = new THREE.Vector3(x, y, z);
-      const geom = new THREE.RingGeometry(0.015, 0.05, 20);
-      const mat = new THREE.MeshBasicMaterial({
-        color: 0xf43f5e,
+      // 4 Logarithmic Spiral Storm Arms
+      for (let a = 0; a < 4; a++) {
+        const armPts = [];
+        const baseAngle = (a / 4) * Math.PI * 2;
+        for (let p = 0; p <= 24; p++) {
+          const t = p / 24;
+          const r = 0.016 + t * 0.065;
+          const phi = baseAngle + t * 3.8 * (w.hemisphere || 1);
+          armPts.push(new THREE.Vector3(r * Math.cos(phi), r * Math.sin(phi), 0.002));
+        }
+        const armGeo = new THREE.BufferGeometry().setFromPoints(armPts);
+        const armMat = new THREE.LineBasicMaterial({
+          color: 0xf43f5e,
+          transparent: true,
+          opacity: 0.65,
+        });
+        cycloneGroup.add(new THREE.Line(armGeo, armMat));
+      }
+
+      // Outer Wind Field Envelope Ring
+      const outerRingGeom = new THREE.RingGeometry(0.055, 0.075, 24);
+      const outerRingMat = new THREE.MeshBasicMaterial({
+        color: 0x06b6d4,
         transparent: true,
-        opacity: 0.7,
+        opacity: 0.35,
         side: THREE.DoubleSide,
       });
-      const mesh = new THREE.Mesh(geom, mat);
-      mesh.position.copy(pos);
-      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), pos.clone().normalize());
-      weatherGroup.add(mesh);
-      weatherMeshes.push(mesh);
+      const outerRingMesh = new THREE.Mesh(outerRingGeom, outerRingMat);
+      cycloneGroup.add(outerRingMesh);
+
+      // Hit area for raycaster
+      const hitGeom = new THREE.CircleGeometry(0.075, 16);
+      const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+      const hitMesh = new THREE.Mesh(hitGeom, hitMat);
+      hitMesh.userData = { weather: { type: 'weather', ...w } };
+      cycloneGroup.add(hitMesh);
+
+      cycloneGroup.userData = { weather: { type: 'weather', ...w } };
+      weatherGroup.add(cycloneGroup);
+      weatherMeshes.push(eyeMesh);
+      weatherClickMeshes.push(hitMesh);
+
+      activeCyclones.push({
+        group: cycloneGroup,
+        hemisphere: w.hemisphere || 1,
+        speed: 0.014,
+      });
     });
 
     // 11k. Strategic Nuclear & Critical Infrastructure Layer (3D Glowing Atomic Beacons)
@@ -1117,64 +1498,168 @@ export function OrbitView3D({
         raycaster.setFromCamera(mouse, camera);
 
         // 1. Check CCTV Beacons click
-        const cctvHits = raycaster.intersectObjects(cctvMeshes, true);
-        if (cctvHits.length > 0) {
-          const hitCam = cctvHits[0].object.userData?.camera;
-          if (hitCam) {
-            sound.click();
-            setInspectedTarget({ type: 'cctv', ...hitCam });
-            return;
+        if (activeLayersRef.current.has('cctv')) {
+          const cctvHits = raycaster.intersectObjects(cctvMeshes, true);
+          if (cctvHits.length > 0) {
+            const hitCam = cctvHits[0].object.userData?.camera;
+            if (hitCam) {
+              sound.click();
+              setInspectedTarget({ type: 'cctv', ...hitCam });
+              return;
+            }
           }
         }
 
         // 2. Check Satellites click
-        const satHits = raycaster.intersectObjects(satelliteClickMeshes, true);
-        if (satHits.length > 0) {
-          const hitSat = satHits[0].object.userData?.satellite;
-          if (hitSat) {
-            sound.click();
-            setInspectedTarget({ type: 'satellite', ...hitSat });
-            if (onSelectSatellite) onSelectSatellite(hitSat);
-            return;
+        if (activeLayersRef.current.has('satellites')) {
+          const satHits = raycaster.intersectObjects(satelliteClickMeshes, true);
+          if (satHits.length > 0) {
+            const hitSat = satHits[0].object.userData?.satellite;
+            if (hitSat) {
+              sound.click();
+              const satWorldPos = satHits[0].object.getWorldPosition(new THREE.Vector3());
+              const satLocalPos = earthMesh.worldToLocal(satWorldPos.clone());
+              const r = satLocalPos.length();
+              const subLat = Math.asin(Math.max(-1, Math.min(1, satLocalPos.y / r))) * (180 / Math.PI);
+              let angle = Math.atan2(satLocalPos.z, -satLocalPos.x);
+              if (angle < 0) angle += Math.PI * 2;
+              const subLng = (angle / (Math.PI * 2) - 0.5) * 360;
+
+              const enrichedSat = {
+                type: 'satellite',
+                ...hitSat,
+                lat: subLat,
+                lng: subLng,
+              };
+              setInspectedTarget(enrichedSat);
+              if (onSelectSatellite) onSelectSatellite(enrichedSat);
+              return;
+            }
           }
         }
 
-        // 3. Check Live Flights click
-        const flightHits = raycaster.intersectObjects(flightClickMeshes, true);
-        if (flightHits.length > 0) {
-          const hitFl = flightHits[0].object.userData?.flight;
-          if (hitFl) {
-            sound.click();
-            setInspectedTarget({ type: 'flight', ...hitFl });
-            return;
+        // 3. Check Live Flights click (Flightradar24 InstancedMesh Fleet)
+        if (activeLayersRef.current.has('aviation') && planesInstancedMesh) {
+          const flightHits = raycaster.intersectObject(planesInstancedMesh);
+          if (flightHits.length > 0) {
+            const hitInstanceId = flightHits[0].instanceId;
+            const hitFl = currentLiveFlights[hitInstanceId];
+            if (hitFl) {
+              sound.click();
+              updateSelectedFlightPath(hitFl);
+              setInspectedTarget({ type: 'flight', ...hitFl });
+              return;
+            }
           }
         }
 
         // 4. Check Live Maritime Vessels click
-        const vesselHits = raycaster.intersectObjects(vesselClickMeshes, true);
-        if (vesselHits.length > 0) {
-          const hitVes = vesselHits[0].object.userData?.vessel;
-          if (hitVes) {
-            sound.click();
-            setInspectedTarget({ type: 'vessel', ...hitVes });
-            return;
+        if (activeLayersRef.current.has('maritime')) {
+          const vesselHits = raycaster.intersectObjects(vesselClickMeshes, true);
+          if (vesselHits.length > 0) {
+            const hitVes = vesselHits[0].object.userData?.vessel;
+            if (hitVes) {
+              sound.click();
+              setInspectedTarget({ type: 'vessel', ...hitVes });
+              return;
+            }
           }
         }
 
         // 5. Check Strategic Nuclear Infrastructure click
-        const nuclearHits = raycaster.intersectObjects(nuclearClickMeshes, true);
-        if (nuclearHits.length > 0) {
-          const hitNuc = nuclearHits[0].object.userData?.nuclear;
-          if (hitNuc) {
-            sound.click();
-            setInspectedTarget({ type: 'nuclear', ...hitNuc });
-            return;
+        if (activeLayersRef.current.has('nuclear')) {
+          const nuclearHits = raycaster.intersectObjects(nuclearClickMeshes, true);
+          if (nuclearHits.length > 0) {
+            const hitNuc = nuclearHits[0].object.userData?.nuclear;
+            if (hitNuc) {
+              sound.click();
+              setInspectedTarget({ type: 'nuclear', ...hitNuc });
+              return;
+            }
+          }
+        }
+
+        // 6. Check Weather Systems & Storms click
+        if (activeLayersRef.current.has('weather')) {
+          const weatherHits = raycaster.intersectObjects(weatherClickMeshes, true);
+          if (weatherHits.length > 0) {
+            const hitWeather = weatherHits[0].object.userData?.weather;
+            if (hitWeather) {
+              sound.click();
+              setInspectedTarget(hitWeather);
+              return;
+            }
+          }
+        }
+
+        // 7. Check Cyber Warfare Attacks click
+        if (activeLayersRef.current.has('cyber')) {
+          const cyberHits = raycaster.intersectObjects(cyberClickMeshes, true);
+          if (cyberHits.length > 0) {
+            const hitCy = cyberHits[0].object.userData?.cyber;
+            if (hitCy) {
+              sound.click();
+              setInspectedTarget({ type: 'cyber', ...hitCy });
+              return;
+            }
+          }
+        }
+
+        // 8. Check Geopolitical Hotspots click
+        if (activeLayersRef.current.has('conflicts')) {
+          const conflictHits = raycaster.intersectObjects(conflictClickMeshes, true);
+          if (conflictHits.length > 0) {
+            const hitZone = conflictHits[0].object.userData?.conflict;
+            if (hitZone) {
+              sound.click();
+              setInspectedTarget({ type: 'conflict', ...hitZone });
+              return;
+            }
+          }
+        }
+
+        // 9. Check Earthquakes click
+        if (activeLayersRef.current.has('telluric')) {
+          const eqHits = raycaster.intersectObjects(earthquakeClickMeshes, true);
+          if (eqHits.length > 0) {
+            const hitEq = eqHits[0].object.userData?.earthquake;
+            if (hitEq) {
+              sound.click();
+              setInspectedTarget({ type: 'earthquake', ...hitEq });
+              return;
+            }
           }
         }
 
         const intersects = raycaster.intersectObject(earthMesh);
 
         if (intersects.length > 0) {
+          const hitWorld = intersects[0].point;
+
+          // Proximity fallback check for live planes in 3D (sélection immédiate et ergonomique sans pixel-hunting)
+          if (activeLayersRef.current.has('aviation') && currentLiveFlights.length > 0) {
+            let closestFl = null;
+            let minDistSq = 0.0038; // Rayon de tolérance ergonomique (~20px à l'écran)
+            for (let k = 0; k < currentLiveFlights.length; k++) {
+              const fl = currentLiveFlights[k];
+              const [px, py, pz] = coordsToVector(fl.lng, fl.lat, R_EARTH + 0.008);
+              const dx = hitWorld.x - px;
+              const dy = hitWorld.y - py;
+              const dz = hitWorld.z - pz;
+              const dSq = dx * dx + dy * dy + dz * dz;
+              if (dSq < minDistSq) {
+                minDistSq = dSq;
+                closestFl = fl;
+              }
+            }
+            if (closestFl) {
+              sound.click();
+              updateSelectedFlightPath(closestFl);
+              setInspectedTarget({ type: 'flight', ...closestFl });
+              return;
+            }
+          }
+
           const localPoint = earthMesh.worldToLocal(intersects[0].point.clone());
           const { lat, lng } = updateCoordsFromLocalPoint(localPoint);
 
@@ -1239,8 +1724,6 @@ export function OrbitView3D({
         sound.woosh();
       }
 
-      setHoverScreenPos({ x: e.clientX, y: e.clientY });
-
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -1251,82 +1734,19 @@ export function OrbitView3D({
       if (intersects.length > 0) {
         isHoveringEarth = true;
         const localPoint = earthMesh.worldToLocal(intersects[0].point.clone());
-        const { lat, lng } = updateCoordsFromLocalPoint(localPoint);
+        updateCoordsFromLocalPoint(localPoint);
 
-        const foundFeature = findCountryFeature(lat, lng);
-
-        if (foundFeature) {
-          if (foundFeature !== lastHoveredFeatureRef.current) {
-            lastHoveredFeatureRef.current = foundFeature;
-            sound.hover();
-
-            const props = foundFeature.properties || {};
-            const rawName = props.NAME || props.SUBUNIT || props.ADMIN || 'Territoire';
-            const displayName = TERRITORY_NAMES_FR[rawName] || props.NAME_FR || rawName;
-            const sovereign = props.SOVEREIGNT || props.SOV_A3 || displayName;
-            const continent = props.CONTINENT || 'International';
-            const subregion = props.SUBREGION || '';
-            const pop = props.POP_EST || props.POP2005;
-            const popFormatted = pop ? Number(pop).toLocaleString('fr-FR') : 'N/A';
-            const areaKm2 = getCountryAreaKm2(foundFeature);
-            const areaFormatted = formatAreaKm2(areaKm2);
-
-            setHoveredCountry({
-              name: displayName,
-              sovereign,
-              continent,
-              subregion,
-              pop: popFormatted,
-              area: areaFormatted,
-            });
-
-            // If this territory is not already the selected one, elevate it in 3D!
-            removeHoverMesh();
-            const hoverMesh = createTerritoryMesh(foundFeature, {
-              surfaceRadius: R_HOVER_SURFACE,
-              borderRadius: R_HOVER_BORDER,
-              baseRadius: R_HOVER_BASE,
-              fillColor: 0x00f2fe,
-              fillOpacity: 0.42,
-              borderColor: 0x00ffff,
-              borderOpacity: 1.0,
-              hasWalls: true,
-              wallColor: 0x00d8f6,
-              wallOpacity: 0.32,
-            });
-
-            // Initial small scale for spring pop-in
-            hoverMesh.scale.set(0.998, 0.998, 0.998);
-            earthGroup.add(hoverMesh);
-            hoverMeshRef.current = hoverMesh;
-            hoverFillMatRef.current = hoverMesh.userData.fillMat;
-          }
-
-          if (!isRightDragging && !(e.buttons & 2)) {
-            container.style.cursor = 'pointer';
-          }
-        } else {
-          // Over ocean
-          if (lastHoveredFeatureRef.current) {
-            lastHoveredFeatureRef.current = null;
-            removeHoverMesh();
-            setHoveredCountry(null);
-          }
+        if (!isRightDragging && !(e.buttons & 2)) {
+          container.style.cursor = 'pointer';
         }
       } else {
         isHoveringEarth = false;
-        if (lastHoveredFeatureRef.current) {
-          lastHoveredFeatureRef.current = null;
-          removeHoverMesh();
-          setHoveredCountry(null);
-        }
-
         const dir = camera.position.clone().negate().normalize().multiplyScalar(2);
         const localPoint = earthMesh.worldToLocal(dir);
         updateCoordsFromLocalPoint(localPoint);
 
         if (!isRightDragging && !(e.buttons & 2)) {
-          container.style.cursor = 'pointer';
+          container.style.cursor = 'default';
         }
       }
 
@@ -1400,15 +1820,29 @@ export function OrbitView3D({
       cablesGroup.visible = layers.has('cables');
       weatherGroup.visible = layers.has('weather');
 
-      // Animate satellites along their 3D orbital planes
+      // Animate satellites along their 3D Keplerian orbital planes
       if (satellitesGroup.visible) {
-        activeSatellites.forEach((item, idx) => {
-          const t = (frameCount * item.speed + idx * 0.7) % (Math.PI * 2);
-          const x = item.R_orb * Math.cos(t);
-          const y = item.R_orb * Math.sin(t) * Math.sin(item.inclination);
-          const z = item.R_orb * Math.sin(t) * Math.cos(item.inclination);
-          item.mesh.position.set(x, y, z);
-          item.mesh.rotation.y += 0.02;
+        activeSatellites.forEach((item) => {
+          const theta = (frameCount * item.speed + item.phase) % (Math.PI * 2);
+          const pos = getKeplerianOrbitalVector(item.R_orb, item.inclination, item.raan, theta);
+          item.mesh.position.copy(pos);
+
+          // Orient satellite solar arrays along orbit tangent
+          const nextTheta = theta + 0.01;
+          const nextPos = getKeplerianOrbitalVector(item.R_orb, item.inclination, item.raan, nextTheta);
+          const tangent = nextPos.clone().sub(pos).normalize();
+          item.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tangent);
+
+          // Pulsing orbital halo
+          const haloScale = 1.0 + 0.25 * Math.sin(frameCount * 0.08 + item.phase);
+          item.haloMesh.scale.set(haloScale, haloScale, haloScale);
+        });
+
+        // Animate Starlink swarm nodes
+        starlinkNodes.forEach((node) => {
+          const theta = (frameCount * node.speed + node.phase) % (Math.PI * 2);
+          const pos = getKeplerianOrbitalVector(node.R_orb, node.inclination, node.raan, theta);
+          node.mesh.position.copy(pos);
         });
       }
 
@@ -1420,23 +1854,89 @@ export function OrbitView3D({
         });
       }
 
-      // Animate Weather / Wildfire clusters
+      // Animate Weather: Global Wind Streamlines, Cyclonic Vortices & Wildfires
       if (weatherGroup.visible) {
+        // 1. Update Wind Particle Streamlines (Physical Atmospheric Circulation)
+        windParticles.forEach((p, idx) => {
+          p.prevLat = p.lat;
+          p.prevLng = p.lng;
+          p.life++;
+
+          if (p.life > p.maxLife || Math.abs(p.lat) > 85) {
+            p.lat = (Math.random() - 0.5) * 160;
+            p.lng = (Math.random() - 0.5) * 360;
+            p.prevLat = p.lat;
+            p.prevLng = p.lng;
+            p.life = 0;
+          }
+
+          const absLat = Math.abs(p.lat);
+          let dLng = 0;
+          let dLat = 0;
+
+          // Tropical Easterly Trade Winds (Alizés 0° to 28°)
+          if (absLat < 28) {
+            dLng = -0.16 * p.speed;
+            dLat = -Math.sign(p.lat) * 0.02 * p.speed;
+          }
+          // Mid-latitude Westerlies (Vents d'Ouest 28° to 62°)
+          else if (absLat >= 28 && absLat < 62) {
+            const wave = Math.sin((p.lng * Math.PI) / 45) * 0.08;
+            dLng = (0.28 + (absLat > 38 && absLat < 55 ? 0.16 : 0)) * p.speed;
+            dLat = wave * p.speed;
+          }
+          // Polar Easterlies (62° to 85°)
+          else {
+            dLng = -0.12 * p.speed;
+            dLat = -Math.sign(p.lat) * 0.015 * p.speed;
+          }
+
+          p.lng = ((p.lng + dLng + 180) % 360) - 180;
+          p.lat += dLat;
+
+          const R_WIND = R_EARTH + 0.012;
+          const [hx, hy, hz] = coordsToVector(p.lng, p.lat, R_WIND);
+          const [tx, ty, tz] = coordsToVector(p.prevLng, p.prevLat, R_WIND);
+
+          const baseIdx = idx * 6;
+          windPositions[baseIdx] = tx;
+          windPositions[baseIdx + 1] = ty;
+          windPositions[baseIdx + 2] = tz;
+          windPositions[baseIdx + 3] = hx;
+          windPositions[baseIdx + 4] = hy;
+          windPositions[baseIdx + 5] = hz;
+
+          const alpha = Math.sin((p.life / p.maxLife) * Math.PI) * 0.85;
+          const isJetStream = absLat >= 38 && absLat <= 55;
+          const c = isJetStream ? [0.0, 0.95, 0.9] : [0.06, 0.72, 0.85];
+
+          windColors[baseIdx] = c[0] * alpha;
+          windColors[baseIdx + 1] = c[1] * alpha;
+          windColors[baseIdx + 2] = c[2] * alpha;
+          windColors[baseIdx + 3] = c[0] * alpha;
+          windColors[baseIdx + 4] = c[1] * alpha;
+          windColors[baseIdx + 5] = c[2] * alpha;
+        });
+        windGeo.attributes.position.needsUpdate = true;
+        windGeo.attributes.color.needsUpdate = true;
+
+        // 2. Rotate Cyclonic Storm Vortices (Counter-clockwise in North, Clockwise in South)
+        activeCyclones.forEach((cyc) => {
+          cyc.group.rotation.z += (cyc.hemisphere || 1) * cyc.speed;
+        });
+
+        // 3. Pulse thermal anomalies
         weatherMeshes.forEach((mesh, idx) => {
-          const s = 1.0 + 0.25 * Math.sin(frameCount * 0.09 + idx);
+          const s = 1.0 + 0.22 * Math.sin(frameCount * 0.09 + idx);
           mesh.scale.set(s, s, s);
         });
       }
 
-      // Animate aviation flights along 3D curves
-      if (aviationGroup.visible) {
-        activeFlights.forEach((fl) => {
-          const t = (frameCount * fl.speed + fl.offset) % 1;
-          const pos = fl.curve.getPoint(t);
-          fl.planeMesh.position.copy(pos);
-          const tangent = fl.curve.getTangent(t).normalize();
-          fl.planeMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tangent);
-        });
+      // Animate aviation flights (Flightradar24 Commercial Fleet)
+      if (aviationGroup.visible && planesInstancedMesh) {
+        if (flightRadarService.flights.length > 0 && frameCount % 2 === 0) {
+          update3DPlanes(flightRadarService.flights);
+        }
       }
 
       // Animate maritime cargo vessels
@@ -1451,18 +1951,37 @@ export function OrbitView3D({
         });
       }
 
-      // Animate cyber attack pulses
+      // Animate cyber attack pulses (Kaspersky Traveling Laser Beams & Ground Shockwaves)
+      cyberGroup.visible = layers.has('cyber');
       if (cyberGroup.visible) {
-        activeAttacks.forEach((att) => {
-          const t = (frameCount * att.speed + att.offset) % 1;
-          const pos = att.curve.getPoint(t);
-          att.headMesh.position.copy(pos);
-          const impactScale = 1.0 + Math.sin(t * Math.PI * 4) * 0.35;
-          att.impactMesh.scale.set(impactScale, impactScale, impactScale);
+        activeAttacks.forEach((att, idx) => {
+          const t = (frameCount * att.speed + att.offset) % 1.0;
+          if (t < 0.94) {
+            att.headMesh.visible = true;
+            att.trailMesh.visible = true;
+            att.headMesh.position.copy(att.curve.getPoint(t));
+            att.trailMesh.position.copy(att.curve.getPoint(Math.max(0, t - 0.035)));
+            // Idle impact ring
+            att.impactMesh.scale.setScalar(1.0);
+            att.impactMat.opacity = 0.25;
+          } else {
+            // Impact shockwave detonates and expands upon laser packet landing
+            att.headMesh.visible = false;
+            att.trailMesh.visible = false;
+            const shockProgress = (t - 0.94) / 0.06;
+            const s = 1.0 + shockProgress * 3.2;
+            att.impactMesh.scale.setScalar(s);
+            att.impactMat.opacity = Math.max(0, 0.95 * (1.0 - shockProgress));
+          }
+          if (att.originMesh) {
+            const originPulse = 1.0 + 0.25 * Math.sin(frameCount * 0.09 + idx);
+            att.originMesh.scale.setScalar(originPulse);
+          }
         });
       }
 
       // Animate conflict radar hotspots
+      conflictsGroup.visible = layers.has('conflicts');
       if (conflictsGroup.visible) {
         activeHotspots.forEach((hs, idx) => {
           const scale = 1.0 + 0.35 * Math.sin(frameCount * 0.08 + idx);
@@ -1541,6 +2060,7 @@ export function OrbitView3D({
       window.removeEventListener('keydown', onKeyDown);
 
       unsubscribeStream();
+      if (unsubscribeFR24_3D) unsubscribeFR24_3D();
       activePulses.forEach((p) => {
         pulsesGroup.remove(p.mesh);
         p.mesh.geometry.dispose();
@@ -1587,28 +2107,6 @@ export function OrbitView3D({
         className="orbit-canvas-container"
         ref={mountRef}
       />
-
-      {/* Floating Tactical Country Pill (Follows Cursor on Hover in 3D) */}
-      {hoveredCountry && (
-        <div
-          className="country-hover-pill orbit-hover-pill"
-          style={{
-            left: hoverScreenPos.x + 18,
-            top: hoverScreenPos.y - 46,
-          }}
-        >
-          <div className="country-pill-core awwwards-pill">
-            <span className="pill-item-name">{hoveredCountry.name.toUpperCase()}</span>
-            <span className="pill-item-sep">/</span>
-            <span className="pill-item-detail">{hoveredCountry.continent}</span>
-            <span className="pill-item-sep">/</span>
-            <span className="pill-item-pop">POP: {hoveredCountry.pop}</span>
-            <span className="pill-item-sep">/</span>
-            <span className="pill-item-area">SUP: {hoveredCountry.area}</span>
-          </div>
-        </div>
-      )}
-
       {/* Country Inspector HUD Overlay (Same design as 2D) */}
       {selectedTerritory && (
         <div className="territory-inspector-card">

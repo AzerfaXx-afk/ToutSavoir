@@ -18,9 +18,9 @@ export default function App() {
   const [autoRotate, setAutoRotate] = useState(true);
   const [selectedYear, setSelectedYear] = useState(2026);
 
-  // Multi-toggle active layers set (all 10 strategic layers active by default)
+  // Curated default entry: Only aviation and conflicts active to keep the map clean, responsive, and uncluttered
   const [activeLayers, setActiveLayers] = useState(
-    () => new Set(['aviation', 'maritime', 'cctv', 'satellites', 'cables', 'conflicts', 'telluric', 'cyber', 'weather', 'nuclear'])
+    () => new Set(['aviation', 'conflicts'])
   );
 
   const handleToggleLayer = useCallback((layerId) => {
@@ -71,6 +71,9 @@ export default function App() {
 
   // Target Location for smooth cinematic flyTo / rotate
   const [targetLocation, setTargetLocation] = useState(null);
+
+  // Inspected Target for TacticalInspectionCard HUD
+  const [inspectedTarget, setInspectedTarget] = useState(null);
 
   // Sound Mute Toggle Handler
   const handleToggleMute = useCallback(() => {
@@ -320,6 +323,8 @@ export default function App() {
         activeLayers={activeLayers}
         onToggleLayer={handleToggleLayer}
         onToggleAll={handleToggleAllLayers}
+        is3D={is3D}
+        onSwitchTo3D={() => setIs3D(true)}
       />
 
       {/* Main Map Viewport (Takes 100% Fullscreen) */}
@@ -333,6 +338,8 @@ export default function App() {
             onSelectCountry={handleSelectCountry}
             targetLocation={targetLocation}
             isDrawerOpen={isDrawerOpen}
+            inspectedTarget={inspectedTarget}
+            onInspectTarget={setInspectedTarget}
           />
         ) : (
           <OrbitView3D
@@ -344,6 +351,8 @@ export default function App() {
             onSelectCountry={handleSelectCountry}
             targetLocation={targetLocation}
             isDrawerOpen={isDrawerOpen}
+            inspectedTarget={inspectedTarget}
+            onInspectTarget={setInspectedTarget}
           />
         )}
       </main>
@@ -359,6 +368,7 @@ export default function App() {
         onSelectCCTV={handleSelectCCTV}
         onSelectSatellite={handleSelectSatellite}
         onSelectLocation={handleSelectLocation}
+        onInspectTarget={setInspectedTarget}
         selectedCountry={selectedCountry}
       />
 
@@ -378,6 +388,7 @@ export default function App() {
         camera={activeCCTV}
         onClose={() => setActiveCCTV(null)}
         onSelectCamera={setActiveCCTV}
+        onSelectLocation={handleSelectLocation}
       />
 
       {/* Tactical Keyboard Shortcuts Help Modal */}

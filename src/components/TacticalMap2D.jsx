@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import { sound } from '../utils/soundFX';
 import { X, Maximize2, MapPin } from 'lucide-react';
@@ -6,7 +6,6 @@ import { TERRITORY_NAMES_FR, getCountryAreaKm2, formatAreaKm2 } from '../utils/c
 import { realtimeStream } from '../utils/realtimeEvents';
 import { AVIATION_ROUTES, CYBER_ATTACK_VECTORS, GEOPOLITICAL_ZONES } from '../data/tacticalStreams';
 import {
-  SATELLITES_DATA,
   CCTV_FEEDS,
   SUBMARINE_CABLES,
   THERMAL_ANOMALIES,
@@ -14,22 +13,23 @@ import {
   STRATEGIC_NUCLEAR_SITES,
 } from '../data/osirisStreams';
 import { LIVE_FLIGHTS, LIVE_VESSELS, getLiveTransitPositions, interpolateGreatCircle } from '../data/liveTransits';
+import { flightRadarService, getFlightradarPlaneSvg } from '../services/flightRadarService';
 import { TacticalInspectionCard } from './TacticalInspectionCard';
 
 export function TacticalMap2D({
   activeLayer = 'satellite',
-  activeLayers = new Set(['aviation', 'satellites', 'cctv']),
+  activeLayers = new Set(['aviation', 'conflicts']),
   onSelectCCTV,
-  onSelectSatellite,
   onSelectCountry,
   targetLocation,
   isDrawerOpen = false,
+  inspectedTarget: propInspectedTarget,
+  onInspectTarget,
 }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const geoJsonLayerRef = useRef(null);
   const selectedLayerRef = useRef(null);
-  const hoveredLayerRef = useRef(null);
 
   const pulsesLayerRef = useRef(null);
   const aviationLayerRef = useRef(null);
@@ -37,16 +37,19 @@ export function TacticalMap2D({
   const cyberLayerRef = useRef(null);
   const conflictsLayerRef = useRef(null);
   const telluricLayerRef = useRef(null);
-  const satellitesLayerRef = useRef(null);
   const cctvLayerRef = useRef(null);
   const cablesLayerRef = useRef(null);
   const weatherLayerRef = useRef(null);
   const nuclearLayerRef = useRef(null);
   const inspectedRouteLayerRef = useRef(null);
 
-  const [hoveredCountry, setHoveredCountry] = useState(null);
   const [selectedTerritory, setSelectedTerritory] = useState(null);
-  const [inspectedTarget, setInspectedTarget] = useState(null);
+  const [internalInspectedTarget, setInternalInspectedTarget] = useState(null);
+  const inspectedTarget = propInspectedTarget !== undefined ? propInspectedTarget : internalInspectedTarget;
+  const setInspectedTarget = useCallback((target) => {
+    setInternalInspectedTarget(target);
+    if (onInspectTarget) onInspectTarget(target);
+  }, [onInspectTarget]);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0, lat: '48.85° N', lng: '2.35° E' });
 
   // Styles definition
@@ -180,7 +183,7 @@ export function TacticalMap2D({
       osm: osmLayer,
     };
 
-    // Track cursor GPS coordinates & reset hover if moving over ocean
+    // Track cursor GPS coordinates (lightweight, zero DOM traversal)
     map.on('mousemove', (e) => {
       const clampedLat = Math.max(-85, Math.min(85, e.latlng.lat));
       const clampedLng = ((((e.latlng.lng + 180) % 360) + 360) % 360) - 180;
@@ -194,57 +197,6 @@ export function TacticalMap2D({
         x: e.originalEvent.clientX,
         y: e.originalEvent.clientY,
       });
-
-      // If cursor is moving over ocean or outside any country polygon, clear hovered country
-      const targetEl = e.originalEvent?.target;
-      const isOverCountry =
-        targetEl &&
-        targetEl.tagName === 'path' &&
-        (targetEl.classList.contains('country-path-base') ||
-          targetEl.classList.contains('country-path-elevated') ||
-          targetEl.classList.contains('country-path-selected'));
-
-      if (!isOverCountry && hoveredLayerRef.current) {
-        const prev = hoveredLayerRef.current;
-        if (prev !== selectedLayerRef.current && geoJsonLayerRef.current) {
-          geoJsonLayerRef.current.resetStyle(prev);
-          if (prev._path) {
-            prev._path.classList.remove('country-path-elevated');
-          }
-        }
-        hoveredLayerRef.current = null;
-        setHoveredCountry(null);
-      }
-    });
-
-    // Reset hover when dragging/panning the map
-    map.on('dragstart', () => {
-      if (hoveredLayerRef.current) {
-        const prev = hoveredLayerRef.current;
-        if (prev !== selectedLayerRef.current && geoJsonLayerRef.current) {
-          geoJsonLayerRef.current.resetStyle(prev);
-          if (prev._path) {
-            prev._path.classList.remove('country-path-elevated');
-          }
-        }
-        hoveredLayerRef.current = null;
-        setHoveredCountry(null);
-      }
-    });
-
-    // Reset hover when mouse leaves the map
-    map.on('mouseout', () => {
-      if (hoveredLayerRef.current) {
-        const prev = hoveredLayerRef.current;
-        if (prev !== selectedLayerRef.current && geoJsonLayerRef.current) {
-          geoJsonLayerRef.current.resetStyle(prev);
-          if (prev._path) {
-            prev._path.classList.remove('country-path-elevated');
-          }
-        }
-        hoveredLayerRef.current = null;
-        setHoveredCountry(null);
-      }
     });
 
     // Close selected card & unhighlight when clicking empty ocean
@@ -270,62 +222,82 @@ export function TacticalMap2D({
     // 1. Live pulses layer for real-time births & deaths
     const pulsesLayer = L.layerGroup();
     pulsesLayerRef.current = pulsesLayer;
+    pulsesLayer.addTo(map);
 
-    // 2. Aviation routes layer + live commercial/cargo flight vectors
+    // 2. Aviation Layer (Direct Flightradar24 ADS-B Live Commercial Fleet)
     const aviationLayer = L.layerGroup();
     aviationLayerRef.current = aviationLayer;
-    AVIATION_ROUTES.forEach((route) => {
-      const line = L.polyline([route.from, route.to], {
-        color: '#00f2fe',
-        weight: 1.2,
-        opacity: 0.4,
-        dashArray: '3, 6',
-      });
-      line.bindTooltip(`COULOIR AÉRIEN // ${route.airline}<br/>${route.origin} ➔ ${route.dest}<br/>Altitude: ${route.alt}`);
-      line.addTo(aviationLayer);
-      L.circleMarker(route.from, { radius: 2.5, color: '#00f2fe', fillColor: '#ffffff', fillOpacity: 0.8 }).addTo(aviationLayer);
-      L.circleMarker(route.to, { radius: 2.5, color: '#00f2fe', fillColor: '#00f2fe', fillOpacity: 0.8 }).addTo(aviationLayer);
-    });
+    if (activeLayers.has('aviation')) {
+      aviationLayer.addTo(map);
+    }
 
-    // 2b. Maritime shipping lanes layer
-    const maritimeLayer = L.layerGroup();
-    maritimeLayerRef.current = maritimeLayer;
-
-    // Track active flight & vessel markers for live smooth animation
+    // Track active flight markers with Flightradar24 yellow airplane icons
     const flightMarkersMap = new Map();
-    const vesselMarkersMap = new Map();
 
-    const updateTransits = () => {
-      const { flights, vessels } = getLiveTransitPositions(Date.now());
+    const updateFlightradarPlanes = (flightsList) => {
+      if (!flightsList || flightsList.length === 0) return;
 
-      // Update flights
-      flights.forEach((fl) => {
-        const rotation = fl.calculatedHeading || 0;
-        const iconHtml = `<div class="flight-div-marker" style="transform: rotate(${rotation}deg);" title="${fl.callsign} (${fl.airline})"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>`;
+      const activeIds = new Set();
+
+      flightsList.forEach((fl) => {
+        activeIds.add(fl.id);
+        const isSelected = inspectedTarget?.id === fl.id;
+        const iconHtml = getFlightradarPlaneSvg(fl.track || fl.heading || 0, 20, isSelected);
         const icon = L.divIcon({
-          className: 'flight-div-icon-wrap',
+          className: 'fr24-plane-marker-wrap',
           html: iconHtml,
-          iconSize: [26, 26],
-          iconAnchor: [13, 13],
+          iconSize: [22, 22],
+          iconAnchor: [11, 11],
         });
 
         if (flightMarkersMap.has(fl.id)) {
           const m = flightMarkersMap.get(fl.id);
           m.setLatLng([fl.lat, fl.lng]);
-          m.setIcon(icon);
+          if (Math.abs((m._lastTrack || 0) - fl.track) > 1.5 || m._isSelected !== isSelected) {
+            m.setIcon(icon);
+            m._lastTrack = fl.track;
+            m._isSelected = isSelected;
+          }
         } else {
           const m = L.marker([fl.lat, fl.lng], { icon, pane: 'transitsPane' });
-          m.bindTooltip(`<b>${fl.callsign} // ${fl.airline}</b><br/>${fl.aircraft}<br/>${fl.origin.code} (${fl.origin.city}) ➔ ${fl.destination.code} (${fl.destination.city})<br/>Alt: ${fl.altitudeM?.toLocaleString()} m • Vit: ${fl.speedKmh} km/h<br/><i style="color:#00f5a0;">Cliquer pour télémétrie complète</i>`);
+          m._lastTrack = fl.track;
+          m._isSelected = isSelected;
+
           m.on('click', (e) => {
             if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
             sound.click();
             setInspectedTarget({ type: 'flight', ...fl });
           });
+
           m.addTo(aviationLayer);
           flightMarkersMap.set(fl.id, m);
         }
       });
 
+      // Prune planes that landed or are no longer in radar range
+      for (const [id, m] of flightMarkersMap.entries()) {
+        if (!activeIds.has(id)) {
+          aviationLayer.removeLayer(m);
+          flightMarkersMap.delete(id);
+        }
+      }
+    };
+
+    // Subscribe to Flightradar24 live stream
+    const unsubscribeFR24 = flightRadarService.subscribe((flights) => {
+      updateFlightradarPlanes(flights);
+    });
+
+    // 2b. Maritime Shipping Lanes Layer
+    const maritimeLayer = L.layerGroup();
+    maritimeLayerRef.current = maritimeLayer;
+    if (activeLayers.has('maritime')) {
+      maritimeLayer.addTo(map);
+    }
+    const vesselMarkersMap = new Map();
+
+    const updateTransits = () => {
+      const { vessels } = getLiveTransitPositions();
       // Update vessels
       vessels.forEach((ves) => {
         const iconHtml = `<div class="vessel-div-marker" title="${ves.name} (${ves.flag})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/><path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/><line x1="12" y1="1" x2="12" y2="5"/></svg></div>`;
@@ -342,7 +314,6 @@ export function TacticalMap2D({
           m.setIcon(icon);
         } else {
           const m = L.marker([ves.lat, ves.lng], { icon, pane: 'transitsPane' });
-          m.bindTooltip(`<b>${ves.name} ${ves.flagEmoji || '⚓'}</b><br/>${ves.type}<br/>${ves.originPort} ➔ ${ves.destinationPort}<br/>Vitesse: ${ves.speedKts} Nœuds • ${ves.chokepoint}<br/><i style="color:#f59e0b;">Cliquer pour télémétrie cargaison</i>`);
           m.on('click', (e) => {
             if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
             sound.click();
@@ -357,23 +328,63 @@ export function TacticalMap2D({
     updateTransits();
     const transitInterval = setInterval(updateTransits, 1500);
 
-    // 3. Cyber warfare layer
+    // 3. Cyber warfare layer (Kaspersky Cybermap Style Curved Trajectories + Interactive Telemetry)
     const cyberLayer = L.layerGroup();
     cyberLayerRef.current = cyberLayer;
     CYBER_ATTACK_VECTORS.forEach((vec) => {
-      const color = vec.severity === 'CRITICAL' ? '#ff0055' : '#ffb703';
-      const line = L.polyline([vec.from, vec.to], {
+      const color = vec.color || (vec.severity === 'CRITICAL' ? '#ef4444' : '#8b5cf6');
+
+      // Curved Geodesic Interpolation with slight lateral curvature
+      const midLat = (vec.from[0] + vec.to[0]) / 2 + Math.sin((vec.from[1] - vec.to[1]) * 0.02) * 8;
+      const midLng = (vec.from[1] + vec.to[1]) / 2;
+      const arcPts = [vec.from, [midLat, midLng], vec.to];
+
+      const line = L.polyline(arcPts, {
         color,
-        weight: 2,
-        opacity: 0.75,
-        dashArray: '6, 6',
+        weight: 2.2,
+        opacity: 0.8,
+        dashArray: '5, 8',
       });
-      line.bindTooltip(`ATTAQUE : ${vec.type}<br/>${vec.fromCity} ➔ ${vec.toCity}<br/>Port : ${vec.port} [${vec.severity}]`);
+
+      line.on('click', (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        sound.click();
+        setInspectedTarget({ type: 'cyber', ...vec });
+      });
       line.addTo(cyberLayer);
-      L.circleMarker(vec.to, { radius: 4, color, fillColor: color, fillOpacity: 0.8 }).addTo(cyberLayer);
+
+      // Source origin emitter marker
+      const srcMarker = L.circleMarker(vec.from, {
+        radius: 3.5,
+        color,
+        fillColor: '#ffffff',
+        fillOpacity: 0.9,
+        weight: 1.5,
+      });
+      srcMarker.on('click', (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        sound.click();
+        setInspectedTarget({ type: 'cyber', ...vec });
+      });
+      srcMarker.addTo(cyberLayer);
+
+      // Destination target impact shockwave marker
+      const dstMarker = L.circleMarker(vec.to, {
+        radius: 6,
+        color,
+        fillColor: color,
+        fillOpacity: 0.45,
+        weight: 2,
+      });
+      dstMarker.on('click', (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        sound.click();
+        setInspectedTarget({ type: 'cyber', ...vec });
+      });
+      dstMarker.addTo(cyberLayer);
     });
 
-    // 4. Conflicts layer
+    // 4. Geopolitical conflicts layer (Hotspot Zones)
     const conflictsLayer = L.layerGroup();
     conflictsLayerRef.current = conflictsLayer;
     GEOPOLITICAL_ZONES.forEach((zone) => {
@@ -384,7 +395,12 @@ export function TacticalMap2D({
         fillOpacity: 0.22,
         weight: 1.5,
       });
-      circle.bindTooltip(`<b>${zone.name}</b><br/>${zone.status} — ${zone.defcon}<br/>${zone.alert}`);
+      circle.bindTooltip(`<b>${zone.name}</b><br/>${zone.status} — ${zone.defcon}<br/>${zone.alert}<br/><i style="color:#ff3366;">Cliquer pour dossier de crise</i>`);
+      circle.on('click', (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        sound.click();
+        setInspectedTarget({ type: 'conflict', ...zone });
+      });
       circle.addTo(conflictsLayer);
     });
 
@@ -403,37 +419,17 @@ export function TacticalMap2D({
           fillOpacity: 0.35,
           weight: 1.5,
         });
-        circle.bindTooltip(`<b>SÉISME M ${eq.mag}</b><br/>${eq.place}<br/>Prof: ${eq.depth} km • ${eq.time}`);
+        circle.bindTooltip(`<b>SÉISME M ${eq.mag}</b><br/>${eq.place}<br/>Prof: ${eq.depth} km • ${eq.time}<br/><i style="color:#ffb703;">Cliquer pour fiche sismique</i>`);
+        circle.on('click', (e) => {
+          if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+          sound.click();
+          setInspectedTarget({ type: 'earthquake', ...eq });
+        });
         circle.addTo(telluricLayer);
       });
     };
 
-    // 6. Satellites layer
-    const satellitesLayer = L.layerGroup();
-    satellitesLayerRef.current = satellitesLayer;
-    SATELLITES_DATA.forEach((sat, idx) => {
-      const frac = ((Date.now() / 1000 + idx * 800) % (sat.periodMin * 60)) / (sat.periodMin * 60);
-      const lat = Math.sin(frac * Math.PI * 2) * Math.min(sat.inclination, 75);
-      const lng = ((((frac * 360 * 16 - 180 + idx * 45) % 360) + 360) % 360) - 180;
-
-      const icon = L.divIcon({
-        className: 'satellite-div-icon-wrapper',
-        html: `<div class="satellite-div-marker" title="${sat.name}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M4.93 4.93a10 10 0 0 1 14.14 0"/><path d="M19.07 19.07a10 10 0 0 1-14.14 0"/></svg></div>`,
-        iconSize: [26, 26],
-        iconAnchor: [13, 13],
-      });
-      const marker = L.marker([lat, lng], { icon, pane: 'transitsPane' });
-      marker.bindTooltip(`<b>${sat.name}</b><br/>Alt: ${sat.altitudeKm} km • Vit: ${sat.speedKmh.toLocaleString()} km/h<br/>NORAD ${sat.noradId} // ${sat.type}`);
-      marker.on('click', (e) => {
-        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
-        sound.click();
-        setInspectedTarget({ type: 'satellite', ...sat });
-        if (onSelectSatellite) onSelectSatellite(sat);
-      });
-      marker.addTo(satellitesLayer);
-    });
-
-    // 7. CCTV live cameras layer (46 strategic global webcams)
+    // 6. CCTV live cameras layer (46 strategic global webcams)
     const cctvLayer = L.layerGroup();
     cctvLayerRef.current = cctvLayer;
     CCTV_FEEDS.forEach((cam) => {
@@ -444,7 +440,6 @@ export function TacticalMap2D({
         iconAnchor: [14, 14],
       });
       const marker = L.marker([cam.lat, cam.lng], { icon, pane: 'transitsPane' });
-      marker.bindTooltip(`<b>${cam.name}</b><br/>${cam.city}, ${cam.country}<br/>${cam.category} • ${cam.resolution}<br/><i style="color:#38bdf8;">Cliquer pour ouvrir le flux vidéo</i>`);
       marker.on('click', (e) => {
         if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
         sound.click();
@@ -463,15 +458,25 @@ export function TacticalMap2D({
         opacity: 0.8,
         dashArray: '7, 5',
       });
-      line.bindTooltip(`<b>${cable.name}</b><br/>Capacité: ${cable.capacityTbps} Tbps • Longueur: ${cable.lengthKm.toLocaleString()} km<br/>${cable.owners}`);
+      line.on('click', (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        sound.click();
+        setInspectedTarget({ type: 'cable', ...cable });
+      });
       line.addTo(cablesLayer);
       cable.path.forEach(([cLat, cLng]) => {
-        L.circleMarker([cLat, cLng], {
+        const pt = L.circleMarker([cLat, cLng], {
           radius: 3,
           color: cable.color || '#a855f7',
           fillColor: '#ffffff',
           fillOpacity: 0.9,
-        }).addTo(cablesLayer);
+        });
+        pt.on('click', (e) => {
+          if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+          sound.click();
+          setInspectedTarget({ type: 'cable', ...cable });
+        });
+        pt.addTo(cablesLayer);
       });
     });
 
@@ -486,7 +491,11 @@ export function TacticalMap2D({
         iconAnchor: [12, 12],
       });
       const marker = L.marker([fire.lat, fire.lng], { icon });
-      marker.bindTooltip(`<b>${fire.name}</b><br/>${fire.region}<br/>${fire.source} • Temp: ${fire.tempKelvin} K (${fire.confidence})`);
+      marker.on('click', (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        sound.click();
+        setInspectedTarget({ type: 'weather', ...fire });
+      });
       marker.addTo(weatherLayer);
     });
 
@@ -499,7 +508,11 @@ export function TacticalMap2D({
         weight: 1.5,
         dashArray: '5, 5',
       });
-      circle.bindTooltip(`<b>${w.name}</b><br/>${w.category} • Vents: ${w.windSpeedKmh} km/h<br/>Pression: ${w.pressureHpa} hPa • Cap: ${w.heading}`);
+      circle.on('click', (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        sound.click();
+        setInspectedTarget({ type: 'weather', ...w });
+      });
       circle.addTo(weatherLayer);
     });
 
@@ -514,7 +527,6 @@ export function TacticalMap2D({
         iconAnchor: [13, 13],
       });
       const marker = L.marker([site.lat, site.lng], { icon, pane: 'transitsPane' });
-      marker.bindTooltip(`<b>☢️ ${site.name}</b><br/>${site.type} • Puissance: <b>${site.capacityMwe?.toLocaleString('fr-FR')} MWe</b><br/>Opérateur: ${site.operator}<br/>Statut: <span style="color:#eab308;">${site.status}</span><br/><i style="color:#00f5a0;">Cliquer pour fiche tactique</i>`);
       marker.on('click', (e) => {
         if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
         sound.click();
@@ -530,7 +542,6 @@ export function TacticalMap2D({
     if (activeLayers.has('cyber')) cyberLayer.addTo(map);
     if (activeLayers.has('conflicts')) conflictsLayer.addTo(map);
     if (activeLayers.has('telluric')) telluricLayer.addTo(map);
-    if (activeLayers.has('satellites')) satellitesLayer.addTo(map);
     if (activeLayers.has('cctv')) cctvLayer.addTo(map);
     if (activeLayers.has('cables')) cablesLayer.addTo(map);
     if (activeLayers.has('weather')) weatherLayer.addTo(map);
@@ -581,65 +592,6 @@ export function TacticalMap2D({
             const areaFormatted = formatAreaKm2(areaKm2);
 
             layer.on({
-              mouseover: (e) => {
-                const target = e.target;
-
-                // 1. Strictly single-country hover: if another layer was hovered, reset it immediately!
-                if (hoveredLayerRef.current && hoveredLayerRef.current !== target) {
-                  const prev = hoveredLayerRef.current;
-                  if (prev !== selectedLayerRef.current) {
-                    geoLayer.resetStyle(prev);
-                    if (prev._path) {
-                      prev._path.classList.remove('country-path-elevated');
-                    }
-                  }
-                }
-
-                // 2. Set this target as the unique hovered layer
-                hoveredLayerRef.current = target;
-
-                // 3. Elevate only if not currently selected
-                if (target !== selectedLayerRef.current) {
-                  target.setStyle(hoverStyle);
-                  if (target._path) {
-                    target._path.classList.add('country-path-elevated');
-                  }
-                }
-
-                // Ensure selected layer remains visually on top
-                if (selectedLayerRef.current && selectedLayerRef.current !== target) {
-                  selectedLayerRef.current.bringToFront();
-                }
-
-                sound.hover();
-                setHoveredCountry({
-                  name: displayName,
-                  continent,
-                  subregion,
-                  pop: popFormatted,
-                  area: areaFormatted,
-                });
-              },
-              mouseout: (e) => {
-                const target = e.target;
-                if (target._path) {
-                  target._path.classList.remove('country-path-elevated');
-                }
-                // If this is the currently selected country, keep its selected style!
-                if (target === selectedLayerRef.current) {
-                  target.setStyle(selectedStyle);
-                  if (target._path) {
-                    target._path.classList.add('country-path-selected');
-                  }
-                } else {
-                  geoLayer.resetStyle(target);
-                }
-
-                if (hoveredLayerRef.current === target) {
-                  hoveredLayerRef.current = null;
-                  setHoveredCountry(null);
-                }
-              },
               click: (e) => {
                 // Only left click selects
                 if (e.originalEvent && e.originalEvent.button !== 0) return;
@@ -659,8 +611,7 @@ export function TacticalMap2D({
                   }
                 });
 
-                // 2. Clear hover and apply persistent glowing selected style to target
-                hoveredLayerRef.current = null;
+                // 2. Apply persistent glowing selected style to target
                 selectedLayerRef.current = target;
                 target.setStyle(selectedStyle);
                 target.bringToFront();
@@ -723,6 +674,8 @@ export function TacticalMap2D({
 
     return () => {
       unsubscribeStream();
+      if (unsubscribeFR24) unsubscribeFR24();
+      clearInterval(transitInterval);
       container.removeEventListener('contextmenu', onContextMenu);
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
@@ -764,7 +717,6 @@ export function TacticalMap2D({
       cyber: cyberLayerRef.current,
       conflicts: conflictsLayerRef.current,
       telluric: telluricLayerRef.current,
-      satellites: satellitesLayerRef.current,
       cctv: cctvLayerRef.current,
       cables: cablesLayerRef.current,
       weather: weatherLayerRef.current,
@@ -893,7 +845,6 @@ export function TacticalMap2D({
         fillOpacity: 1,
         weight: 2,
       });
-      origMarker.bindTooltip(`<b>DÉPART : ${inspectedTarget.origin.code}</b><br/>${inspectedTarget.origin.city}, ${inspectedTarget.origin.country}`);
       origMarker.addTo(routeGroup);
 
       // Destination airport
@@ -904,7 +855,6 @@ export function TacticalMap2D({
         fillOpacity: 1,
         weight: 2,
       });
-      destMarker.bindTooltip(`<b>ARRIVÉE : ${inspectedTarget.destination.code}</b><br/>${inspectedTarget.destination.city}, ${inspectedTarget.destination.country}`);
       destMarker.addTo(routeGroup);
 
       routeGroup.addTo(map);
@@ -932,27 +882,6 @@ export function TacticalMap2D({
     <div className="tactical-map-viewport">
       {/* Real Map Canvas */}
       <div ref={mapContainerRef} className="leaflet-map-canvas" />
-
-      {/* Floating Hover Pill (Follows cursor) */}
-      {hoveredCountry && (
-        <div
-          className="country-hover-pill"
-          style={{
-            left: mousePos.x + 16,
-            top: mousePos.y - 42,
-          }}
-        >
-          <div className="country-pill-core awwwards-pill">
-            <span className="pill-item-name">{hoveredCountry.name.toUpperCase()}</span>
-            <span className="pill-item-sep">/</span>
-            <span className="pill-item-detail">{hoveredCountry.continent}</span>
-            <span className="pill-item-sep">/</span>
-            <span className="pill-item-pop">POP: {hoveredCountry.pop}</span>
-            <span className="pill-item-sep">/</span>
-            <span className="pill-item-area">SUP: {hoveredCountry.area}</span>
-          </div>
-        </div>
-      )}
 
       {/* Google Maps Style Inspector Card (On Click) */}
       {selectedTerritory && (

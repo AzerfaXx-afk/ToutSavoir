@@ -12,6 +12,12 @@ import {
   DEFENSE_COMMODITIES_MARKETS,
 } from '../data/osirisStreams';
 import {
+  CYBER_ATTACK_VECTORS,
+  TOP_ATTACKED_COUNTRIES,
+  KASPERSKY_CATEGORIES,
+  LIVE_CYBER_BULLETINS,
+} from '../data/cyberThreats';
+import {
   LIVE_BULLETINS,
   COUNTRIES_TELEMETRY,
   HOTSPOTS,
@@ -38,13 +44,16 @@ import {
   Database,
   Server,
   Zap,
+  Plane,
 } from 'lucide-react';
+import { flightRadarService } from '../services/flightRadarService';
 import { ChronoJournalTab } from './ChronoJournalTab';
 import './LiveTelemetryDrawer.css';
 
 /* ── Unified Category System (Worldometer 64-Metrics & Osiris Feeds) ── */
 const UNIFIED_CATEGORIES = [
   { id: 'all', label: 'Tout', type: 'metrics' },
+  { id: 'aviation', label: 'Vols Flightradar24', type: 'aviation' },
   { id: 'population', label: 'Démographie', type: 'metrics' },
   { id: 'economy', label: 'Économie & Gouv', type: 'metrics' },
   { id: 'media', label: 'Société & Médias', type: 'metrics' },
@@ -54,6 +63,7 @@ const UNIFIED_CATEGORIES = [
   { id: 'energy', label: 'Énergie & Réserves', type: 'metrics' },
   { id: 'health', label: 'Santé Publique', type: 'metrics' },
   { id: 'defense_markets', label: 'Marchés & Défense', type: 'markets' },
+  { id: 'cyber', label: 'Cyber Menaces', type: 'cyber' },
   { id: 'video', label: 'Vidéo en Direct', type: 'cctv' },
   { id: 'satellites', label: 'Satellites', type: 'satellites' },
   { id: 'osint', label: 'OSINT Recon', type: 'osint' },
@@ -147,6 +157,7 @@ export function LiveTelemetryDrawer({
   onSelectCCTV,
   onSelectSatellite,
   onSelectLocation,
+  onInspectTarget,
   selectedCountry = 'FR',
 }) {
   /* ── State ─────────────────────────────────────────────────────── */
@@ -156,6 +167,11 @@ export function LiveTelemetryDrawer({
   const [activeCategory, setActiveCategory] = useState('all');
   const [drawerMode, setDrawerMode] = useState('metrics'); // 'metrics' | 'journal'
   const [cctvFilter, setCctvFilter] = useState('all');
+  const [cyberFilter, setCyberFilter] = useState('ALL');
+  const [cyberDetectionsTick, setCyberDetectionsTick] = useState(148291530);
+  const [liveFlights, setLiveFlights] = useState([]);
+  const [totalGlobalFlights, setTotalGlobalFlights] = useState(15650);
+  const [flightFilter, setFlightFilter] = useState('ALL');
   const [osintTarget, setOsintTarget] = useState('8.8.8.8');
   const [searchQuery, setSearchQuery] = useState('');
   const [metrics, setMetrics] = useState(() => computeWorldometerMetrics(1));
@@ -284,6 +300,15 @@ export function LiveTelemetryDrawer({
   /* ── Realtime stream (keep subscription alive) ─────────────────── */
   useEffect(() => realtimeStream.subscribe(() => {}), []);
 
+  /* ── Flightradar24 Live Planes Stream ─────────────────────────── */
+  useEffect(() => {
+    const unsub = flightRadarService.subscribe((flights, total) => {
+      setLiveFlights(flights || []);
+      if (total) setTotalGlobalFlights(total);
+    });
+    return () => unsub();
+  }, []);
+
   /* ── Active category type ──────────────────────────────────────── */
   const activeType = useMemo(() => {
     const cat = UNIFIED_CATEGORIES.find((c) => c.id === activeCategory);
@@ -303,6 +328,35 @@ export function LiveTelemetryDrawer({
       return matchesCat && matchesSearch;
     });
   }, [activeCategory, searchQuery]);
+
+  /* ── Cyber Live Detections Ticker ─────────────────────────────── */
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCyberDetectionsTick((prev) => prev + Math.floor(2200 + Math.random() * 500));
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const filteredCyber = useMemo(() => {
+    return CYBER_ATTACK_VECTORS.filter((att) => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch =
+        !q ||
+        att.threatActor.toLowerCase().includes(q) ||
+        att.fromCity.toLowerCase().includes(q) ||
+        att.toCity.toLowerCase().includes(q) ||
+        att.fromCountry.toLowerCase().includes(q) ||
+        att.toCountry.toLowerCase().includes(q) ||
+        att.targetSector.toLowerCase().includes(q) ||
+        (att.cve && att.cve.toLowerCase().includes(q)) ||
+        (att.type && att.type.toLowerCase().includes(q));
+
+      if (!matchesSearch) return false;
+
+      if (cyberFilter === 'ALL') return true;
+      return att.kasperskyCat === cyberFilter || att.category === cyberFilter;
+    });
+  }, [searchQuery, cyberFilter]);
 
   const filteredCCTV = useMemo(() => {
     return CCTV_FEEDS.filter((c) => {
@@ -337,6 +391,26 @@ export function LiveTelemetryDrawer({
         s.country.toLowerCase().includes(q)
     );
   }, [searchQuery]);
+
+  const filteredFlights = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return liveFlights.filter((fl) => {
+      const matchesSearch =
+        !q ||
+        (fl.callsign && fl.callsign.toLowerCase().includes(q)) ||
+        (fl.flightNum && fl.flightNum.toLowerCase().includes(q)) ||
+        (fl.airline && fl.airline.toLowerCase().includes(q)) ||
+        (fl.aircraft && fl.aircraft.toLowerCase().includes(q)) ||
+        (fl.origin?.city && fl.origin.city.toLowerCase().includes(q)) ||
+        (fl.origin?.code && fl.origin.code.toLowerCase().includes(q)) ||
+        (fl.destination?.city && fl.destination.city.toLowerCase().includes(q)) ||
+        (fl.destination?.code && fl.destination.code.toLowerCase().includes(q));
+
+      if (!matchesSearch) return false;
+      if (flightFilter === 'ALL') return true;
+      return (fl.airline || '').toLowerCase().includes(flightFilter.toLowerCase());
+    });
+  }, [liveFlights, searchQuery, flightFilter]);
 
   /* ── Country data ──────────────────────────────────────────────── */
   const countryData = useMemo(() => {
@@ -514,12 +588,14 @@ export function LiveTelemetryDrawer({
   /* ── Content count for search indicator ────────────────────────── */
   const contentCount = useMemo(() => {
     if (activeType === 'metrics') return filteredMetrics.length;
+    if (activeType === 'aviation') return filteredFlights.length;
     if (activeType === 'markets') return DEFENSE_COMMODITIES_MARKETS.length;
+    if (activeType === 'cyber') return filteredCyber.length;
     if (activeType === 'cctv') return filteredCCTV.length;
     if (activeType === 'satellites') return filteredSatellites.length;
     if (activeType === 'osint') return Object.keys(OSINT_DOSSIERS).length;
     return null;
-  }, [activeType, filteredMetrics, filteredCCTV, filteredSatellites]);
+  }, [activeType, filteredMetrics, filteredFlights, filteredCyber, filteredCCTV, filteredSatellites]);
 
   /* ── Render ────────────────────────────────────────────────────── */
   return (
@@ -696,8 +772,9 @@ export function LiveTelemetryDrawer({
         {drawerMode === 'journal' ? (
           <div className="drawer-scroll-area is-journal-dedicated">
             <ChronoJournalTab
-              selectedDate={customDateRef.current || new Date()}
+              selectedDate={customDate || new Date()}
               metrics={metrics}
+              onSelectLocation={onSelectLocation}
             />
           </div>
         ) : (
@@ -721,8 +798,12 @@ export function LiveTelemetryDrawer({
                       ? cat.id === 'all'
                         ? METRIC_DEFINITIONS.length
                         : METRIC_DEFINITIONS.filter((m) => m.cat === cat.id).length
+                      : cat.type === 'aviation'
+                      ? liveFlights.length
                       : cat.type === 'markets'
                       ? DEFENSE_COMMODITIES_MARKETS.length
+                      : cat.type === 'cyber'
+                      ? CYBER_ATTACK_VECTORS.length
                       : cat.type === 'cctv'
                       ? CCTV_FEEDS.length
                       : cat.type === 'satellites'
@@ -827,6 +908,172 @@ export function LiveTelemetryDrawer({
             </>
           )}
 
+          {/* ── VOLS EN DIRECT FLIGHTRADAR24 (ADS-B STREAMING RÉEL) ── */}
+          {activeType === 'aviation' && (
+            <div className="fr24-aviation-feed-wrapper">
+              {/* Flightradar24 Cockpit Status Header Card */}
+              <div className="fr24-header-card">
+                <div className="fr24-header-top">
+                  <div className="fr24-radar-indicator">
+                    <span className="fr24-pulse-ring" />
+                    <span className="fr24-pulse-dot" />
+                    <span className="fr24-source-title">FLIGHTRADAR24 // RADAR ADS-B EN DIRECT</span>
+                  </div>
+                  <span className="fr24-live-pill">● DIRECT 1X VITESSE RÉELLE</span>
+                </div>
+
+                <div className="fr24-stats-row">
+                  <div className="fr24-stat-box">
+                    <span className="fr24-stat-label">VOLS CAPTÉS EN TEMPS RÉEL</span>
+                    <span className="fr24-stat-value gold">
+                      {liveFlights.length > 0 ? liveFlights.length.toLocaleString('fr-FR') : 'Connexion...'}
+                    </span>
+                  </div>
+                  <div className="fr24-stat-box align-right">
+                    <span className="fr24-stat-label">TRAFIC MONDIAL ESTIMÉ</span>
+                    <span className="fr24-stat-value">
+                      ~{totalGlobalFlights.toLocaleString('fr-FR')} vols
+                    </span>
+                  </div>
+                </div>
+
+                {/* Quick Airlines Filters */}
+                <div className="fr24-airline-filters">
+                  {[
+                    { id: 'ALL', label: `TOUS (${liveFlights.length})` },
+                    { id: 'Air France', label: 'Air France' },
+                    { id: 'British Airways', label: 'British Airways' },
+                    { id: 'Lufthansa', label: 'Lufthansa' },
+                    { id: 'Emirates', label: 'Emirates' },
+                    { id: 'Ryanair', label: 'Ryanair' },
+                    { id: 'easyJet', label: 'easyJet' },
+                    { id: 'Delta', label: 'Delta' },
+                    { id: 'United', label: 'United' },
+                    { id: 'American', label: 'American' },
+                    { id: 'Qatar', label: 'Qatar Airways' },
+                    { id: 'Turkish', label: 'Turkish Airlines' },
+                  ].map((air) => (
+                    <button
+                      key={air.id}
+                      type="button"
+                      className={`fr24-airline-chip ${flightFilter === air.id ? 'is-active' : ''}`}
+                      onClick={() => {
+                        sound.click(0.4);
+                        setFlightFilter(air.id);
+                      }}
+                    >
+                      {air.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Flights Counter and Result Bar */}
+              <div className="fr24-list-header">
+                <div className="fr24-list-title">
+                  <Plane size={13} style={{ color: '#ffd700' }} />
+                  <span>FLOTTE COMMERCIALE EN VOL DIRECT</span>
+                  <span className="fr24-list-count">
+                    {filteredFlights.length} affichés
+                  </span>
+                </div>
+                <span className="fr24-list-note">CLIQUEZ POUR TÉLÉMÉTRIE & TRAJECTOIRE</span>
+              </div>
+
+              {/* Flights Grid / Cards */}
+              {filteredFlights.length === 0 ? (
+                <div className="empty-state">
+                  Aucun vol ne correspond aux critères de recherche actuels.
+                </div>
+              ) : (
+                <div className="fr24-flights-grid">
+                  {filteredFlights.slice(0, 120).map((fl, idx) => (
+                    <div
+                      key={fl.id || idx}
+                      className="fr24-flight-card is-clickable"
+                      style={{ animationDelay: `${Math.min(idx * 0.02, 0.6)}s` }}
+                      onClick={() => {
+                        sound.click();
+                        if (onSelectLocation) onSelectLocation(fl.lat, fl.lng, 7);
+                        if (onInspectTarget) onInspectTarget({ type: 'flight', ...fl });
+                      }}
+                    >
+                      <div className="fr24-card-top">
+                        <div className="fr24-card-callsign-group">
+                          <div
+                            className="fr24-mini-plane-icon"
+                            style={{ transform: `rotate(${fl.track || 0}deg)` }}
+                          >
+                            <Plane size={14} color="#ffd700" />
+                          </div>
+                          <div>
+                            <div className="fr24-callsign">{fl.callsign}</div>
+                            <div className="fr24-flight-num">{fl.flightNum || fl.callsign}</div>
+                          </div>
+                        </div>
+
+                        <div className="fr24-airline-badge">
+                          <span>{fl.airlineFlag || '✈️'}</span>
+                          <span className="fr24-airline-name">{fl.airline}</span>
+                        </div>
+                      </div>
+
+                      {/* Route corridor badges */}
+                      <div className="fr24-card-route">
+                        <div className="fr24-route-endpoint">
+                          <span className="fr24-airport-code">{fl.origin?.code || 'DEP'}</span>
+                          <span className="fr24-airport-city">{fl.origin?.city || 'Origine'}</span>
+                        </div>
+                        <div className="fr24-route-arrow">
+                          <span className="fr24-arrow-line" />
+                          <Plane size={10} color="#ffd700" style={{ transform: `rotate(${fl.track || 90}deg)` }} />
+                          <span className="fr24-arrow-line" />
+                        </div>
+                        <div className="fr24-route-endpoint align-right">
+                          <span className="fr24-airport-code">{fl.destination?.code || 'ARR'}</span>
+                          <span className="fr24-airport-city">{fl.destination?.city || 'Destination'}</span>
+                        </div>
+                      </div>
+
+                      {/* Telemetry metrics strip */}
+                      <div className="fr24-telemetry-strip">
+                        <div className="fr24-tel-col">
+                          <span className="fr24-tel-label">ALTITUDE</span>
+                          <span className="fr24-tel-val cyan">
+                            {fl.altitudeFt?.toLocaleString('fr-FR')} ft
+                          </span>
+                        </div>
+                        <div className="fr24-tel-col">
+                          <span className="fr24-tel-label">VITESSE</span>
+                          <span className="fr24-tel-val gold">
+                            {fl.speedKts} kts
+                          </span>
+                        </div>
+                        <div className="fr24-tel-col">
+                          <span className="fr24-tel-label">CAP</span>
+                          <span className="fr24-tel-val">
+                            {fl.track}°
+                          </span>
+                        </div>
+                        <div className="fr24-tel-col align-right">
+                          <span className="fr24-tel-label">APPAREIL</span>
+                          <span className="fr24-tel-val model">
+                            {fl.aircraftCode || fl.aircraft?.split(' ')[0] || 'Avion'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="fr24-card-footer">
+                        <span className="fr24-squawk-tag">SQK {fl.squawk || '2000'}</span>
+                        <span className="fr24-inspect-cta">CIBLER & INSPECTER →</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ── MARCHÉS & MATIÈRES PREMIÈRES (OSIRIS PARITY) ── */}
           {activeType === 'markets' && (
             <div className="markets-grid">
@@ -857,6 +1104,244 @@ export function LiveTelemetryDrawer({
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* ── CYBER GUERRE & MENACES (KASPERSKY CYBERMAP PARITY) ── */}
+          {activeType === 'cyber' && (
+            <div className="cyber-intel-wrapper">
+              {/* Kaspersky Global Threat Ticker Card */}
+              <div className="cyber-global-ticker-card">
+                <div className="cyber-ticker-top">
+                  <div className="cyber-ticker-live-status">
+                    <span className="cyber-pulse-dot" />
+                    <span className="cyber-ticker-source">KASPERSKY LABS // REAL-TIME SENSORS</span>
+                  </div>
+                  <span className="cyber-threat-badge-defcon">DEFCON 2 // CYBER ALERTE</span>
+                </div>
+
+                <div className="cyber-counter-row">
+                  <div className="cyber-stat-col">
+                    <span className="cyber-stat-label">ATTAQUES DÉTECTÉES AUJOURD'HUI</span>
+                    <span className="cyber-stat-big-val">
+                      {cyberDetectionsTick.toLocaleString('fr-FR')}
+                    </span>
+                  </div>
+                  <div className="cyber-stat-col align-right">
+                    <span className="cyber-stat-label">DÉBIT INSTANTANÉ</span>
+                    <span className="cyber-rate-val">~2 468 / sec</span>
+                  </div>
+                </div>
+
+                {/* Kaspersky Threat Taxonomy Filters */}
+                <div className="cyber-taxonomy-filters">
+                  <button
+                    type="button"
+                    className={`cyber-cat-chip ${cyberFilter === 'ALL' ? 'is-active' : ''}`}
+                    onClick={() => {
+                      sound.click(0.4);
+                      setCyberFilter('ALL');
+                    }}
+                  >
+                    <span>TOUS ({CYBER_ATTACK_VECTORS.length})</span>
+                  </button>
+                  {KASPERSKY_CATEGORIES.map((kcat) => {
+                    const cnt = CYBER_ATTACK_VECTORS.filter(
+                      (v) => v.kasperskyCat === kcat.id || v.category === kcat.id
+                    ).length;
+                    return (
+                      <button
+                        key={kcat.id}
+                        type="button"
+                        className={`cyber-cat-chip ${cyberFilter === kcat.id ? 'is-active' : ''}`}
+                        style={{ '--chip-color': kcat.color }}
+                        onClick={() => {
+                          sound.click(0.4);
+                          setCyberFilter(kcat.id);
+                        }}
+                        title={kcat.name}
+                      >
+                        <span className="cyber-cat-code" style={{ color: kcat.color }}>{kcat.id}</span>
+                        <span className="cyber-cat-name">{kcat.name}</span>
+                        {cnt > 0 && <span className="cyber-cat-cnt">{cnt}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Top 10 Most Targeted Nations (Kaspersky Radar) */}
+              <div className="cyber-ranking-section">
+                <div className="cyber-section-header">
+                  <Globe size={13} style={{ color: '#00f2fe' }} />
+                  <span>TOP PAYS LES PLUS CIBLÉS EN TEMPS RÉEL</span>
+                  <span className="cyber-section-sub">KASPERSKY LIVE RANKING</span>
+                </div>
+                <div className="cyber-ranking-grid">
+                  {TOP_ATTACKED_COUNTRIES.map((c) => (
+                    <div
+                      key={c.code}
+                      className="cyber-rank-card is-clickable"
+                      onClick={() => {
+                        sound.click();
+                        if (onSelectLocation) onSelectLocation(c.lat, c.lng, 5);
+                      }}
+                      title={`Cibler ${c.country} sur le globe`}
+                    >
+                      <div className="cyber-rank-left">
+                        <span className="cyber-rank-num">#{c.rank}</span>
+                        <span className="cyber-rank-flag">{c.flag}</span>
+                        <div className="cyber-rank-names">
+                          <span className="cyber-country-name">{c.country}</span>
+                          <span className="cyber-country-attacks">{c.attacks}</span>
+                        </div>
+                      </div>
+                      <div className="cyber-rank-right">
+                        <span className="cyber-share-pct">{c.share}</span>
+                        <span className={`cyber-sev-tag ${c.severity ? c.severity.toLowerCase() : 'info'}`}>
+                          {c.severity || 'INFO'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Active Cyber Attack Vectors Feed */}
+              <div className="cyber-vectors-section">
+                <div className="cyber-section-header">
+                  <ShieldAlert size={13} style={{ color: '#ec4899' }} />
+                  <span>VECTEURS D'ATTAQUES & APT ACTIFS</span>
+                  <span className="cyber-section-count">{filteredCyber.length} ACTIFS</span>
+                </div>
+
+                {filteredCyber.length === 0 ? (
+                  <div className="empty-state">Aucun vecteur correspondant au filtre.</div>
+                ) : (
+                  <div className="cyber-attacks-list">
+                    {filteredCyber.map((vec, i) => (
+                      <div
+                        key={vec.id}
+                        className="cyber-attack-card"
+                        style={{
+                          animationDelay: `${i * 0.03}s`,
+                          borderLeftColor: vec.color || '#ec4899',
+                        }}
+                      >
+                        <div className="cyber-card-header">
+                          <div className="cyber-threat-actor-group">
+                            <span
+                              className="cyber-cat-badge"
+                              style={{
+                                backgroundColor: `${vec.color || '#ec4899'}22`,
+                                color: vec.color || '#ec4899',
+                                borderColor: `${vec.color || '#ec4899'}55`,
+                              }}
+                            >
+                              [{vec.kasperskyCat || vec.category || 'APT'}]
+                            </span>
+                            <span className="cyber-threat-actor-name">{vec.threatActor}</span>
+                          </div>
+                          <span
+                            className={`cyber-card-severity ${
+                              vec.severity === 'CRITICAL' ? 'is-critical' : 'is-high'
+                            }`}
+                          >
+                            {vec.severity === 'CRITICAL' ? '● CRITIQUE' : '● ÉLEVÉ'}
+                          </span>
+                        </div>
+
+                        {/* Trajectory corridor */}
+                        <div className="cyber-route-corridor">
+                          <span className="cyber-corridor-from">
+                            {vec.fromCity} <span className="cyber-cc">({vec.fromCountry})</span>
+                          </span>
+                          <span className="cyber-corridor-arrow" style={{ color: vec.color || '#ec4899' }}>
+                            ⚡➔
+                          </span>
+                          <span className="cyber-corridor-to">
+                            {vec.toCity} <span className="cyber-cc">({vec.toCountry})</span>
+                          </span>
+                        </div>
+
+                        {/* Specs grid */}
+                        <div className="cyber-card-specs">
+                          <div className="cyber-spec-item">
+                            <span className="cyber-spec-lbl">Cible :</span>
+                            <span className="cyber-spec-val" style={{ color: '#f43f5e' }}>{vec.targetSector}</span>
+                          </div>
+                          <div className="cyber-spec-item">
+                            <span className="cyber-spec-lbl">Port :</span>
+                            <span className="cyber-spec-val mono">{vec.port} ({vec.proto || 'TCP'})</span>
+                          </div>
+                          {vec.cve && (
+                            <div className="cyber-spec-item">
+                              <span className="cyber-spec-lbl">CVE :</span>
+                              <span className="cyber-spec-val purple mono">{vec.cve}</span>
+                            </div>
+                          )}
+                          <div className="cyber-spec-item">
+                            <span className="cyber-spec-lbl">Débit :</span>
+                            <span className="cyber-spec-val cyan mono">{vec.volume}</span>
+                          </div>
+                        </div>
+
+                        {/* Forensic Notes */}
+                        {vec.forensicNote && (
+                          <div className="cyber-card-notes">
+                            {vec.forensicNote}
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="cyber-card-actions">
+                          <button
+                            type="button"
+                            className="cyber-target-inspect-btn"
+                            onClick={() => {
+                              sound.click();
+                              if (onInspectTarget) onInspectTarget({ type: 'cyber', ...vec });
+                              if (onSelectLocation) onSelectLocation(vec.to[0], vec.to[1], 6);
+                            }}
+                            title="Inspecter le vecteur et localiser l'impact sur la carte"
+                          >
+                            <Crosshair size={12} />
+                            <span>CIBLER & INSPECTER</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Official CERT-FR / CISA / ANSSI Bulletins */}
+              <div className="cyber-bulletins-section">
+                <div className="cyber-section-header">
+                  <Terminal size={13} style={{ color: '#00f5a0' }} />
+                  <span>BULLETINS OFFICIELS // CERT-FR & CISA KEV</span>
+                  <span className="cyber-section-count">{LIVE_CYBER_BULLETINS.length} AVIS</span>
+                </div>
+                <div className="cyber-bulletins-list">
+                  {LIVE_CYBER_BULLETINS.map((b) => (
+                    <div key={b.id} className="cyber-bulletin-card">
+                      <div className="cyber-bulletin-head">
+                        <span className="cyber-bulletin-ref">{b.ref}</span>
+                        <span className="cyber-bulletin-source">{b.source}</span>
+                        <span className={`cyber-bulletin-urgency ${b.severity.toLowerCase()}`}>
+                          {b.severity}
+                        </span>
+                      </div>
+                      <div className="cyber-bulletin-title">{b.title}</div>
+                      <div className="cyber-bulletin-cve">CVE : <b>{b.cve}</b> • CVSS : <b>{b.cvss}</b></div>
+                      <div className="cyber-bulletin-impact">{b.impact}</div>
+                      <div className="cyber-bulletin-mitigation">
+                        <span className="cyber-mitigation-tag">MESURE REQUISE :</span> {b.mitigation}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
