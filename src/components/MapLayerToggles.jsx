@@ -162,14 +162,27 @@ export function MapLayerToggles({
   onSwitchTo3D,
   flightLimit = 25,
   onFlightLimitChange,
+  vesselLimit = 25,
+  onVesselLimitChange,
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [liveFlightCount, setLiveFlightCount] = useState(flightRadarService.flights.length || 2280);
+  const [liveVesselCount, setLiveVesselCount] = useState(marineTrafficService.vessels.length || 2210);
 
   useEffect(() => {
     const unsub = flightRadarService.subscribe((flights, total) => {
       const nextCount = flights.length > 0 ? flights.length : total || 2280;
       setLiveFlightCount((prev) => (prev === nextCount ? prev : nextCount));
+    });
+    return () => {
+      if (unsub) unsub();
+    };
+  }, []);
+
+  useEffect(() => {
+    const unsub = marineTrafficService.subscribe((vessels, total) => {
+      const nextCount = vessels.length > 0 ? vessels.length : total || 2210;
+      setLiveVesselCount((prev) => (prev === nextCount ? prev : nextCount));
     });
     return () => {
       if (unsub) unsub();
