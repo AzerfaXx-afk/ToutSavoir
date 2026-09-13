@@ -50,7 +50,10 @@ export function TacticalMap2D({
     setInternalInspectedTarget(target);
     if (onInspectTarget) onInspectTarget(target);
   }, [onInspectTarget]);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0, lat: '48.85° N', lng: '2.35° E' });
+
+  // Direct DOM refs for cursor coordinates (0 React re-renders on mousemove)
+  const coordLatRef = useRef(null);
+  const coordLngRef = useRef(null);
 
   // Styles definition
   const defaultStyle = {
@@ -183,7 +186,7 @@ export function TacticalMap2D({
       osm: osmLayer,
     };
 
-    // Track cursor GPS coordinates (lightweight, zero DOM traversal)
+    // Track cursor GPS coordinates (direct DOM text update, 0 React re-renders)
     map.on('mousemove', (e) => {
       const clampedLat = Math.max(-85, Math.min(85, e.latlng.lat));
       const clampedLng = ((((e.latlng.lng + 180) % 360) + 360) % 360) - 180;
@@ -191,12 +194,8 @@ export function TacticalMap2D({
       const latStr = `${Math.abs(clampedLat).toFixed(2)}° ${clampedLat >= 0 ? 'N' : 'S'}`;
       const lngStr = `${Math.abs(clampedLng).toFixed(2)}° ${clampedLng >= 0 ? 'E' : 'W'}`;
 
-      setMousePos({
-        lat: latStr,
-        lng: lngStr,
-        x: e.originalEvent.clientX,
-        y: e.originalEvent.clientY,
-      });
+      if (coordLatRef.current) coordLatRef.current.textContent = latStr;
+      if (coordLngRef.current) coordLngRef.current.textContent = lngStr;
     });
 
     // Close selected card & unhighlight when clicking empty ocean
@@ -224,41 +223,61 @@ export function TacticalMap2D({
     pulsesLayerRef.current = pulsesLayer;
     pulsesLayer.addTo(map);
 
-    // 2. Aviation Layer (Direct Flightradar24 ADS-B Live Commercial Fleet)
+    // 2. Aviation Layer (Direct Flightradar24 ADS-B Live Commercial Fleet with Viewport Culling)
     const aviationLayer = L.layerGroup();
     aviationLayerRef.current = aviationLayer;
     if (activeLayers.has('aviation')) {
       aviationLayer.addTo(map);
     }
 
-    // Track active flight markers with Flightradar24 yellow airplane icons
+    // High-performance viewport-culled flight markers management
     const flightMarkersMap = new Map();
+    let currentRawFlights = [];
+    const MAX_VISIBLE_2D_PLANES = 450; // Cap DOM elements for buttery smooth 60 FPS Leaflet panning
 
     const updateFlightradarPlanes = (flightsList) => {
-      if (!flightsList || flightsList.length === 0) return;
+      if (flightsList) currentRawFlights = flightsList;
+      if (!currentRawFlights || currentRawFlights.length === 0 || !map) return;
 
+      const bounds = map.getBounds().pad(0.25); // 25% margin outside viewport
       const activeIds = new Set();
+      let displayedCount = 0;
 
-      flightsList.forEach((fl) => {
-        activeIds.add(fl.id);
+      for (let i = 0; i < currentRawFlights.length; i++) {
+        const fl = currentRawFlights[i];
         const isSelected = inspectedTarget?.id === fl.id;
-        const iconHtml = getFlightradarPlaneSvg(fl.track || fl.heading || 0, 20, isSelected);
-        const icon = L.divIcon({
-          className: 'fr24-plane-marker-wrap',
-          html: iconHtml,
-          iconSize: [22, 22],
-          iconAnchor: [11, 11],
-        });
+        const inBounds = bounds.contains([fl.lat, fl.lng]);
+
+        // Always show selected flight; otherwise cap at MAX_VISIBLE_2D_PLANES
+        if (!inBounds && !isSelected) continue;
+        if (!isSelected && displayedCount >= MAX_VISIBLE_2D_PLANES) continue;
+
+        displayedCount++;
+        activeIds.add(fl.id);
 
         if (flightMarkersMap.has(fl.id)) {
           const m = flightMarkersMap.get(fl.id);
           m.setLatLng([fl.lat, fl.lng]);
-          if (Math.abs((m._lastTrack || 0) - fl.track) > 1.5 || m._isSelected !== isSelected) {
+          if (Math.abs((m._lastTrack || 0) - fl.track) > 2.0 || m._isSelected !== isSelected) {
+            const iconHtml = getFlightradarPlaneSvg(fl.track || fl.heading || 0, 20, isSelected);
+            const icon = L.divIcon({
+              className: 'fr24-plane-marker-wrap',
+              html: iconHtml,
+              iconSize: [22, 22],
+              iconAnchor: [11, 11],
+            });
             m.setIcon(icon);
             m._lastTrack = fl.track;
             m._isSelected = isSelected;
           }
         } else {
+          const iconHtml = getFlightradarPlaneSvg(fl.track || fl.heading || 0, 20, isSelected);
+          const icon = L.divIcon({
+            className: 'fr24-plane-marker-wrap',
+            html: iconHtml,
+            iconSize: [22, 22],
+            iconAnchor: [11, 11],
+          });
           const m = L.marker([fl.lat, fl.lng], { icon, pane: 'transitsPane' });
           m._lastTrack = fl.track;
           m._isSelected = isSelected;
@@ -272,9 +291,9 @@ export function TacticalMap2D({
           m.addTo(aviationLayer);
           flightMarkersMap.set(fl.id, m);
         }
-      });
+      }
 
-      // Prune planes that landed or are no longer in radar range
+      // Prune planes that moved out of viewport or are no longer in radar range
       for (const [id, m] of flightMarkersMap.entries()) {
         if (!activeIds.has(id)) {
           aviationLayer.removeLayer(m);
@@ -282,6 +301,11 @@ export function TacticalMap2D({
         }
       }
     };
+
+    // Update on map drag / zoom end
+    map.on('moveend', () => {
+      updateFlightradarPlanes();
+    });
 
     // Subscribe to Flightradar24 live stream
     const unsubscribeFR24 = flightRadarService.subscribe((flights) => {
@@ -969,12 +993,12 @@ export function TacticalMap2D({
       <div className="floating-coords-pill">
         <div className="coord-item">
           <span className="coord-tag">LAT</span>
-          <span className="coord-value">{mousePos.lat}</span>
+          <span className="coord-value" ref={coordLatRef}>48.85° N</span>
         </div>
         <span className="coord-divider">/</span>
         <div className="coord-item">
           <span className="coord-tag">LNG</span>
-          <span className="coord-value">{mousePos.lng}</span>
+          <span className="coord-value" ref={coordLngRef}>2.35° E</span>
         </div>
       </div>
     </div>

@@ -146,7 +146,8 @@ export function MapLayerToggles({
 
   useEffect(() => {
     const unsub = flightRadarService.subscribe((flights, total) => {
-      setLiveFlightCount(flights.length > 0 ? flights.length : total || 2280);
+      const nextCount = flights.length > 0 ? flights.length : total || 2280;
+      setLiveFlightCount((prev) => (prev === nextCount ? prev : nextCount));
     });
     return () => {
       if (unsub) unsub();

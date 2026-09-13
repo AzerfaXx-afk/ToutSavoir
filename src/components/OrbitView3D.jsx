@@ -49,8 +49,10 @@ export function OrbitView3D({
   onInspectTarget,
 }) {
   const mountRef = useRef(null);
-  const [coords, setCoords] = useState({ lat: '48.85° N', lng: '2.35° E' });
-  const [altitude, setAltitude] = useState(12450);
+  // Direct DOM refs for 3D coordinates (0 React re-renders in WebGL loop)
+  const coordLatRef = useRef(null);
+  const coordLngRef = useRef(null);
+  const coordAltRef = useRef(null);
   const [selectedTerritory, setSelectedTerritory] = useState(null);
   const [internalInspectedTarget, setInternalInspectedTarget] = useState(null);
   const inspectedTarget = propInspectedTarget !== undefined ? propInspectedTarget : internalInspectedTarget;
@@ -341,7 +343,7 @@ export function OrbitView3D({
       powerPreference: 'high-performance',
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
     container.appendChild(renderer.domElement);
@@ -693,6 +695,9 @@ export function OrbitView3D({
     const scratchRotMatrix = new THREE.Matrix4();
     const scratchQuat = new THREE.Quaternion();
     const scratchScale = new THREE.Vector3();
+    const scratchSatTangent = new THREE.Vector3();
+    const upZAxis = new THREE.Vector3(0, 0, 1);
+    const scratchDirVector = new THREE.Vector3();
 
     const update3DPlanes = (flightsList) => {
       if (!planesInstancedMesh || !flightsList || flightsList.length === 0) return;
@@ -706,7 +711,8 @@ export function OrbitView3D({
         scratchPos.set(x, y, z);
         scratchNormal.copy(scratchPos).normalize();
 
-        scratchNorth.copy(upWorldVector).sub(scratchNormal.clone().multiplyScalar(scratchNormal.dot(upWorldVector)));
+        const normalDotUp = scratchNormal.dot(upWorldVector);
+        scratchNorth.copy(upWorldVector).addScaledVector(scratchNormal, -normalDotUp);
         if (scratchNorth.lengthSq() < 0.0001) {
           scratchNorth.set(0, 0, 1);
         } else {
@@ -1436,7 +1442,8 @@ export function OrbitView3D({
 
       const latStr = `${Math.abs(latDeg).toFixed(2)}° ${latDeg >= 0 ? 'N' : 'S'}`;
       const lngStr = `${Math.abs(lngDeg).toFixed(2)}° ${lngDeg >= 0 ? 'E' : 'W'}`;
-      setCoords({ lat: latStr, lng: lngStr });
+      if (coordLatRef.current) coordLatRef.current.textContent = latStr;
+      if (coordLngRef.current) coordLngRef.current.textContent = lngStr;
       return { lat: latDeg, lng: lngDeg };
     };
 
@@ -1741,8 +1748,8 @@ export function OrbitView3D({
         }
       } else {
         isHoveringEarth = false;
-        const dir = camera.position.clone().negate().normalize().multiplyScalar(2);
-        const localPoint = earthMesh.worldToLocal(dir);
+        scratchDirVector.copy(camera.position).negate().normalize().multiplyScalar(2);
+        const localPoint = earthMesh.worldToLocal(scratchDirVector);
         updateCoordsFromLocalPoint(localPoint);
 
         if (!isRightDragging && !(e.buttons & 2)) {
@@ -1752,7 +1759,7 @@ export function OrbitView3D({
 
       const dist = camera.position.length();
       const altKm = Math.round(((dist - 2) / 2) * 6371);
-      setAltitude(Math.max(450, altKm));
+      if (coordAltRef.current) coordAltRef.current.textContent = `${Math.max(450, altKm).toLocaleString('fr-FR')} KM`;
     };
 
     const onWheel = () => {
@@ -1827,11 +1834,11 @@ export function OrbitView3D({
           const pos = getKeplerianOrbitalVector(item.R_orb, item.inclination, item.raan, theta);
           item.mesh.position.copy(pos);
 
-          // Orient satellite solar arrays along orbit tangent
+          // Orient satellite solar arrays along orbit tangent (zero allocation)
           const nextTheta = theta + 0.01;
           const nextPos = getKeplerianOrbitalVector(item.R_orb, item.inclination, item.raan, nextTheta);
-          const tangent = nextPos.clone().sub(pos).normalize();
-          item.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tangent);
+          scratchSatTangent.subVectors(nextPos, pos).normalize();
+          item.mesh.quaternion.setFromUnitVectors(upZAxis, scratchSatTangent);
 
           // Pulsing orbital halo
           const haloScale = 1.0 + 0.25 * Math.sin(frameCount * 0.08 + item.phase);
@@ -1932,9 +1939,9 @@ export function OrbitView3D({
         });
       }
 
-      // Animate aviation flights (Flightradar24 Commercial Fleet)
+      // Animate aviation flights (Flightradar24 Commercial Fleet - 10 Hz refresh, optimal 60 FPS)
       if (aviationGroup.visible && planesInstancedMesh) {
-        if (flightRadarService.flights.length > 0 && frameCount % 2 === 0) {
+        if (flightRadarService.flights.length > 0 && frameCount % 6 === 0) {
           update3DPlanes(flightRadarService.flights);
         }
       }
@@ -2020,15 +2027,15 @@ export function OrbitView3D({
         selectedFillMatRef.current.opacity = 0.45 + 0.12 * Math.sin(frameCount * 0.07);
       }
 
-      // Continuous coordinates update
+      // Continuous coordinates update (zero React re-renders)
       if (frameCount % 8 === 0 && !isHoveringEarth) {
-        const dir = camera.position.clone().negate().normalize().multiplyScalar(2);
-        const localPoint = earthMesh.worldToLocal(dir);
+        scratchDirVector.copy(camera.position).negate().normalize().multiplyScalar(2);
+        const localPoint = earthMesh.worldToLocal(scratchDirVector);
         updateCoordsFromLocalPoint(localPoint);
 
         const dist = camera.position.length();
         const altKm = Math.round(((dist - 2) / 2) * 6371);
-        setAltitude(Math.max(450, altKm));
+        if (coordAltRef.current) coordAltRef.current.textContent = `${Math.max(450, altKm).toLocaleString('fr-FR')} KM`;
       }
 
       controls.update();
@@ -2198,17 +2205,17 @@ export function OrbitView3D({
       <div className="floating-coords-pill">
         <div className="coord-item">
           <span className="coord-tag">LAT</span>
-          <span className="coord-value">{coords.lat}</span>
+          <span className="coord-value" ref={coordLatRef}>48.85° N</span>
         </div>
         <span className="coord-divider">/</span>
         <div className="coord-item">
           <span className="coord-tag">LNG</span>
-          <span className="coord-value">{coords.lng}</span>
+          <span className="coord-value" ref={coordLngRef}>2.35° E</span>
         </div>
         <span className="coord-divider">/</span>
         <div className="coord-item">
           <span className="coord-tag">ALT</span>
-          <span className="coord-value">{altitude.toLocaleString('fr-FR')} KM</span>
+          <span className="coord-value" ref={coordAltRef}>12 450 KM</span>
         </div>
       </div>
     </div>

@@ -300,14 +300,30 @@ export function LiveTelemetryDrawer({
   /* ── Realtime stream (keep subscription alive) ─────────────────── */
   useEffect(() => realtimeStream.subscribe(() => {}), []);
 
-  /* ── Flightradar24 Live Planes Stream ─────────────────────────── */
+  /* ── Flightradar24 Live Planes Stream (Active only when Drawer is open) ─── */
   useEffect(() => {
+    if (!isOpen) return;
+
+    // Immediately sync current fleet upon drawer opening
+    if (flightRadarService.flights.length > 0) {
+      setLiveFlights(flightRadarService.flights);
+      if (flightRadarService.totalGlobalFlights) {
+        setTotalGlobalFlights(flightRadarService.totalGlobalFlights);
+      }
+    }
+
+    // Throttled subscription (1.8s) for smooth drawer scrolling and zero UI stutter
+    let lastUpdate = Date.now();
     const unsub = flightRadarService.subscribe((flights, total) => {
-      setLiveFlights(flights || []);
-      if (total) setTotalGlobalFlights(total);
+      const now = Date.now();
+      if (now - lastUpdate >= 1800) {
+        lastUpdate = now;
+        setLiveFlights(flights || []);
+        if (total) setTotalGlobalFlights(total);
+      }
     });
     return () => unsub();
-  }, []);
+  }, [isOpen]);
 
   /* ── Active category type ──────────────────────────────────────── */
   const activeType = useMemo(() => {
