@@ -55,6 +55,8 @@ import {
 } from 'lucide-react';
 import { flightRadarService } from '../services/flightRadarService';
 import { ChronoJournalTab } from './ChronoJournalTab';
+import { MasterLiveTheater } from './MasterLiveTheater';
+import { InlineLiveCard } from './InlineLiveCard';
 import './LiveTelemetryDrawer.css';
 
 /* ── Unified Category System (Worldometer 64-Metrics & Osiris Feeds) ── */
@@ -174,6 +176,10 @@ export function LiveTelemetryDrawer({
   const [activeCategory, setActiveCategory] = useState('all');
   const [drawerMode, setDrawerMode] = useState('metrics'); // 'metrics' | 'journal'
   const [cctvSubMode, setCctvSubMode] = useState('cameras'); // 'cameras' | 'tv'
+  const [activeMasterCamera, setActiveMasterCamera] = useState(() => {
+    return CCTV_FEEDS.find((c) => c.id === 'cctv-fr-paris-eiffel') || CCTV_FEEDS[0];
+  });
+  const [activeMasterTV, setActiveMasterTV] = useState(() => WORLD_TV_CHANNELS[0]);
   const [cctvFilter, setCctvFilter] = useState('all');
   const [tvCountry, setTvCountry] = useState('all');
   const [cyberFilter, setCyberFilter] = useState('ALL');
@@ -1345,6 +1351,41 @@ export function LiveTelemetryDrawer({
                 </button>
               </div>
 
+              {/* Grand Écran Cockpit Maître en Direct 24/7 (Autoplay Vidéo Direct Sans Clic) */}
+              <MasterLiveTheater
+                feed={cctvSubMode === 'tv' ? activeMasterTV : activeMasterCamera}
+                isTv={cctvSubMode === 'tv'}
+                onPrevFeed={() => {
+                  if (cctvSubMode === 'cameras') {
+                    if (filteredCCTV.length === 0) return;
+                    const idx = filteredCCTV.findIndex((c) => c.id === activeMasterCamera?.id);
+                    const prev = filteredCCTV[(idx - 1 + filteredCCTV.length) % filteredCCTV.length];
+                    if (prev) setActiveMasterCamera(prev);
+                  } else {
+                    if (filteredTV.length === 0) return;
+                    const idx = filteredTV.findIndex((t) => t.id === activeMasterTV?.id);
+                    const prev = filteredTV[(idx - 1 + filteredTV.length) % filteredTV.length];
+                    if (prev) setActiveMasterTV(prev);
+                  }
+                }}
+                onNextFeed={() => {
+                  if (cctvSubMode === 'cameras') {
+                    if (filteredCCTV.length === 0) return;
+                    const idx = filteredCCTV.findIndex((c) => c.id === activeMasterCamera?.id);
+                    const next = filteredCCTV[(idx + 1) % filteredCCTV.length];
+                    if (next) setActiveMasterCamera(next);
+                  } else {
+                    if (filteredTV.length === 0) return;
+                    const idx = filteredTV.findIndex((t) => t.id === activeMasterTV?.id);
+                    const next = filteredTV[(idx + 1) % filteredTV.length];
+                    if (next) setActiveMasterTV(next);
+                  }
+                }}
+                onExpandModal={(f) => {
+                  if (onSelectCCTV) onSelectCCTV(f);
+                }}
+              />
+
               {/* Submode 1: CAMERAS & DOT */}
               {cctvSubMode === 'cameras' && (
                 <>
@@ -1415,58 +1456,19 @@ export function LiveTelemetryDrawer({
                   ) : (
                     <div className="cctv-live-grid">
                       {filteredCCTV.map((cam, i) => (
-                        <div
+                        <InlineLiveCard
                           key={cam.id}
-                          className={`cctv-live-card ${cam.isLiveSnapshot ? 'is-dot-snapshot' : ''}`}
-                          style={{ animationDelay: `${i * 0.03}s`, cursor: 'pointer' }}
-                          onClick={() => {
-                            sound.click();
-                            if (onSelectCCTV) onSelectCCTV(cam);
+                          feed={cam}
+                          index={i}
+                          isActiveMaster={activeMasterCamera?.id === cam.id}
+                          isTv={false}
+                          onSelectMaster={(f) => {
+                            setActiveMasterCamera(f);
                           }}
-                        >
-                          <div className="cctv-iframe-wrap">
-                            <img
-                              src={cam.thumbnail || 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&q=80'}
-                              alt={cam.name}
-                              className="cctv-card-thumb-img"
-                              loading="lazy"
-                            />
-                            <div className="cctv-card-scanlines" />
-                            <div className={`cctv-live-badge ${cam.isLiveSnapshot ? 'is-dot-badge' : ''}`}>
-                              <span className={`cctv-rec-dot ${cam.isLiveSnapshot ? 'is-dot-dot' : ''}`} />
-                              <span>{cam.isLiveSnapshot ? 'AUTO-REFRESH 5S' : cam.category?.includes('Info') ? 'INFO 24/7' : 'DIRECT OPTIQUE'}</span>
-                            </div>
-                            <div className="cctv-resolution-pill">{cam.resolution || '1080p HD'}</div>
-                            <div className="cctv-card-play-overlay">
-                              <div className="cctv-play-btn-circle">
-                                <Play size={15} fill="#00f2fe" color="#00f2fe" />
-                              </div>
-                              <span>{cam.isLiveSnapshot ? 'SURVEILLANCE ROUTIÈRE DIRECTE' : 'ACTIVER SURVEILLANCE DIRECTE'}</span>
-                            </div>
-                            <button
-                              type="button"
-                              className="cctv-pip-expand-btn"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                sound.click();
-                                if (onSelectCCTV) onSelectCCTV(cam);
-                              }}
-                              title="Ouvrir dans le moniteur de surveillance PiP"
-                            >
-                              <Maximize2 size={11} />
-                            </button>
-                          </div>
-                          <div className="cctv-live-info">
-                            <div className="cctv-live-title">{cam.name}</div>
-                            <div className="cctv-live-location">
-                              {cam.city}, {cam.country}
-                            </div>
-                            <div className="cctv-live-meta">
-                              <span>{cam.resolution}</span>
-                              <span className={`cctv-category-tag ${cam.isLiveSnapshot ? 'is-dot-tag' : ''}`}>{cam.category}</span>
-                            </div>
-                          </div>
-                        </div>
+                          onExpandModal={(f) => {
+                            if (onSelectCCTV) onSelectCCTV(f);
+                          }}
+                        />
                       ))}
                     </div>
                   )}
@@ -1500,61 +1502,19 @@ export function LiveTelemetryDrawer({
                   ) : (
                     <div className="cctv-live-grid">
                       {filteredTV.map((tv, i) => (
-                        <div
+                        <InlineLiveCard
                           key={tv.id}
-                          className={`cctv-live-card tv-channel-card ${tv.isDrmProtected ? 'is-drm-card' : ''}`}
-                          style={{ animationDelay: `${i * 0.03}s`, cursor: 'pointer' }}
-                          onClick={() => {
-                            sound.click();
-                            if (onSelectCCTV) onSelectCCTV(tv);
+                          feed={tv}
+                          index={i}
+                          isActiveMaster={activeMasterTV?.id === tv.id}
+                          isTv={true}
+                          onSelectMaster={(f) => {
+                            setActiveMasterTV(f);
                           }}
-                        >
-                          <div className="cctv-iframe-wrap">
-                            <img
-                              src={tv.thumbnail || 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&q=80'}
-                              alt={tv.name}
-                              className="cctv-card-thumb-img"
-                              loading="lazy"
-                            />
-                            <div className="cctv-card-scanlines" />
-                            <div className={`cctv-live-badge ${tv.isDrmProtected ? 'is-drm-badge' : 'is-tv-badge'}`}>
-                              <span className={`cctv-rec-dot ${tv.isDrmProtected ? 'is-drm-dot' : 'is-tv-dot'}`} />
-                              <span>{tv.isDrmProtected ? 'PASSERELLE DRM' : 'EN DIRECT 24/7'}</span>
-                            </div>
-                            <div className="cctv-resolution-pill">{tv.resolution || '1080p HD'}</div>
-                            <div className="cctv-card-play-overlay">
-                              <div className="cctv-play-btn-circle">
-                                <Play size={15} fill={tv.isDrmProtected ? '#fbbf24' : '#00f5a0'} color={tv.isDrmProtected ? '#fbbf24' : '#00f5a0'} />
-                              </div>
-                              <span>{tv.isDrmProtected ? 'ACCÉDER AU DIRECT OFFICIEL' : 'ACTIVER DIRECT VIDÉO'}</span>
-                            </div>
-                            <button
-                              type="button"
-                              className="cctv-pip-expand-btn"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                sound.click();
-                                if (onSelectCCTV) onSelectCCTV(tv);
-                              }}
-                              title="Ouvrir dans le moniteur de surveillance PiP"
-                            >
-                              <Maximize2 size={11} />
-                            </button>
-                          </div>
-                          <div className="cctv-live-info">
-                            <div className="tv-card-header-row">
-                              <span className="tv-card-flag">{tv.logo || '📺'}</span>
-                              <div className="cctv-live-title">{tv.name}</div>
-                            </div>
-                            <div className="cctv-live-location">
-                              <span className="tv-card-network">{tv.network}</span> • {tv.city}, {tv.country}
-                            </div>
-                            <div className="cctv-live-meta">
-                              <span>{tv.resolution}</span>
-                              <span className={`cctv-category-tag ${tv.isDrmProtected ? 'is-drm-tag' : 'is-tv-tag'}`}>{tv.category}</span>
-                            </div>
-                          </div>
-                        </div>
+                          onExpandModal={(f) => {
+                            if (onSelectCCTV) onSelectCCTV(f);
+                          }}
+                        />
                       ))}
                     </div>
                   )}

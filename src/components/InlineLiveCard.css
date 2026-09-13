@@ -1,0 +1,247 @@
+/* ── InlineLiveCard Styles ─────────────────────────────────────────── */
+.inline-live-card {
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 15, 25, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.inline-live-card:hover {
+  border-color: rgba(0, 242, 254, 0.45);
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.7),
+    0 0 16px rgba(0, 242, 254, 0.2);
+  transform: translateY(-2px);
+}
+
+.inline-live-card.is-tv-card:hover {
+  border-color: rgba(0, 245, 160, 0.45);
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.7),
+    0 0 16px rgba(0, 245, 160, 0.2);
+}
+
+/* Active Master Feed Glowing Indicator */
+.inline-live-card.is-active-master {
+  border-color: #00f2fe;
+  background: rgba(0, 242, 254, 0.06);
+  box-shadow: 
+    0 8px 26px rgba(0, 0, 0, 0.75),
+    0 0 20px rgba(0, 242, 254, 0.35);
+}
+
+.inline-live-card.is-tv-card.is-active-master {
+  border-color: #00f5a0;
+  background: rgba(0, 245, 160, 0.06);
+  box-shadow: 
+    0 8px 26px rgba(0, 0, 0, 0.75),
+    0 0 20px rgba(0, 245, 160, 0.35);
+}
+
+/* Video Viewport */
+.inline-live-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #020408;
+  overflow: hidden;
+}
+
+.inline-live-video,
+.inline-live-iframe,
+.inline-live-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: none;
+  display: block;
+}
+
+.inline-card-scanlines {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background-size: 100% 3px;
+  pointer-events: none;
+  opacity: 0.3;
+  z-index: 2;
+}
+
+/* Badges */
+.inline-card-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  z-index: 3;
+}
+
+.inline-card-badge.is-cam {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+}
+
+.inline-card-badge.is-tv {
+  background: rgba(0, 245, 160, 0.2);
+  border: 1px solid rgba(0, 245, 160, 0.5);
+  color: #a7f3d0;
+}
+
+.inline-card-badge.is-dot {
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  color: #93c5fd;
+}
+
+.inline-card-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  animation: liveDotPulse 1.2s infinite ease-in-out;
+}
+
+.inline-card-res {
+  position: absolute;
+  top: 8px;
+  right: 32px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #00f2fe;
+  z-index: 3;
+}
+
+.inline-card-master-tag {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(0, 242, 254, 0.25);
+  backdrop-filter: blur(6px);
+  border: 1px solid #00f2fe;
+  color: #ffffff;
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  z-index: 3;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+}
+
+.is-tv-card .inline-card-master-tag {
+  background: rgba(0, 245, 160, 0.25);
+  border-color: #00f5a0;
+  box-shadow: 0 0 10px rgba(0, 245, 160, 0.4);
+}
+
+.inline-card-expand-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  cursor: pointer;
+  z-index: 3;
+  transition: all 0.2s ease;
+}
+
+.inline-card-expand-btn:hover {
+  background: rgba(0, 242, 254, 0.2);
+  border-color: #00f2fe;
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+/* Card Info */
+.inline-card-info {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(6, 10, 18, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.inline-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inline-card-flag {
+  font-size: 13px;
+}
+
+.inline-card-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.3px;
+}
+
+.inline-card-sub {
+  font-size: 10px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inline-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.inline-card-fps {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.inline-card-cat {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  color: #38bdf8;
+  font-weight: 700;
+  text-transform: uppercase;
+}
