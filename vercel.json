@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/fr24/:match*",
+      "destination": "https://data-cloud.flightradar24.com/:match*"
+    }
+  ]
+}

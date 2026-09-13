@@ -782,42 +782,6 @@ export function OrbitView3D({
 
         selectedFlightGroup = new THREE.Group();
 
-        const [fromLat, fromLng] = fl.origin.coords;
-        const [toLat, toLng] = fl.destination.coords;
-        if (typeof fromLat !== 'number' || typeof fromLng !== 'number' || typeof toLat !== 'number' || typeof toLng !== 'number') return;
-
-        const vFrom = new THREE.Vector3(...coordsToVector(fromLng, fromLat, R_EARTH + 0.005));
-        const vTo = new THREE.Vector3(...coordsToVector(toLng, toLat, R_EARTH + 0.005));
-        const dist = vFrom.distanceTo(vTo);
-        const arcApex = R_EARTH + Math.min(0.38, 0.08 + dist * 0.14);
-        const vMid = vFrom.clone().add(vTo).multiplyScalar(0.5).normalize().multiplyScalar(arcApex);
-
-        // Great-circle parabolic corridor curve
-        const curve = new THREE.QuadraticBezierCurve3(vFrom, vMid, vTo);
-        const points = curve.getPoints(50);
-        const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
-        const lineMat = new THREE.LineBasicMaterial({
-          color: 0x00f2fe,
-          transparent: true,
-          opacity: 0.9,
-        });
-        const trajLine = new THREE.Line(lineGeom, lineMat);
-        selectedFlightGroup.add(trajLine);
-
-        // Departure Pin (Emerald)
-        const depGeom = new THREE.SphereGeometry(0.015, 12, 12);
-        const depMat = new THREE.MeshBasicMaterial({ color: 0x00f5a0 });
-        const depPin = new THREE.Mesh(depGeom, depMat);
-        depPin.position.copy(vFrom);
-        selectedFlightGroup.add(depPin);
-
-        // Arrival Pin (Cyan)
-        const arrGeom = new THREE.SphereGeometry(0.015, 12, 12);
-        const arrMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
-        const arrPin = new THREE.Mesh(arrGeom, arrMat);
-        arrPin.position.copy(vTo);
-        selectedFlightGroup.add(arrPin);
-
         // Targeting Reticle on the selected aircraft itself (pulsing cyan ring)
         const lat = fl.lat ?? fl.origin?.coords?.[0];
         const lng = fl.lng ?? fl.origin?.coords?.[1];

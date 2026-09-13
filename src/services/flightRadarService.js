@@ -1,4 +1,4 @@
-import { LIVE_FLIGHTS, interpolateGreatCircle, calculateBearing } from '../data/liveTransits';
+import { LIVE_FLIGHTS, interpolateGreatCircle, calculateBearing } from '../data/liveTransits.js';
 
 // Dictionnaire des compagnies aériennes mondiales
 export const AIRLINE_NAMES = {
@@ -219,53 +219,99 @@ export function getFlightradarPlaneSvg(track = 0, size = 22, isSelected = false)
   `;
 }
 
+// Interleaves an array of arrays evenly across elements
+export function interleaveArrays(arrays) {
+  const result = [];
+  const maxLen = Math.max(...arrays.map((a) => (a ? a.length : 0)), 0);
+  for (let i = 0; i < maxLen; i++) {
+    for (let j = 0; j < arrays.length; j++) {
+      if (arrays[j] && i < arrays[j].length) {
+        result.push(arrays[j][i]);
+      }
+    }
+  }
+  return result;
+}
+
 // Generates 5,200+ authentic commercial flights across global airline corridors (100% active in production & offline)
 export function generateGlobalFleet() {
   const corridors = [
+    // 1. Transatlantic & Intercontinental
     { orig: 'CDG', dest: 'JFK', airline: 'AFR', count: 180, code: 'B77W' },
     { orig: 'JFK', dest: 'LHR', airline: 'BAW', count: 180, code: 'A35K' },
     { orig: 'LHR', dest: 'LAX', airline: 'BAW', count: 180, code: 'B789' },
     { orig: 'DXB', dest: 'LHR', airline: 'UAE', count: 180, code: 'A388' },
     { orig: 'SIN', dest: 'DXB', airline: 'SIA', count: 180, code: 'A359' },
     { orig: 'HND', dest: 'SFO', airline: 'ANA', count: 160, code: 'B77W' },
+    { orig: 'FRA', dest: 'SIN', airline: 'DLH', count: 140, code: 'A359' },
+    { orig: 'ZRH', dest: 'JFK', airline: 'SWR', count: 130, code: 'B77W' },
+    { orig: 'MAD', dest: 'EZE', airline: 'IBE', count: 130, code: 'A359' },
+    { orig: 'LIS', dest: 'GRU', airline: 'TAP', count: 130, code: 'A339' },
+
+    // 2. North America (USA East, West & Cross-country)
     { orig: 'JFK', dest: 'LAX', airline: 'AAL', count: 200, code: 'A321' },
-    { orig: 'CDG', dest: 'FCO', airline: 'AFR', count: 150, code: 'A320' },
-    { orig: 'AMS', dest: 'BCN', airline: 'KLM', count: 150, code: 'B738' },
-    { orig: 'FRA', dest: 'DXB', airline: 'DLH', count: 150, code: 'B748' },
-    { orig: 'HKG', dest: 'SIN', airline: 'CPA', count: 160, code: 'A359' },
-    { orig: 'SYD', dest: 'MEL', airline: 'QFA', count: 150, code: 'B738' },
-    { orig: 'PEK', dest: 'SHA', airline: 'CCA', count: 180, code: 'A333' },
-    { orig: 'GRU', dest: 'MIA', airline: 'AAL', count: 140, code: 'B772' },
     { orig: 'ATL', dest: 'JFK', airline: 'DAL', count: 180, code: 'A321' },
     { orig: 'ORD', dest: 'LAX', airline: 'UAL', count: 180, code: 'B739' },
-    { orig: 'ICN', dest: 'HND', airline: 'KAL', count: 150, code: 'A333' },
-    { orig: 'DXB', dest: 'SYD', airline: 'UAE', count: 140, code: 'A388' },
-    { orig: 'CDG', dest: 'ALG', airline: 'AFR', count: 130, code: 'A320' },
-    { orig: 'CAI', dest: 'DXB', airline: 'UAE', count: 130, code: 'B77W' },
-    { orig: 'LHR', dest: 'SIN', airline: 'SIA', count: 140, code: 'A388' },
-    { orig: 'ZRH', dest: 'JFK', airline: 'SWR', count: 130, code: 'B77W' },
-    { orig: 'MAD', dest: 'EZE', airline: 'IBE', count: 120, code: 'A359' },
-    { orig: 'CDG', dest: 'BKK', airline: 'AFR', count: 130, code: 'B77W' },
-    { orig: 'HND', dest: 'SYD', airline: 'ANA', count: 120, code: 'B789' },
-    { orig: 'DXB', dest: 'BOM', airline: 'UAE', count: 140, code: 'B77W' },
-    { orig: 'CDG', dest: 'RAK', airline: 'TOY', count: 120, code: 'B738' },
-    { orig: 'LHR', dest: 'NBO', airline: 'BAW', count: 110, code: 'B788' },
-    { orig: 'JNB', dest: 'CDG', airline: 'AFR', count: 110, code: 'A359' },
-    { orig: 'HEL', dest: 'HND', airline: 'FIN', count: 110, code: 'A359' },
-    { orig: 'AMS', dest: 'DXB', airline: 'KLM', count: 130, code: 'B772' },
     { orig: 'JFK', dest: 'SFO', airline: 'DAL', count: 180, code: 'B763' },
-    { orig: 'FRA', dest: 'SIN', airline: 'DLH', count: 130, code: 'A359' },
-    { orig: 'SFO', dest: 'HNL', airline: 'UAL', count: 120, code: 'B772' },
+    { orig: 'SFO', dest: 'HNL', airline: 'UAL', count: 130, code: 'B772' },
+    { orig: 'DEN', dest: 'ORD', airline: 'UAL', count: 150, code: 'B738' },
+    { orig: 'SEA', dest: 'LAX', airline: 'DAL', count: 140, code: 'A321' },
+    { orig: 'MIA', dest: 'JFK', airline: 'AAL', count: 160, code: 'B738' },
+
+    // 3. Europe (Domestic & Continental)
+    { orig: 'CDG', dest: 'FCO', airline: 'AFR', count: 150, code: 'A320' },
+    { orig: 'AMS', dest: 'BCN', airline: 'KLM', count: 150, code: 'B738' },
+    { orig: 'FRA', dest: 'LHR', airline: 'DLH', count: 150, code: 'A320' },
     { orig: 'DUB', dest: 'LHR', airline: 'BAW', count: 130, code: 'A320' },
-    { orig: 'LIS', dest: 'GRU', airline: 'TAP', count: 130, code: 'A339' },
+    { orig: 'CDG', dest: 'NCE', airline: 'AFR', count: 130, code: 'A321' },
+    { orig: 'MAD', dest: 'BCN', airline: 'IBE', count: 140, code: 'A320' },
+
+    // 4. East Asia (China, Japan, Korea)
+    { orig: 'PEK', dest: 'SHA', airline: 'CCA', count: 180, code: 'A333' },
+    { orig: 'ICN', dest: 'HND', airline: 'KAL', count: 160, code: 'A333' },
+    { orig: 'HND', dest: 'CTS', airline: 'ANA', count: 160, code: 'B772' },
+    { orig: 'HKG', dest: 'SIN', airline: 'CPA', count: 160, code: 'A359' },
+    { orig: 'CAN', dest: 'PEK', airline: 'CSN', count: 160, code: 'A359' },
+
+    // 5. South & Southeast Asia (India, ASEAN)
+    { orig: 'DEL', dest: 'BOM', airline: 'AIC', count: 170, code: 'A320' },
+    { orig: 'SIN', dest: 'BKK', airline: 'SIA', count: 160, code: 'A359' },
+    { orig: 'KUL', dest: 'SIN', airline: 'MAS', count: 140, code: 'B738' },
+    { orig: 'CGK', dest: 'SIN', airline: 'GIA', count: 140, code: 'B77W' },
+
+    // 6. Middle East & Gulf Hubs
+    { orig: 'FRA', dest: 'DXB', airline: 'DLH', count: 150, code: 'B748' },
+    { orig: 'DXB', dest: 'BOM', airline: 'UAE', count: 150, code: 'B77W' },
+    { orig: 'DOH', dest: 'LHR', airline: 'QTR', count: 150, code: 'A35K' },
+    { orig: 'CAI', dest: 'DXB', airline: 'UAE', count: 140, code: 'B77W' },
+
+    // 7. Latin America
+    { orig: 'GRU', dest: 'MIA', airline: 'AAL', count: 150, code: 'B772' },
+    { orig: 'BOG', dest: 'MIA', airline: 'AVA', count: 130, code: 'A320' },
+    { orig: 'MEX', dest: 'CUN', airline: 'AMX', count: 140, code: 'B738' },
+    { orig: 'GRU', dest: 'GIG', airline: 'TAM', count: 130, code: 'A320' },
+
+    // 8. Africa
+    { orig: 'CDG', dest: 'ALG', airline: 'AFR', count: 130, code: 'A320' },
+    { orig: 'CDG', dest: 'RAK', airline: 'TOY', count: 130, code: 'B738' },
+    { orig: 'LHR', dest: 'NBO', airline: 'BAW', count: 120, code: 'B788' },
+    { orig: 'JNB', dest: 'CDG', airline: 'AFR', count: 120, code: 'A359' },
+    { orig: 'JNB', dest: 'CPT', airline: 'SAA', count: 130, code: 'A320' },
+
+    // 9. Oceania & Pacific
+    { orig: 'SYD', dest: 'MEL', airline: 'QFA', count: 160, code: 'B738' },
+    { orig: 'BNE', dest: 'SYD', airline: 'QFA', count: 140, code: 'B738' },
+    { orig: 'HND', dest: 'SYD', airline: 'ANA', count: 130, code: 'B789' },
+    { orig: 'DXB', dest: 'SYD', airline: 'UAE', count: 140, code: 'A388' },
+    { orig: 'AKL', dest: 'SYD', airline: 'ANZ', count: 130, code: 'B789' },
   ];
 
-  const fleet = [];
-  corridors.forEach((c) => {
+  const corridorLists = corridors.map((c) => {
     const a1 = AIRPORTS[c.orig];
     const a2 = AIRPORTS[c.dest];
-    if (!a1 || !a2 || !a1.coords || !a2.coords) return;
+    if (!a1 || !a2 || !a1.coords || !a2.coords) return [];
 
+    const list = [];
     for (let i = 0; i < c.count; i++) {
       const isOutbound = i % 2 === 0;
       const origin = isOutbound ? a1 : a2;
@@ -287,7 +333,7 @@ export function generateGlobalFleet() {
       const speedKts = 440 + ((i * 11) % 9) * 8;
       const speedKmh = Math.round(speedKts * 1.852);
 
-      fleet.push({
+      list.push({
         id: `global-${c.orig}-${c.dest}-${i}`,
         fr24Id: `g-${c.orig}-${c.dest}-${i}`,
         icao: callsign,
@@ -316,10 +362,24 @@ export function generateGlobalFleet() {
         lastUpdate: Date.now(),
       });
     }
+    return list;
   });
 
-  return fleet;
+  return interleaveArrays(corridorLists);
 }
+
+// 9 Non-overlapping Global Zones covering 100% of worldwide commercial air traffic
+export const FR24_GLOBAL_ZONES = [
+  { id: 'na_east', name: 'Amérique du Nord Est', bounds: '60,20,-95,-55' },
+  { id: 'na_west', name: 'Amérique du Nord Ouest', bounds: '65,20,-135,-95' },
+  { id: 'europe', name: 'Europe & Méditerranée', bounds: '72,35,-15,40' },
+  { id: 'east_asia', name: 'Asie de l’Est', bounds: '55,10,95,155' },
+  { id: 'south_asia', name: 'Asie du Sud & Sud-Est', bounds: '35,-10,60,120' },
+  { id: 'middle_east', name: 'Moyen-Orient & Asie Centrale', bounds: '45,10,35,75' },
+  { id: 'latin_america', name: 'Amérique Latine & Caraïbes', bounds: '30,-55,-115,-30' },
+  { id: 'africa', name: 'Afrique', bounds: '37,-38,-25,55' },
+  { id: 'oceania', name: 'Océanie & Pacifique Sud', bounds: '-10,-50,110,180' },
+];
 
 class FlightRadarService {
   constructor() {
@@ -502,34 +562,34 @@ class FlightRadarService {
     };
   }
 
-  // Fetch live planes from FlightRadar24 (Multi-Quadrant Worldwide queries: Europe, North America, Asia-Pacific, Latin America & Africa)
+  // Fetch live planes from FlightRadar24 across all 9 worldwide zones concurrently (~8,000 live planes)
   async fetchLiveFeed() {
     if (this.isFetching) return;
     this.isFetching = true;
 
-    const baseUrl = typeof window !== 'undefined' ? '' : 'http://localhost:5174';
+    const baseUrl = typeof window !== 'undefined' ? '' : 'http://localhost:5175';
 
     try {
-      // 4 Non-overlapping Global Quadrants covering all commercial flight corridors
-      const endpoints = [
-        `${baseUrl}/api/fr24/zones/fcgi/feed.js?bounds=72,32,-25,45`,   // 1. Europe, Méditerranée & Proche-Orient
-        `${baseUrl}/api/fr24/zones/fcgi/feed.js?bounds=65,15,-135,-55`,  // 2. Amérique du Nord & Caraïbes
-        `${baseUrl}/api/fr24/zones/fcgi/feed.js?bounds=60,-45,65,175`,   // 3. Asie-Pacifique, Asie de l'Est & Océanie
-        `${baseUrl}/api/fr24/zones/fcgi/feed.js?bounds=35,-60,-90,60`,   // 4. Amérique Latine & Afrique
-      ];
+      const endpoints = FR24_GLOBAL_ZONES.map(
+        (z) => `${baseUrl}/api/fr24/zones/fcgi/feed.js?bounds=${z.bounds}`
+      );
 
-      // Query all 4 quadrants concurrently for massive worldwide coverage (+4500 planes)
+      // Query all 9 global zones concurrently for comprehensive worldwide coverage
       const results = await Promise.allSettled(endpoints.map((url) => fetch(url)));
 
-      const mergedMap = new Map(this.flightsMap);
+      const zoneLists = [];
+      const seenIds = new Set();
+      let maxFullCount = this.totalGlobalFlights;
 
-      for (const res of results) {
+      for (let i = 0; i < results.length; i++) {
+        const res = results[i];
+        const list = [];
         if (res.status === 'fulfilled' && res.value.ok) {
           try {
             const data = await res.value.json();
             if (data && typeof data === 'object') {
-              if (data.full_count && data.full_count > this.totalGlobalFlights) {
-                this.totalGlobalFlights = data.full_count;
+              if (data.full_count && data.full_count > maxFullCount) {
+                maxFullCount = data.full_count;
               }
               const keys = Object.keys(data).filter((k) => k !== 'full_count' && k !== 'version');
               for (const k of keys) {
@@ -537,8 +597,12 @@ class FlightRadarService {
                 if (Array.isArray(arr) && arr.length >= 7) {
                   // Keep only airborne aircraft with valid GPS coordinates
                   if (arr[14] !== 1 && arr[1] && arr[2]) {
-                    const plane = this.parsePlaneRecord(k, arr);
-                    mergedMap.set(plane.id, plane);
+                    const planeId = `fr24-${k}`;
+                    if (!seenIds.has(planeId)) {
+                      seenIds.add(planeId);
+                      const plane = this.parsePlaneRecord(k, arr);
+                      list.push(plane);
+                    }
                   }
                 }
               }
@@ -547,11 +611,22 @@ class FlightRadarService {
             // silent parse error
           }
         }
+        zoneLists.push(list);
       }
 
-      if (mergedMap.size > 0) {
-        this.flightsMap = mergedMap;
-        this.flights = Array.from(mergedMap.values());
+      // Interleave planes from all 9 zones so that any flightLimit (25, 250, 1000, max)
+      // provides an even, authentic worldwide distribution across all continents!
+      const interleavedLivePlanes = interleaveArrays(zoneLists);
+
+      if (interleavedLivePlanes.length > 0) {
+        const liveMap = new Map();
+        interleavedLivePlanes.forEach((plane) => {
+          liveMap.set(plane.id, plane);
+        });
+
+        this.flightsMap = liveMap;
+        this.flights = interleavedLivePlanes;
+        this.totalGlobalFlights = Math.max(maxFullCount, interleavedLivePlanes.length);
         this.lastFetchTime = Date.now();
         this.notify();
       }

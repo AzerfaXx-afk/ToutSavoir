@@ -849,59 +849,6 @@ export function TacticalMap2D({
 
       routeGroup.addTo(map);
       inspectedRouteLayerRef.current = routeGroup;
-    } else if (
-      inspectedTarget.type === 'flight' &&
-      inspectedTarget.origin?.coords &&
-      inspectedTarget.destination?.coords
-    ) {
-      const pStart = inspectedTarget.origin.coords;
-      const pEnd = inspectedTarget.destination.coords;
-      const pts = [];
-      const steps = 40;
-      for (let i = 0; i <= steps; i++) {
-        pts.push(interpolateGreatCircle(pStart, pEnd, i / steps));
-      }
-
-      // Outer glow
-      L.polyline(pts, {
-        color: '#00f2fe',
-        weight: 6,
-        opacity: 0.32,
-        lineCap: 'round',
-        interactive: false,
-      }).addTo(routeGroup);
-
-      // Crisp dash
-      L.polyline(pts, {
-        color: '#38bdf8',
-        weight: 2.2,
-        opacity: 0.95,
-        dashArray: '6, 5',
-        interactive: false,
-      }).addTo(routeGroup);
-
-      // Origin airport
-      const origMarker = L.circleMarker(pStart, {
-        radius: 5,
-        color: '#ffffff',
-        fillColor: '#00f5a0',
-        fillOpacity: 1,
-        weight: 2,
-      });
-      origMarker.addTo(routeGroup);
-
-      // Destination airport
-      const destMarker = L.circleMarker(pEnd, {
-        radius: 5,
-        color: '#ffffff',
-        fillColor: '#00f2fe',
-        fillOpacity: 1,
-        weight: 2,
-      });
-      destMarker.addTo(routeGroup);
-
-      routeGroup.addTo(map);
-      inspectedRouteLayerRef.current = routeGroup;
     }
   }, [inspectedTarget]);
 
