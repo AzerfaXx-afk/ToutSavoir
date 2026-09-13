@@ -456,9 +456,24 @@ export function TacticalMap2D({
       const courseStr = `${ves.course || ves.heading || 0}° COG`;
       const typeColor = MARITIME_PALETTE[ves.category] || ves.color || '#22c55e';
       const flagEmoji = ves.flagEmoji || '🏳️';
-      const dims = ves.lengthM ? `${ves.lengthM}m × ${ves.beamM}m` : '366m × 51m';
-      const draught = ves.draughtM ? `${ves.draughtM}m` : '14.2m';
+      const dims = ves.lengthM && ves.beamM ? `${ves.lengthM}m × ${ves.beamM}m` : '--';
+      const draught = ves.draughtM ? `${ves.draughtM}m` : '--';
       const status = ves.status || 'Faisant route au moteur';
+      const isRealAis = ves.isLiveAis === true;
+      const destination = ves.destination || ves.destinationPort || null;
+      const origin = ves.originPort || null;
+
+      // Route display: show real destination from AIS when available
+      const routeHtml = destination
+        ? `<div class="mt-card-route">
+            ${origin ? `<span class="mt-port">${origin}</span><span class="mt-route-arrow">➔</span>` : '<span class="mt-port" style="color:#94a3b8;">DESTINATION</span><span class="mt-route-arrow">➔</span>'}
+            <span class="mt-port">${destination}</span>
+          </div>`
+        : (origin ? `<div class="mt-card-route">
+            <span class="mt-port">${origin}</span>
+            <span class="mt-route-arrow">➔</span>
+            <span class="mt-port" style="color:#64748b;">--</span>
+          </div>` : '');
 
       return `
         <div class="marinetraffic-popup-card">
@@ -468,33 +483,28 @@ export function TacticalMap2D({
               <span class="mt-vessel-name">${ves.name}</span>
             </div>
             <span class="mt-vessel-type" style="color: ${typeColor}; border-color: ${typeColor}66; background: ${typeColor}15;">
-              ${ves.type || 'Porte-conteneurs'}
+              ${ves.type || 'Cargo / Fret'}
             </span>
           </div>
 
-          <div class="mt-card-route">
-            <span class="mt-port">${ves.originPort || 'ROTTERDAM'}</span>
-            <span class="mt-route-arrow">➔</span>
-            <span class="mt-port">${ves.destinationPort || 'SINGAPORE'}</span>
-            <span class="mt-corridor-tag">${ves.chokepoint || 'Haute mer'}</span>
-          </div>
+          ${routeHtml}
 
           <div class="mt-card-grid">
             <div class="mt-cell">
-              <span class="mt-cell-label">Vitesse surface</span>
+              <span class="mt-cell-label">Vitesse surface (SOG)</span>
               <span class="mt-cell-value cyan">${spdKtsStr} <small style="font-size: 9px; color: #94a3b8;">${spdKmhStr}</small></span>
             </div>
             <div class="mt-cell">
-              <span class="mt-cell-label">Cap / Route</span>
+              <span class="mt-cell-label">Cap / Route (COG)</span>
               <span class="mt-cell-value">${courseStr}</span>
             </div>
             <div class="mt-cell">
-              <span class="mt-cell-label">Dimensions / Tirant</span>
-              <span class="mt-cell-value dim">${dims} • TE ${draught}</span>
+              <span class="mt-cell-label">Dimensions / Tirant d'eau</span>
+              <span class="mt-cell-value dim">${dims}${draught !== '--' ? ` • TE ${draught}` : ''}</span>
             </div>
             <div class="mt-cell">
               <span class="mt-cell-label">Identifiant AIS</span>
-              <span class="mt-cell-value dim">IMO ${ves.imo || '9811000'} • MMSI ${ves.mmsi || '2283000'}</span>
+              <span class="mt-cell-value dim">${ves.imo ? `IMO ${ves.imo} • ` : ''}MMSI ${ves.mmsi || '--'}${ves.callsign ? ` • ${ves.callsign}` : ''}</span>
             </div>
             <div class="mt-cell mt-cell-full">
               <span class="mt-cell-label">Statut navigation</span>
@@ -504,7 +514,7 @@ export function TacticalMap2D({
 
           <div class="mt-card-footer">
             <span class="mt-badge-live">
-              <span class="mt-pulse-dot">●</span> AIS DIRECT FLOTTE MONDIALE
+              <span class="mt-pulse-dot">●</span> ${isRealAis ? 'AIS DIRECT LIVE' : 'AIS FLOTTE MONDIALE'}
             </span>
             <span class="mt-card-hint">CLIC POUR INSPECTION DOSSIER</span>
           </div>

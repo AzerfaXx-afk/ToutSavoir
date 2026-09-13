@@ -129,7 +129,7 @@ export function TacticalInspectionCard({
         <p className="tic-sub-name">
           {isCCTV && `${target.city}, ${target.country} — ${target.category}`}
           {isFlight && `${target.airline} • ${target.aircraft}${target.corridorType || target.flightPhase ? ` (${target.corridorType || target.flightPhase})` : ''}`}
-          {isVessel && `${target.flagEmoji || '⚓'} Pavillon : ${target.flag} • ${target.type}`}
+          {isVessel && `${target.flagEmoji || '⚓'} Pavillon : ${target.flag || 'Inconnu'} • ${target.type || 'Cargo / Fret'}`}
           {isSatellite && `${target.country} • NORAD ${target.noradId} • ${target.orbitType || 'LEO'}`}
           {isNuclear && `${target.region}, ${target.country} • ${target.securityLevel}`}
           {isWeather && `${target.category} • Bassin : ${target.basin || 'Océanique'}`}
@@ -190,16 +190,28 @@ export function TacticalInspectionCard({
         </div>
       )}
 
-      {isVessel && (
+      {isVessel && (target.destination || target.destinationPort || target.originPort) && (
         <div className="tic-vessel-preview">
           <div className="tic-vessel-route">
-            <span className="vessel-port from">{target.originPort}</span>
-            <span className="vessel-arrow">➔</span>
-            <span className="vessel-port to">{target.destinationPort}</span>
+            {target.originPort && (
+              <>
+                <span className="vessel-port from">{target.originPort}</span>
+                <span className="vessel-arrow">➔</span>
+              </>
+            )}
+            {!target.originPort && (target.destination || target.destinationPort) && (
+              <>
+                <span className="vessel-port from" style={{ color: '#94a3b8' }}>DESTINATION</span>
+                <span className="vessel-arrow">➔</span>
+              </>
+            )}
+            <span className="vessel-port to">{target.destination || target.destinationPort}</span>
           </div>
-          <div className="vessel-chokepoint-tag">
-            Zone Clé : {target.chokepoint}
-          </div>
+          {target.chokepoint && (
+            <div className="vessel-chokepoint-tag">
+              Zone Clé : {target.chokepoint}
+            </div>
+          )}
         </div>
       )}
 
@@ -288,16 +300,26 @@ export function TacticalInspectionCard({
                 IMO {target.imo || '--'} • MMSI {target.mmsi || '--'}{target.callsign ? ` • ${target.callsign}` : ''}
               </span>
             </div>
-            <div className="tic-metric-cell full-width">
-              <span className="tic-label">CARGAISON & TONNAGE PORT EN LOURD</span>
-              <span className="tic-val text-dim">
-                {target.cargo || 'Marchandises diverses'} {target.dwt ? `(${Number(target.dwt).toLocaleString('fr-FR')} DWT)` : ''}
-              </span>
-            </div>
+            {(target.destination || target.destinationPort) && (
+              <div className="tic-metric-cell full-width">
+                <span className="tic-label">DESTINATION AIS</span>
+                <span className="tic-val cyan">
+                  {target.destination || target.destinationPort}
+                </span>
+              </div>
+            )}
+            {target.cargo && (
+              <div className="tic-metric-cell full-width">
+                <span className="tic-label">CARGAISON & TONNAGE PORT EN LOURD</span>
+                <span className="tic-val text-dim">
+                  {target.cargo} {target.dwt ? `(${Number(target.dwt).toLocaleString('fr-FR')} DWT)` : ''}
+                </span>
+              </div>
+            )}
             <div className="tic-metric-cell full-width">
               <span className="tic-label">SOURCE TÉLÉMÉTRIE AIS</span>
-              <span className="tic-val mono" style={{ color: '#06b6d4' }}>
-                MARINETRAFFIC AIS LIVE FEED // RÉSEAU SATELLITAIRE & STATIONS CÔTIÈRES VDL
+              <span className="tic-val mono" style={{ color: target.isLiveAis ? '#00f5a0' : '#06b6d4' }}>
+                {target.isLiveAis ? 'DIGITRAFFIC AIS DIRECT LIVE // STATIONS CÔTIÈRES EUROPE' : 'AIS SNAPSHOT FLOTTE MONDIALE // RÉSEAU SATELLITAIRE VDL'}
               </span>
             </div>
           </>
