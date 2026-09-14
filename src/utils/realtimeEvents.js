@@ -203,27 +203,94 @@ class RealtimeEventsEngine {
     this.notify({ type: 'new_event', event, stats: this.stats });
   }
 
-  // Real API Fetch: USGS Live Earthquakes (Free, Open, Global)
+  // Real API Fetch: USGS Live Earthquakes 24h Feed (M2.5+ Global)
   async fetchUsgsEarthquakes() {
     try {
-      const res = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson');
+      let res = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson', {
+        signal: AbortSignal.timeout(9000),
+      });
+      if (!res.ok) {
+        res = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson', {
+          signal: AbortSignal.timeout(6000),
+        });
+      }
       if (!res.ok) return;
+
       const data = await res.json();
-      if (data && data.features && data.features.length > 0) {
-        const parsed = data.features.slice(0, 10).map((f) => {
+      if (data && Array.isArray(data.features) && data.features.length > 0) {
+        const parsed = data.features.slice(0, 50).map((f) => {
           const props = f.properties || {};
           const [lng, lat, depth] = f.geometry.coordinates || [0, 0, 0];
+          const rawMag = parseFloat(props.mag);
+          const mag = !isNaN(rawMag) ? rawMag.toFixed(1) : '3.0';
           const date = new Date(props.time || Date.now());
+
+          // French translation of USGS place description
+          let placeFr = (props.place || 'Épicentre océanique')
+            .replace(/(\d+)\s*km\s+WSW\s+of\s*/gi, (_, d) => `${d} km à l’ouest-sud-ouest de `)
+            .replace(/(\d+)\s*km\s+WNW\s+of\s*/gi, (_, d) => `${d} km à l’ouest-nord-ouest de `)
+            .replace(/(\d+)\s*km\s+ENE\s+of\s*/gi, (_, d) => `${d} km à l’est-nord-est de `)
+            .replace(/(\d+)\s*km\s+ESE\s+of\s*/gi, (_, d) => `${d} km à l’est-sud-est de `)
+            .replace(/(\d+)\s*km\s+NNW\s+of\s*/gi, (_, d) => `${d} km au nord-nord-ouest de `)
+            .replace(/(\d+)\s*km\s+NNE\s+of\s*/gi, (_, d) => `${d} km au nord-nord-est de `)
+            .replace(/(\d+)\s*km\s+SSW\s+of\s*/gi, (_, d) => `${d} km au sud-sud-ouest de `)
+            .replace(/(\d+)\s*km\s+SSE\s+of\s*/gi, (_, d) => `${d} km au sud-sud-est de `)
+            .replace(/(\d+)\s*km\s+NW\s+of\s*/gi, (_, d) => `${d} km au nord-ouest de `)
+            .replace(/(\d+)\s*km\s+NE\s+of\s*/gi, (_, d) => `${d} km au nord-est de `)
+            .replace(/(\d+)\s*km\s+SW\s+of\s*/gi, (_, d) => `${d} km au sud-ouest de `)
+            .replace(/(\d+)\s*km\s+SE\s+of\s*/gi, (_, d) => `${d} km au sud-est de `)
+            .replace(/(\d+)\s*km\s+N\s+of\s*/gi, (_, d) => `${d} km au nord de `)
+            .replace(/(\d+)\s*km\s+S\s+of\s*/gi, (_, d) => `${d} km au sud de `)
+            .replace(/(\d+)\s*km\s+E\s+of\s*/gi, (_, d) => `${d} km à l’est de `)
+            .replace(/(\d+)\s*km\s+W\s+of\s*/gi, (_, d) => `${d} km à l’ouest de `)
+            .replace(/off the coast of\s*/gi, 'au large des côtes de ')
+            .replace(/near the coast of\s*/gi, 'près des côtes de ')
+            .replace(/\bCentral\b/gi, 'Centre du')
+            .replace(/\bNorthern\b/gi, 'Nord du')
+            .replace(/\bSouthern\b/gi, 'Sud du')
+            .replace(/\bEastern\b/gi, 'Est du')
+            .replace(/\bWestern\b/gi, 'Ouest du')
+            .replace(/\bregion\b/gi, 'région')
+            .replace(/\bislands\b/gi, 'îles')
+            .replace(/\bisland\b/gi, 'île')
+            .replace(/\bJapan\b/gi, 'Japon')
+            .replace(/\bArgentina\b/gi, 'Argentine')
+            .replace(/\bChile\b/gi, 'Chili')
+            .replace(/\bPeru\b/gi, 'Pérou')
+            .replace(/\bMexico\b/gi, 'Mexique')
+            .replace(/\bIndonesia\b/gi, 'Indonésie')
+            .replace(/\bPhilippines\b/gi, 'Philippines')
+            .replace(/\bPapua New Guinea\b/gi, 'Papouasie-Nouvelle-Guinée')
+            .replace(/\bFiji\b/gi, 'Fidji')
+            .replace(/\bTonga\b/gi, 'Tonga')
+            .replace(/\bVanuatu\b/gi, 'Vanuatu')
+            .replace(/\bNew Zealand\b/gi, 'Nouvelle-Zélande')
+            .replace(/\bGreece\b/gi, 'Grèce')
+            .replace(/\bTurkey\b/gi, 'Turquie')
+            .replace(/\bItaly\b/gi, 'Italie')
+            .replace(/\bCalifornia\b/gi, 'Californie')
+            .replace(/\bAlaska\b/gi, 'Alaska')
+            .replace(/\bHawaii\b/gi, 'Hawaï')
+            .replace(/\bIceland\b/gi, 'Islande');
+
           return {
             id: f.id || `eq-${props.time}`,
             type: 'earthquake',
-            mag: props.mag ? props.mag.toFixed(1) : '?',
-            place: props.place || 'Épicentre océanique',
+            mag,
+            numMag: !isNaN(rawMag) ? rawMag : 3.0,
+            place: placeFr,
+            rawPlace: props.place || '',
             lat,
             lng,
             depth: Math.round(depth),
             time: date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+            fullDate: date.toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }),
             timestamp: props.time || Date.now(),
+            felt: props.felt || 0,
+            tsunami: props.tsunami === 1,
+            significance: props.sig || 0,
+            url: props.url || `https://earthquake.usgs.gov/earthquakes/eventpage/${f.id}`,
+            source: 'USGS National Earthquake Information Center (NEIC)',
           };
         });
 
@@ -231,7 +298,7 @@ class RealtimeEventsEngine {
         this.notify({ type: 'earthquakes_update', earthquakes: parsed });
       }
     } catch {
-      // Quiet fail if offline
+      // Quiet fallback
     }
   }
 }

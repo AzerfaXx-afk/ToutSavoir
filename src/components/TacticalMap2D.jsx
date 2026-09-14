@@ -1236,7 +1236,7 @@ export function TacticalMap2D({
     telluricLayerRef.current = telluricLayer;
     const updateTelluricMarkers = (eqList) => {
       telluricLayer.clearLayers();
-      (eqList || []).slice(0, 15).forEach((eq) => {
+      (eqList || []).slice(0, 50).forEach((eq) => {
         const mag = parseFloat(eq.mag) || 3.0;
         const color = mag >= 5.0 ? '#ff2a4d' : mag >= 4.0 ? '#ffb703' : '#00f2fe';
         const circle = L.circle([eq.lat, eq.lng], {

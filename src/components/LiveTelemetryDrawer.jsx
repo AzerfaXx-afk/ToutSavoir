@@ -11,6 +11,8 @@ import {
   CCTV_FEEDS,
   LIVE_NEWS_CHANNELS,
   DEFENSE_COMMODITIES_MARKETS,
+  SUBMARINE_CABLES,
+  STRATEGIC_NUCLEAR_SITES,
 } from '../data/osirisStreams';
 import {
   TV_COUNTRIES,
@@ -52,8 +54,18 @@ import {
   Zap,
   Plane,
   Play,
+  Anchor,
+  Radiation,
+  Radio,
+  Compass,
+  Waves,
+  AlertTriangle,
+  ExternalLink,
+  Layers,
+  Wifi,
 } from 'lucide-react';
 import { flightRadarService } from '../services/flightRadarService';
+import { marineTrafficService } from '../services/marineTrafficService';
 import { ChronoJournalTab } from './ChronoJournalTab';
 import { MasterLiveTheater } from './MasterLiveTheater';
 import { InlineLiveCard } from './InlineLiveCard';
@@ -63,6 +75,9 @@ import './LiveTelemetryDrawer.css';
 const UNIFIED_CATEGORIES = [
   { id: 'all', label: 'Tout', type: 'metrics' },
   { id: 'aviation', label: 'Vols Flightradar24', type: 'aviation' },
+  { id: 'maritime', label: 'Flotte Maritime AIS', type: 'maritime' },
+  { id: 'telluric', label: 'Séismes USGS Direct', type: 'telluric' },
+  { id: 'infrastructure', label: 'Câbles & Nucléaire', type: 'infrastructure' },
   { id: 'population', label: 'Démographie', type: 'metrics' },
   { id: 'economy', label: 'Économie & Gouv', type: 'metrics' },
   { id: 'media', label: 'Société & Médias', type: 'metrics' },
@@ -98,6 +113,26 @@ const SCOPE_LABELS_FR = {
   resource_countdown: 'Réserves mondiales',
   fixed_countdown: 'Épuisement estimé',
 };
+
+/* ── Strategic Maritime Chokepoints (AIS Fleet corridors) ────────── */
+const MARITIME_CHOKEPOINTS = [
+  { id: 'hormuz', name: "Détroit d'Ormuz", desc: '30% du brut maritime mondial (Golfe Persique)', lat: 26.5667, lng: 56.25, zoom: 8, status: 'SURVEILLANCE RENFORCÉE' },
+  { id: 'suez', name: 'Canal de Suez', desc: '12% du fret mondial / Passage Asie-Europe', lat: 30.705, lng: 32.344, zoom: 9, status: 'TRANSIT CONTINU' },
+  { id: 'malacca', name: 'Détroit de Malacca', desc: 'Corridor Indo-Pacifique (94 000 navires/an)', lat: 2.2, lng: 102.1, zoom: 8, status: 'DENSITÉ CRITIQUE' },
+  { id: 'panama', name: 'Canal de Panama', desc: 'Liaison Atlantique-Pacifique', lat: 9.08, lng: -79.68, zoom: 9, status: 'RÉGULATION HYDRAULIQUE' },
+  { id: 'babelmandeb', name: 'Bab-el-Mandeb', desc: 'Verrou Sud Mer Rouge (Veille maritime)', lat: 12.58, lng: 43.33, zoom: 8, status: 'VEILLE DÉFENSE' },
+  { id: 'bosphore', name: 'Détroit du Bosphore', desc: 'Transit Mer Noire & Méditerranée', lat: 41.12, lng: 29.07, zoom: 9, status: 'CORRIDOR RÉGULÉ' },
+];
+
+const MARITIME_FILTER_CATEGORIES = [
+  { id: 'ALL', label: 'TOUS' },
+  { id: 'cargo', label: 'CONTENEURS & VRAC' },
+  { id: 'tanker', label: 'CITERNES & GNL' },
+  { id: 'passenger', label: 'PASSAGERS' },
+  { id: 'military', label: 'MILITAIRE' },
+  { id: 'tug', label: 'REMORQUEURS' },
+  { id: 'fishing', label: 'PÊCHE' },
+];
 
 /* ── OSINT Recon Intelligence Records (Osiris Parity) ────────────── */
 const OSINT_DOSSIERS = {
@@ -187,6 +222,12 @@ export function LiveTelemetryDrawer({
   const [liveFlights, setLiveFlights] = useState([]);
   const [totalGlobalFlights, setTotalGlobalFlights] = useState(15650);
   const [flightFilter, setFlightFilter] = useState('ALL');
+  const [liveVessels, setLiveVessels] = useState(() => marineTrafficService.vessels || []);
+  const [totalGlobalVessels, setTotalGlobalVessels] = useState(() => marineTrafficService.totalGlobalVessels || 25910);
+  const [vesselFilter, setVesselFilter] = useState('ALL');
+  const [liveEarthquakes, setLiveEarthquakes] = useState(() => realtimeStream.stats?.recentEarthquakes || []);
+  const [earthquakeFilter, setEarthquakeFilter] = useState('ALL');
+  const [infraSubMode, setInfraSubMode] = useState('cables'); // 'cables' | 'nuclear'
   const [osintTarget, setOsintTarget] = useState('8.8.8.8');
   const [searchQuery, setSearchQuery] = useState('');
   const [metrics, setMetrics] = useState(() => computeWorldometerMetrics(1));
@@ -307,8 +348,23 @@ export function LiveTelemetryDrawer({
     }
   }, [yearMultiplier, customDate, isLive]);
 
-  /* ── Realtime stream (keep subscription alive) ─────────────────── */
-  useEffect(() => realtimeStream.subscribe(() => {}), []);
+  /* ── USGS Live Earthquakes Stream (NEIC 24h Feed) ──────────────── */
+  useEffect(() => {
+    if (realtimeStream.stats?.recentEarthquakes?.length > 0) {
+      setLiveEarthquakes(realtimeStream.stats.recentEarthquakes);
+    } else {
+      realtimeStream.fetchUsgsEarthquakes();
+    }
+
+    const unsub = realtimeStream.subscribe((data) => {
+      if (data.type === 'snapshot' && data.stats?.recentEarthquakes) {
+        setLiveEarthquakes(data.stats.recentEarthquakes);
+      } else if (data.type === 'earthquakes_update' && data.earthquakes) {
+        setLiveEarthquakes(data.earthquakes);
+      }
+    });
+    return () => unsub();
+  }, []);
 
   /* ── Flightradar24 Live Planes Stream (Active only when Drawer is open) ─── */
   useEffect(() => {
@@ -330,6 +386,30 @@ export function LiveTelemetryDrawer({
         lastUpdate = now;
         setLiveFlights(flights || []);
         if (total) setTotalGlobalFlights(total);
+      }
+    });
+    return () => unsub();
+  }, [isOpen]);
+
+  /* ── MarineTraffic AIS Live Fleet Stream (Active only when Drawer is open) ─── */
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Immediately sync current vessels
+    if (marineTrafficService.vessels.length > 0) {
+      setLiveVessels(marineTrafficService.vessels);
+      if (marineTrafficService.totalGlobalVessels) {
+        setTotalGlobalVessels(marineTrafficService.totalGlobalVessels);
+      }
+    }
+
+    let lastUpdate = Date.now();
+    const unsub = marineTrafficService.subscribe((vessels, total) => {
+      const now = Date.now();
+      if (now - lastUpdate >= 1800) {
+        lastUpdate = now;
+        setLiveVessels(vessels || []);
+        if (total) setTotalGlobalVessels(total);
       }
     });
     return () => unsub();
@@ -459,22 +539,91 @@ export function LiveTelemetryDrawer({
     });
   }, [liveFlights, searchQuery, flightFilter]);
 
+  const filteredVessels = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return liveVessels.filter((v) => {
+      const matchesSearch =
+        !q ||
+        (v.name && v.name.toLowerCase().includes(q)) ||
+        (v.callsign && v.callsign.toLowerCase().includes(q)) ||
+        (v.flag && v.flag.toLowerCase().includes(q)) ||
+        (v.type && v.type.toLowerCase().includes(q)) ||
+        (v.category && v.category.toLowerCase().includes(q)) ||
+        (v.originPort && v.originPort.toLowerCase().includes(q)) ||
+        (v.destinationPort && v.destinationPort.toLowerCase().includes(q)) ||
+        (v.chokepoint && v.chokepoint.toLowerCase().includes(q));
+
+      if (!matchesSearch) return false;
+      if (vesselFilter === 'ALL') return true;
+      const cat = (v.category || '').toLowerCase();
+      return cat.includes(vesselFilter.toLowerCase());
+    });
+  }, [liveVessels, searchQuery, vesselFilter]);
+
+  const filteredEarthquakes = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return liveEarthquakes.filter((eq) => {
+      const matchesSearch =
+        !q ||
+        (eq.place && eq.place.toLowerCase().includes(q)) ||
+        (eq.rawPlace && eq.rawPlace.toLowerCase().includes(q)) ||
+        (eq.mag && eq.mag.toString().includes(q));
+
+      if (!matchesSearch) return false;
+      if (earthquakeFilter === 'ALL') return true;
+      if (earthquakeFilter === 'M5') return eq.numMag >= 5.0;
+      if (earthquakeFilter === 'M4') return eq.numMag >= 4.0;
+      if (earthquakeFilter === 'M3') return eq.numMag >= 3.0;
+      if (earthquakeFilter === 'TSUNAMI') return eq.tsunami === true;
+      return true;
+    });
+  }, [liveEarthquakes, searchQuery, earthquakeFilter]);
+
+  const filteredCables = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return SUBMARINE_CABLES.filter((cable) => {
+      return (
+        !q ||
+        cable.name.toLowerCase().includes(q) ||
+        (cable.owners && cable.owners.toLowerCase().includes(q)) ||
+        (cable.status && cable.status.toLowerCase().includes(q))
+      );
+    });
+  }, [searchQuery]);
+
+  const filteredNuclear = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return STRATEGIC_NUCLEAR_SITES.filter((site) => {
+      return (
+        !q ||
+        site.name.toLowerCase().includes(q) ||
+        site.country.toLowerCase().includes(q) ||
+        site.region.toLowerCase().includes(q) ||
+        site.operator.toLowerCase().includes(q) ||
+        site.type.toLowerCase().includes(q) ||
+        site.description.toLowerCase().includes(q)
+      );
+    });
+  }, [searchQuery]);
+
   /* ── Country data ──────────────────────────────────────────────── */
   const countryData = useMemo(() => {
     const code = selectedCountry || 'FR';
-    return (
-      COUNTRIES_TELEMETRY[code] || {
-        name: TERRITORY_NAMES_FR[code] || code,
-        capital: 'N/A',
-        defcon: 'SURVEILLANCE',
-        riskIndex: 'MODÉRÉ (3.0/10)',
-        pop: 'N/A',
-        milBudget: 'N/A',
-        nukes: 'N/A',
-        activeAlerts: 0,
-        status: "Données en cours d'acquisition satellite",
-      }
-    );
+    if (COUNTRIES_TELEMETRY[code]) {
+      return COUNTRIES_TELEMETRY[code];
+    }
+    const name = TERRITORY_NAMES_FR[code] || code;
+    return {
+      name,
+      capital: 'Donnée nationale souveraine',
+      defcon: 'SURVEILLANCE',
+      riskIndex: 'MODÉRÉ (3.0/10)',
+      pop: 'Recensement en cours',
+      milBudget: 'Indice SIPRI standard',
+      nukes: 'Non signataire nucléaire militaire',
+      activeAlerts: 0,
+      status: 'Surveillance satellite et côtière active',
+    };
   }, [selectedCountry]);
 
   /* ── Temporal Handlers ─────────────────────────────────────────── */
@@ -636,13 +785,30 @@ export function LiveTelemetryDrawer({
   const contentCount = useMemo(() => {
     if (activeType === 'metrics') return filteredMetrics.length;
     if (activeType === 'aviation') return filteredFlights.length;
+    if (activeType === 'maritime') return filteredVessels.length;
+    if (activeType === 'telluric') return filteredEarthquakes.length;
+    if (activeType === 'infrastructure') return infraSubMode === 'cables' ? filteredCables.length : filteredNuclear.length;
     if (activeType === 'markets') return DEFENSE_COMMODITIES_MARKETS.length;
     if (activeType === 'cyber') return filteredCyber.length;
     if (activeType === 'cctv') return cctvSubMode === 'cameras' ? filteredCCTV.length : filteredTV.length;
     if (activeType === 'satellites') return filteredSatellites.length;
     if (activeType === 'osint') return Object.keys(OSINT_DOSSIERS).length;
     return null;
-  }, [activeType, filteredMetrics, filteredFlights, filteredCyber, filteredCCTV, filteredTV, cctvSubMode, filteredSatellites]);
+  }, [
+    activeType,
+    filteredMetrics,
+    filteredFlights,
+    filteredVessels,
+    filteredEarthquakes,
+    filteredCables,
+    filteredNuclear,
+    infraSubMode,
+    filteredCyber,
+    filteredCCTV,
+    filteredTV,
+    cctvSubMode,
+    filteredSatellites,
+  ]);
 
   /* ── Render ────────────────────────────────────────────────────── */
   return (
@@ -1041,6 +1207,538 @@ export function LiveTelemetryDrawer({
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── FLOTTE MARITIME AIS (MARINETRAFFIC / VDL DIRECT) ── */}
+          {activeType === 'maritime' && (
+            <div className="maritime-fleet-wrapper">
+              {/* Global Fleet Status Header Card */}
+              <div className="fr24-global-radar-card maritime-radar-card">
+                <div className="fr24-radar-top">
+                  <div className="fr24-radar-live-indicator">
+                    <span className="fr24-ping-dot green" />
+                    <span className="fr24-radar-source">MARINETRAFFIC AIS // VDL SATELLITE</span>
+                  </div>
+                  <span className="fr24-tracked-badge green">
+                    <Anchor size={11} style={{ marginRight: 4 }} />
+                    DIRECT AIS MONDIAL
+                  </span>
+                </div>
+
+                <div className="fr24-big-counter-row">
+                  <div className="fr24-counter-stat">
+                    <span className="fr24-stat-label">NAVIRES DÉTECTÉS EN TEMPS RÉEL</span>
+                    <div className="fr24-num-group">
+                      <span className="fr24-stat-big green">
+                        {totalGlobalVessels.toLocaleString('fr-FR')}
+                      </span>
+                      <span className="fr24-stat-unit">navires mondiaux</span>
+                    </div>
+                  </div>
+                  <div className="fr24-counter-stat align-right">
+                    <span className="fr24-stat-label">CORRIDORS SOUS VEILLE</span>
+                    <span className="fr24-sub-stat">6 DÉTROITS CRITIQUES</span>
+                  </div>
+                </div>
+
+                {/* Chokepoints Strategic Strip */}
+                <div className="maritime-chokepoints-grid">
+                  {MARITIME_CHOKEPOINTS.map((cp) => (
+                    <button
+                      key={cp.id}
+                      type="button"
+                      className="maritime-chokepoint-pill"
+                      onClick={() => {
+                        sound.click();
+                        if (onSelectLocation) onSelectLocation(cp.lat, cp.lng, cp.zoom);
+                      }}
+                      title={`${cp.name} : ${cp.desc}`}
+                    >
+                      <span className="cp-dot" />
+                      <span className="cp-name">{cp.name}</span>
+                      <span className="cp-status">{cp.status}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Taxonomy filter chips */}
+                <div className="fr24-airline-chips">
+                  {MARITIME_FILTER_CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      className={`fr24-chip ${vesselFilter === cat.id ? 'is-active' : ''}`}
+                      onClick={() => {
+                        sound.click(0.4);
+                        setVesselFilter(cat.id);
+                      }}
+                    >
+                      <span>{cat.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Vessels Header */}
+              <div className="fr24-list-header">
+                <div className="fr24-list-title">
+                  <Anchor size={13} style={{ color: '#22c55e' }} />
+                  <span>FLOTTE AIS EN NAVIGATION ACTIVE</span>
+                  <span className="fr24-list-count">
+                    {filteredVessels.length} navires
+                  </span>
+                </div>
+                <span className="fr24-list-note">CLIQUEZ POUR CIBLER & INSPECTER LE NAVIRE</span>
+              </div>
+
+              {/* Vessels List Grid */}
+              {filteredVessels.length === 0 ? (
+                <div className="empty-state">
+                  Aucun navire ne correspond aux critères de recherche actuels.
+                </div>
+              ) : (
+                <div className="fr24-flights-grid maritime-vessels-grid">
+                  {filteredVessels.slice(0, 120).map((v, idx) => (
+                    <div
+                      key={v.id || idx}
+                      className="fr24-flight-card maritime-vessel-card is-clickable"
+                      style={{
+                        animationDelay: `${Math.min(idx * 0.02, 0.6)}s`,
+                        borderLeft: `3px solid ${v.color || '#22c55e'}`,
+                      }}
+                      onClick={() => {
+                        sound.click();
+                        if (onSelectLocation) onSelectLocation(v.lat, v.lng, 7);
+                        if (onInspectTarget) onInspectTarget({ type: 'vessel', ...v });
+                      }}
+                    >
+                      <div className="fr24-card-top">
+                        <div className="fr24-card-callsign-group">
+                          <div
+                            className="fr24-mini-plane-icon"
+                            style={{
+                              transform: `rotate(${v.heading || v.course || 0}deg)`,
+                              color: v.color || '#22c55e',
+                            }}
+                          >
+                            <Anchor size={14} color={v.color || '#22c55e'} />
+                          </div>
+                          <div>
+                            <div className="fr24-callsign">{v.name}</div>
+                            <div className="fr24-flight-num">
+                              IMO {v.imo || '—'} • MMSI {v.mmsi || '—'}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="fr24-airline-badge">
+                          <span>{v.flagEmoji || '⚓'}</span>
+                          <span className="fr24-airline-name">{v.flag || v.type || 'Marine'}</span>
+                        </div>
+                      </div>
+
+                      {/* Route corridor */}
+                      <div className="fr24-card-route">
+                        <div className="fr24-route-endpoint">
+                          <span className="fr24-airport-code">ORIGINE</span>
+                          <span className="fr24-airport-city">{v.originPort || 'Port de départ'}</span>
+                        </div>
+                        <div className="fr24-route-arrow">
+                          <span className="fr24-arrow-line" />
+                          <Compass size={10} color={v.color || '#22c55e'} />
+                          <span className="fr24-arrow-line" />
+                        </div>
+                        <div className="fr24-route-endpoint align-right">
+                          <span className="fr24-airport-code">DESTINATION</span>
+                          <span className="fr24-airport-city">{v.destinationPort || 'Port d’arrivée'}</span>
+                        </div>
+                      </div>
+
+                      {/* Telemetry strip */}
+                      <div className="fr24-telemetry-strip">
+                        <div className="fr24-tel-col">
+                          <span className="fr24-tel-label">VITESSE</span>
+                          <span className="fr24-tel-val green">
+                            {v.speedKts || 0} kts
+                          </span>
+                        </div>
+                        <div className="fr24-tel-col">
+                          <span className="fr24-tel-label">CAP</span>
+                          <span className="fr24-tel-val">
+                            {v.course || v.heading || 0}°
+                          </span>
+                        </div>
+                        <div className="fr24-tel-col">
+                          <span className="fr24-tel-label">PORT EN LOURD</span>
+                          <span className="fr24-tel-val cyan">
+                            {v.dwt || 'Standard'}
+                          </span>
+                        </div>
+                        <div className="fr24-tel-col align-right">
+                          <span className="fr24-tel-label">LONGUEUR</span>
+                          <span className="fr24-tel-val model">
+                            {v.lengthM ? `${v.lengthM}m` : 'Cargo'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="fr24-card-footer">
+                        <span className="fr24-squawk-tag maritime-status-tag">
+                          {v.status || 'En route au moteur'}
+                        </span>
+                        <span className="fr24-inspect-cta">CIBLER SUR LA CARTE →</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── SÉISMES USGS DIRECT (NEIC 24H) ── */}
+          {activeType === 'telluric' && (
+            <div className="telluric-intel-wrapper">
+              {/* USGS Live Monitor Banner Card */}
+              <div className="fr24-global-radar-card telluric-radar-card">
+                <div className="fr24-radar-top">
+                  <div className="fr24-radar-live-indicator">
+                    <span className="fr24-ping-dot orange" />
+                    <span className="fr24-radar-source">USGS NEIC // SISMOLOGIE GLOBALE DIRECTE</span>
+                  </div>
+                  <span className="fr24-tracked-badge orange">
+                    <Activity size={11} style={{ marginRight: 4 }} />
+                    24 HEURES ACTIVES
+                  </span>
+                </div>
+
+                <div className="fr24-big-counter-row">
+                  <div className="fr24-counter-stat">
+                    <span className="fr24-stat-label">SÉISMES ENREGISTRÉS (M2.5+)</span>
+                    <div className="fr24-num-group">
+                      <span className="fr24-stat-big orange">
+                        {liveEarthquakes.length}
+                      </span>
+                      <span className="fr24-stat-unit">détections 24h</span>
+                    </div>
+                  </div>
+                  <div className="fr24-counter-stat align-right">
+                    <span className="fr24-stat-label">MAGNITUDE MAX. RÉCENTE</span>
+                    <span className="fr24-sub-stat orange">
+                      M {liveEarthquakes.length > 0 ? Math.max(...liveEarthquakes.map((e) => e.numMag || 0)).toFixed(1) : '3.2'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Magnitude Filters Bar */}
+                <div className="fr24-airline-chips telluric-filters-bar">
+                  {[
+                    { id: 'ALL', label: `TOUS (${liveEarthquakes.length})` },
+                    { id: 'M5', label: `MAGNITUDE ≥ 5.0 (${liveEarthquakes.filter((e) => e.numMag >= 5).length})` },
+                    { id: 'M4', label: `MAGNITUDE ≥ 4.0 (${liveEarthquakes.filter((e) => e.numMag >= 4).length})` },
+                    { id: 'M3', label: `MAGNITUDE ≥ 3.0 (${liveEarthquakes.filter((e) => e.numMag >= 3).length})` },
+                    { id: 'TSUNAMI', label: `⚠️ TSUNAMI (${liveEarthquakes.filter((e) => e.tsunami).length})` },
+                  ].map((chip) => (
+                    <button
+                      key={chip.id}
+                      type="button"
+                      className={`fr24-chip ${earthquakeFilter === chip.id ? 'is-active' : ''}`}
+                      onClick={() => {
+                        sound.click(0.4);
+                        setEarthquakeFilter(chip.id);
+                      }}
+                    >
+                      <span>{chip.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Earthquakes Results Header */}
+              <div className="fr24-list-header">
+                <div className="fr24-list-title">
+                  <Waves size={13} style={{ color: '#f59e0b' }} />
+                  <span>ÉPICENTRES IDENTIFIÉS PAR L'USGS</span>
+                  <span className="fr24-list-count">
+                    {filteredEarthquakes.length} secousses
+                  </span>
+                </div>
+                <span className="fr24-list-note">CLIQUEZ POUR LOCALISER SUR LE GLOBE</span>
+              </div>
+
+              {/* Earthquakes List */}
+              {filteredEarthquakes.length === 0 ? (
+                <div className="empty-state">
+                  Aucun séisme correspondant au filtre sélectionné.
+                </div>
+              ) : (
+                <div className="telluric-events-list">
+                  {filteredEarthquakes.map((eq, idx) => {
+                    const isHigh = eq.numMag >= 5.5;
+                    const isMed = eq.numMag >= 4.5 && eq.numMag < 5.5;
+                    const magColor = isHigh ? '#ef4444' : isMed ? '#f97316' : '#f59e0b';
+
+                    return (
+                      <div
+                        key={eq.id || idx}
+                        className="telluric-card is-clickable"
+                        style={{
+                          animationDelay: `${Math.min(idx * 0.02, 0.5)}s`,
+                          borderLeftColor: magColor,
+                        }}
+                        onClick={() => {
+                          sound.click();
+                          if (onSelectLocation) onSelectLocation(eq.lat, eq.lng, 6);
+                          if (onInspectTarget) onInspectTarget({ type: 'earthquake', ...eq });
+                        }}
+                      >
+                        <div className="telluric-card-top">
+                          <div className="telluric-mag-badge" style={{ backgroundColor: `${magColor}22`, color: magColor, borderColor: `${magColor}55` }}>
+                            <span className="mag-letter">M</span>
+                            <span className="mag-val">{eq.mag}</span>
+                          </div>
+                          <div className="telluric-card-titles">
+                            <div className="telluric-place">{eq.place}</div>
+                            <div className="telluric-coords-sub">
+                              {eq.lat.toFixed(2)}°N • {eq.lng.toFixed(2)}°E • Profondeur {eq.depth} km
+                            </div>
+                          </div>
+                          <span className="telluric-time-pill">{eq.time}</span>
+                        </div>
+
+                        {eq.tsunami && (
+                          <div className="telluric-tsunami-alert">
+                            <AlertTriangle size={12} />
+                            <span>ALERTE TSUNAMI ACTIVÉE PAR LE NOAA / PTWC</span>
+                          </div>
+                        )}
+
+                        <div className="telluric-card-footer">
+                          <span className="telluric-source-tag">
+                            USGS NEIC • Signif: {eq.significance || 100}
+                          </span>
+                          <div className="telluric-action-btns">
+                            <a
+                              href={eq.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="telluric-ext-link"
+                              onClick={(e) => e.stopPropagation()}
+                              title="Voir la page officielle USGS"
+                            >
+                              <span>USGS.GOV</span>
+                              <ExternalLink size={10} />
+                            </a>
+                            <span className="telluric-target-cta">LOCALISER L'ÉPICENTRE →</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── CÂBLES SOUS-MARINS & CENTRALES NUCLÉAIRES ── */}
+          {activeType === 'infrastructure' && (
+            <div className="infra-intel-wrapper">
+              {/* Infrastructure Submode Switcher Tabs */}
+              <div className="infra-mode-switcher">
+                <button
+                  type="button"
+                  className={`infra-mode-btn ${infraSubMode === 'cables' ? 'is-active' : ''}`}
+                  onClick={() => {
+                    sound.click(0.4);
+                    setInfraSubMode('cables');
+                  }}
+                >
+                  <Wifi size={13} />
+                  <span>Câbles Sous-Marins ({filteredCables.length})</span>
+                </button>
+                <button
+                  type="button"
+                  className={`infra-mode-btn ${infraSubMode === 'nuclear' ? 'is-active' : ''}`}
+                  onClick={() => {
+                    sound.click(0.4);
+                    setInfraSubMode('nuclear');
+                  }}
+                >
+                  <Radiation size={13} />
+                  <span>Centrales Nucléaires ({filteredNuclear.length})</span>
+                </button>
+              </div>
+
+              {/* Submode 1: SUBMARINE CABLES */}
+              {infraSubMode === 'cables' && (
+                <div className="cables-section">
+                  <div className="fr24-global-radar-card cables-radar-card">
+                    <div className="fr24-radar-top">
+                      <div className="fr24-radar-live-indicator">
+                        <span className="fr24-ping-dot purple" />
+                        <span className="fr24-radar-source">TELEGEOGRAPHY // ARTÈRES SOUS-MARINES FIBRE</span>
+                      </div>
+                      <span className="fr24-tracked-badge purple">
+                        <Wifi size={11} style={{ marginRight: 4 }} />
+                        DORSALES OPTIQUES
+                      </span>
+                    </div>
+
+                    <div className="fr24-big-counter-row">
+                      <div className="fr24-counter-stat">
+                        <span className="fr24-stat-label">DORSALES TRANSOCÉANIQUES MAJEURES</span>
+                        <div className="fr24-num-group">
+                          <span className="fr24-stat-big purple">
+                            {SUBMARINE_CABLES.length}
+                          </span>
+                          <span className="fr24-stat-unit">artères mondiales</span>
+                        </div>
+                      </div>
+                      <div className="fr24-counter-stat align-right">
+                        <span className="fr24-stat-label">CAPACITÉ CUMULÉE</span>
+                        <span className="fr24-sub-stat purple">
+                          ~956 Tbps
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="infra-cards-list">
+                    {filteredCables.map((cable, idx) => {
+                      const midPoint = cable.path?.[Math.floor(cable.path.length / 2)] || cable.path?.[0] || [0, 0];
+
+                      return (
+                        <div
+                          key={cable.id || idx}
+                          className="infra-card cable-card is-clickable"
+                          style={{
+                            animationDelay: `${idx * 0.04}s`,
+                            borderLeftColor: cable.color || '#a855f7',
+                          }}
+                          onClick={() => {
+                            sound.click();
+                            if (onSelectLocation) onSelectLocation(midPoint[0], midPoint[1], 4);
+                            if (onInspectTarget) onInspectTarget({ type: 'cable', ...cable });
+                          }}
+                        >
+                          <div className="infra-card-header">
+                            <div className="infra-title-block">
+                              <span className="infra-type-chip purple">FIBRE SOUS-MARINE</span>
+                              <div className="infra-main-name">{cable.name}</div>
+                            </div>
+                            <div className="infra-stat-pill">
+                              <span className="isp-val">{cable.capacityTbps} Tbps</span>
+                              <span className="isp-sub">Bande passante</span>
+                            </div>
+                          </div>
+
+                          <div className="infra-details-row">
+                            <div className="infra-col">
+                              <span className="infra-col-lbl">LONGUEUR</span>
+                              <span className="infra-col-val">{cable.lengthKm.toLocaleString('fr-FR')} km</span>
+                            </div>
+                            <div className="infra-col">
+                              <span className="infra-col-lbl">OPÉRATEURS / PROPRIÉTAIRES</span>
+                              <span className="infra-col-val">{cable.owners}</span>
+                            </div>
+                          </div>
+
+                          <div className="infra-card-footer">
+                            <span className="infra-status-tag">{cable.status}</span>
+                            <span className="infra-cta-link">LOCALISER LE TRACÉ OPTIQUE →</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Submode 2: NUCLEAR SITES */}
+              {infraSubMode === 'nuclear' && (
+                <div className="nuclear-section">
+                  <div className="fr24-global-radar-card nuclear-radar-card">
+                    <div className="fr24-radar-top">
+                      <div className="fr24-radar-live-indicator">
+                        <span className="fr24-ping-dot yellow" />
+                        <span className="fr24-radar-source">AIEA // SURVEILLANCE SITES NUCLÉAIRES</span>
+                      </div>
+                      <span className="fr24-tracked-badge yellow">
+                        <Radiation size={11} style={{ marginRight: 4 }} />
+                        RÉACTEURS MAJEURS
+                      </span>
+                    </div>
+
+                    <div className="fr24-big-counter-row">
+                      <div className="fr24-counter-stat">
+                        <span className="fr24-stat-label">SITES STRATÉGIQUES SOUS VEILLE</span>
+                        <div className="fr24-num-group">
+                          <span className="fr24-stat-big yellow">
+                            {STRATEGIC_NUCLEAR_SITES.length}
+                          </span>
+                          <span className="fr24-stat-unit">centrales clés</span>
+                        </div>
+                      </div>
+                      <div className="fr24-counter-stat align-right">
+                        <span className="fr24-stat-label">PUISSANCE COMBINÉE</span>
+                        <span className="fr24-sub-stat yellow">
+                          ~25 600 MWe
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="infra-cards-list">
+                    {filteredNuclear.map((site, idx) => (
+                      <div
+                        key={site.id || idx}
+                        className="infra-card nuclear-card is-clickable"
+                        style={{
+                          animationDelay: `${idx * 0.04}s`,
+                          borderLeftColor: site.id === 'nuc-zaporizhzhia' ? '#ef4444' : '#eab308',
+                        }}
+                        onClick={() => {
+                          sound.click();
+                          if (onSelectLocation) onSelectLocation(site.lat, site.lng, 7);
+                          if (onInspectTarget) onInspectTarget({ type: 'nuclear', ...site });
+                        }}
+                      >
+                        <div className="infra-card-header">
+                          <div className="infra-title-block">
+                            <span className="infra-type-chip yellow">{site.type}</span>
+                            <div className="infra-main-name">{site.name}</div>
+                            <span className="infra-sub-geo">{site.region}, {site.country}</span>
+                          </div>
+                          <div className="infra-stat-pill">
+                            <span className="isp-val yellow">{site.capacityMwe} MWe</span>
+                            <span className="isp-sub">Puissance brute</span>
+                          </div>
+                        </div>
+
+                        <div className="infra-details-row">
+                          <div className="infra-col">
+                            <span className="infra-col-lbl">OPÉRATEUR</span>
+                            <span className="infra-col-val">{site.operator}</span>
+                          </div>
+                          <div className="infra-col">
+                            <span className="infra-col-lbl">SÉCURITÉ</span>
+                            <span className="infra-col-val alert-text">{site.securityLevel}</span>
+                          </div>
+                        </div>
+
+                        <div className="infra-desc-text">
+                          {site.description}
+                        </div>
+
+                        <div className="infra-card-footer">
+                          <span className="infra-status-tag">{site.status}</span>
+                          <span className="infra-cta-link">INSPECTER LE SITE NUCLÉAIRE →</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

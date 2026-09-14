@@ -2654,3 +2654,592 @@
 .fr24-flight-card:hover .fr24-inspect-cta {
   color: #ffd700;
 }
+
+/* ═════════════════════════════════════════════════════════════════════
+   12. MARITIME AIS FLEET & CHOKEPOINTS MODULE (MarineTraffic Parity)
+   ═════════════════════════════════════════════════════════════════════ */
+.maritime-fleet-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeInDrawer 0.3s ease;
+}
+
+.maritime-radar-card {
+  border-left: 3px solid #22c55e !important;
+}
+
+.fr24-ping-dot.green {
+  background: #22c55e;
+  box-shadow: 0 0 10px #22c55e;
+}
+
+.fr24-tracked-badge.green {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.35);
+  color: #22c55e;
+}
+
+.fr24-stat-big.green {
+  color: #22c55e;
+  text-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+}
+
+.fr24-tel-val.green {
+  color: #22c55e;
+}
+
+/* Maritime Strategic Chokepoints Grid */
+.maritime-chokepoints-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 10px 0 6px 0;
+}
+
+@media (max-width: 640px) {
+  .maritime-chokepoints-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.maritime-chokepoint-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.maritime-chokepoint-pill:hover {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.35);
+  transform: translateY(-1px);
+}
+
+.cp-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+  margin-bottom: 2px;
+}
+
+.cp-name {
+  font-family: var(--font-display, system-ui, sans-serif);
+  font-size: 10px;
+  font-weight: 700;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cp-status {
+  font-family: var(--font-mono, monospace);
+  font-size: 7.5px;
+  font-weight: 700;
+  color: #22c55e;
+  letter-spacing: 0.2px;
+}
+
+.maritime-vessels-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.maritime-vessel-card {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.maritime-vessel-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+
+.maritime-status-tag {
+  color: #22c55e !important;
+  background: rgba(34, 197, 94, 0.08) !important;
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   13. TELLURIC USGS LIVE EARTHQUAKES MODULE (NEIC 24H Direct)
+   ═════════════════════════════════════════════════════════════════════ */
+.telluric-intel-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeInDrawer 0.3s ease;
+}
+
+.telluric-radar-card {
+  border-left: 3px solid #f97316 !important;
+}
+
+.fr24-ping-dot.orange {
+  background: #f97316;
+  box-shadow: 0 0 10px #f97316;
+}
+
+.fr24-tracked-badge.orange {
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.35);
+  color: #f97316;
+}
+
+.fr24-stat-big.orange {
+  color: #f97316;
+  text-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+}
+
+.fr24-sub-stat.orange {
+  color: #f97316;
+}
+
+.telluric-filters-bar {
+  flex-wrap: wrap;
+}
+
+.telluric-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.telluric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left-width: 4px;
+  border-left-style: solid;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.telluric-card:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, rgba(24, 34, 53, 0.8) 0%, rgba(17, 24, 39, 0.95) 100%);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.telluric-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.telluric-mag-badge {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px;
+  min-width: 44px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid;
+  padding: 4px 6px;
+  font-family: var(--font-mono, monospace);
+}
+
+.telluric-mag-badge .mag-letter {
+  font-size: 10px;
+  font-weight: 800;
+  opacity: 0.85;
+}
+
+.telluric-mag-badge .mag-val {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.telluric-card-titles {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.telluric-place {
+  font-family: var(--font-display, system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.telluric-coords-sub {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  color: #94a3b8;
+}
+
+.telluric-time-pill {
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #00f2fe;
+  background: rgba(0, 242, 254, 0.08);
+  border: 1px solid rgba(0, 242, 254, 0.2);
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.telluric-tsunami-alert {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.telluric-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+.telluric-source-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  color: #64748b;
+}
+
+.telluric-action-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.telluric-ext-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-decoration: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.15s ease;
+}
+
+.telluric-ext-link:hover {
+  color: #00f2fe;
+  border-color: rgba(0, 242, 254, 0.4);
+}
+
+.telluric-target-cta {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 800;
+  color: #f97316;
+  letter-spacing: 0.3px;
+  transition: color 0.15s ease;
+}
+
+.telluric-card:hover .telluric-target-cta {
+  color: #ffd700;
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   14. INFRASTRUCTURE MODULE (TeleGeography Cables & IAEA Nuclear)
+   ═════════════════════════════════════════════════════════════════════ */
+.infra-intel-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeInDrawer 0.3s ease;
+}
+
+.infra-mode-switcher {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.infra-mode-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  font-family: var(--font-display, system-ui, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.infra-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #f1f5f9;
+}
+
+.infra-mode-btn.is-active {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.5);
+  color: #e9d5ff;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.2);
+}
+
+.cables-radar-card {
+  border-left: 3px solid #a855f7 !important;
+}
+
+.fr24-ping-dot.purple {
+  background: #a855f7;
+  box-shadow: 0 0 10px #a855f7;
+}
+
+.fr24-tracked-badge.purple {
+  background: rgba(168, 85, 247, 0.12);
+  border-color: rgba(168, 85, 247, 0.35);
+  color: #c084fc;
+}
+
+.fr24-stat-big.purple {
+  color: #c084fc;
+  text-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+}
+
+.fr24-sub-stat.purple {
+  color: #c084fc;
+}
+
+.nuclear-radar-card {
+  border-left: 3px solid #eab308 !important;
+}
+
+.fr24-ping-dot.yellow {
+  background: #eab308;
+  box-shadow: 0 0 10px #eab308;
+}
+
+.fr24-tracked-badge.yellow {
+  background: rgba(234, 179, 8, 0.12);
+  border-color: rgba(234, 179, 8, 0.35);
+  color: #fde047;
+}
+
+.fr24-stat-big.yellow {
+  color: #fde047;
+  text-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
+}
+
+.fr24-sub-stat.yellow {
+  color: #fde047;
+}
+
+.infra-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.infra-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left-width: 4px;
+  border-left-style: solid;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.infra-card:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, rgba(24, 34, 53, 0.8) 0%, rgba(17, 24, 39, 0.95) 100%);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.infra-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.infra-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.infra-type-chip {
+  align-self: flex-start;
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  padding: 1.5px 6px;
+  border-radius: 3px;
+}
+
+.infra-type-chip.purple {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.35);
+}
+
+.infra-type-chip.yellow {
+  background: rgba(234, 179, 8, 0.15);
+  color: #fde047;
+  border: 1px solid rgba(234, 179, 8, 0.35);
+}
+
+.infra-main-name {
+  font-family: var(--font-display, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.infra-sub-geo {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  color: #94a3b8;
+}
+
+.infra-stat-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.isp-val {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  font-weight: 800;
+  color: #c084fc;
+}
+
+.isp-val.yellow {
+  color: #fde047;
+}
+
+.isp-sub {
+  font-family: var(--font-mono, monospace);
+  font-size: 7.5px;
+  color: #64748b;
+  letter-spacing: 0.3px;
+}
+
+.infra-details-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.infra-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.infra-col-lbl {
+  font-family: var(--font-mono, monospace);
+  font-size: 7.5px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.4px;
+}
+
+.infra-col-val {
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.infra-col-val.alert-text {
+  color: #f87171;
+  font-weight: 700;
+}
+
+.infra-desc-text {
+  font-size: 10px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.infra-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+}
+
+.infra-status-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.2px;
+}
+
+.infra-cta-link {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 800;
+  color: #00f2fe;
+  letter-spacing: 0.3px;
+  transition: color 0.15s ease;
+}
+
+.infra-card:hover .infra-cta-link {
+  color: #ffd700;
+}
+

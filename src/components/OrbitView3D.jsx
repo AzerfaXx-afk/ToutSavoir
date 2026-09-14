@@ -1322,7 +1322,7 @@ export function OrbitView3D({
       earthquakeMeshes = [];
       earthquakeClickMeshes = [];
 
-      (eqList || []).slice(0, 15).forEach((eq) => {
+      (eqList || []).slice(0, 50).forEach((eq) => {
         const mag = parseFloat(eq.mag) || 3.0;
         const color = mag >= 5.0 ? 0xff2a4d : mag >= 4.0 ? 0xffb703 : 0x00f2fe;
         const radius = 0.012 + (mag / 8) * 0.035;

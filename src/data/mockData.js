@@ -227,6 +227,193 @@ export const COUNTRIES_TELEMETRY = {
     nukes: "90 têtes (non déclaré)",
     activeAlerts: 9,
     status: "Dôme de fer & Arrow-3 engagés"
+  },
+  GB: {
+    name: "Royaume-Uni",
+    capital: "Londres",
+    defcon: "SURVEILLANCE OTAN",
+    riskIndex: "MODÉRÉ (3.4/10)",
+    pop: "68,3 Millions",
+    milBudget: "68,5 Md$ (2.3% PIB)",
+    nukes: "225 têtes (SNLE Vanguard / Trident D5)",
+    activeAlerts: 2,
+    status: "Permanence de la dissuasion océanique CASD"
+  },
+  DE: {
+    name: "Allemagne",
+    capital: "Berlin",
+    defcon: "SURVEILLANCE RENFORCÉE",
+    riskIndex: "MODÉRÉ (2.9/10)",
+    pop: "84,4 Millions",
+    milBudget: "72,1 Md$ (Fonds spécial Zeitenwende)",
+    nukes: "Partage nucléaire OTAN (B61 Büchel)",
+    activeAlerts: 1,
+    status: "Brigade permanente déployée en Lituanie"
+  },
+  JP: {
+    name: "Japon",
+    capital: "Tokyo",
+    defcon: "VIGILANCE INDOPACOM",
+    riskIndex: "MODÉRÉ (4.2/10)",
+    pop: "124,5 Millions",
+    milBudget: "56,0 Md$ (Hausse record à 2% PIB)",
+    nukes: "0 (Parapluie nucléaire US)",
+    activeAlerts: 3,
+    status: "Surveillance détroits & îles Senkaku"
+  },
+  IN: {
+    name: "Inde",
+    capital: "New Delhi",
+    defcon: "ALERTE FRONTIÈRES",
+    riskIndex: "ÉLEVÉ (6.8/10)",
+    pop: "1,435 Milliard",
+    milBudget: "83,6 Md$",
+    nukes: "172 têtes (Triade Agni-V / Arihant)",
+    activeAlerts: 4,
+    status: "Déploiement défensif ligne LAC Ladakh & LoC"
+  },
+  BR: {
+    name: "Brésil",
+    capital: "Brasilia",
+    defcon: "SURVEILLANCE NORMALE",
+    riskIndex: "FAIBLE (2.1/10)",
+    pop: "216,4 Millions",
+    milBudget: "22,9 Md$",
+    nukes: "0 (Traité de Tlatelolco)",
+    activeAlerts: 1,
+    status: "Opérations surveillance frontières Amazonie (SISFRON)"
+  },
+  CA: {
+    name: "Canada",
+    capital: "Ottawa",
+    defcon: "DÉFCON 4 (NORAD)",
+    riskIndex: "FAIBLE (1.8/10)",
+    pop: "40,5 Millions",
+    milBudget: "26,9 Md$",
+    nukes: "0 (Parapluie nucléaire US)",
+    activeAlerts: 1,
+    status: "Surveillance aérienne Arctique conjointe NORAD"
+  },
+  KR: {
+    name: "Corée du Sud",
+    capital: "Séoul",
+    defcon: "DÉFCON 2 (ALERTE DMZ)",
+    riskIndex: "CRITIQUE (8.7/10)",
+    pop: "51,7 Millions",
+    milBudget: "47,9 Md$",
+    nukes: "0 (Dissuasion conjointe US K-Kill Chain)",
+    activeAlerts: 7,
+    status: "Veille balistique permanente face au Nord"
+  },
+  KP: {
+    name: "Corée du Nord",
+    capital: "Pyongyang",
+    defcon: "ALERTE COMBAT MAXIMUM",
+    riskIndex: "CRITIQUE (9.7/10)",
+    pop: "26,1 Millions",
+    milBudget: "~4,0 Md$ (25%+ PIB)",
+    nukes: "50 têtes actives (ICBM Hwasong-18)",
+    activeAlerts: 12,
+    status: "Forces stratégiques de frappe en alerte continue"
+  },
+  SA: {
+    name: "Arabie saoudite",
+    capital: "Riyad",
+    defcon: "ALERTE GOLFE",
+    riskIndex: "ÉLEVÉ (6.5/10)",
+    pop: "36,9 Millions",
+    milBudget: "75,8 Md$ (5e mondial)",
+    nukes: "0",
+    activeAlerts: 3,
+    status: "Défense antimissile Patriot autour des champs pétroliers"
+  },
+  IR: {
+    name: "Iran",
+    capital: "Téhéran",
+    defcon: "ALERTE HAUTE",
+    riskIndex: "CRITIQUE (9.2/10)",
+    pop: "89,2 Millions",
+    milBudget: "10,3 Md$",
+    nukes: "Seuil technique (Enrichissement 60% U-235)",
+    activeAlerts: 8,
+    status: "Réseau de drones et missiles balistiques déployé"
+  },
+  TR: {
+    name: "Turquie",
+    capital: "Ankara",
+    defcon: "VIGILANCE DÉTROITS",
+    riskIndex: "ÉLEVÉ (5.9/10)",
+    pop: "85,8 Millions",
+    milBudget: "15,8 Md$",
+    nukes: "Partage nucléaire OTAN (Incirlik B61)",
+    activeAlerts: 4,
+    status: "Contrôle convention de Montreux sur les détroits"
+  },
+  PL: {
+    name: "Pologne",
+    capital: "Varsovie",
+    defcon: "ALERTE RENFORCÉE FLANC EST",
+    riskIndex: "ÉLEVÉ (6.1/10)",
+    pop: "37,7 Millions",
+    milBudget: "31,6 Md$ (3.9% PIB — record OTAN)",
+    nukes: "Candidat Partage Nucléaire OTAN",
+    activeAlerts: 3,
+    status: "Dispositif renforcé sur la trouée de Suwalki"
+  },
+  IT: {
+    name: "Italie",
+    capital: "Rome",
+    defcon: "SURVEILLANCE MÉDITERRANÉE",
+    riskIndex: "MODÉRÉ (2.8/10)",
+    pop: "58,9 Millions",
+    milBudget: "33,8 Md$",
+    nukes: "Partage nucléaire OTAN (Ghedi / Aviano)",
+    activeAlerts: 1,
+    status: "Opérations de sécurisation maritime en Méditerranée centrale"
+  },
+  ES: {
+    name: "Espagne",
+    capital: "Madrid",
+    defcon: "SURVEILLANCE NORMALE",
+    riskIndex: "FAIBLE (2.2/10)",
+    pop: "48,4 Millions",
+    milBudget: "23,7 Md$",
+    nukes: "0",
+    activeAlerts: 1,
+    status: "Surveillance du détroit de Gibraltar et îles Canaries"
+  },
+  AU: {
+    name: "Australie",
+    capital: "Canberra",
+    defcon: "VIGILANCE PACIFIQUE",
+    riskIndex: "MODÉRÉ (3.0/10)",
+    pop: "26,6 Millions",
+    milBudget: "34,5 Md$",
+    nukes: "0 (Programme sous-marins nucléaires AUKUS)",
+    activeAlerts: 2,
+    status: "Patrouilles P-8A Poséidon en mer de Chine méridionale"
+  },
+  SE: {
+    name: "Suède",
+    capital: "Stockholm",
+    defcon: "INTÉGRATION OTAN ACTIF",
+    riskIndex: "MODÉRÉ (3.5/10)",
+    pop: "10,5 Millions",
+    milBudget: "11,2 Md$ (2.1% PIB)",
+    nukes: "0",
+    activeAlerts: 2,
+    status: "Fortification île de Gotland / Mer Baltique"
+  },
+  FI: {
+    name: "Finlande",
+    capital: "Helsinki",
+    defcon: "VIGILANCE FRONTIÈRE 1340KM",
+    riskIndex: "MODÉRÉ (3.8/10)",
+    pop: "5,6 Millions",
+    milBudget: "6,5 Md$ (2.4% PIB)",
+    nukes: "0",
+    activeAlerts: 2,
+    status: "Surveillance continue des 1 340 km de frontière avec la Russie"
   }
 };
 
