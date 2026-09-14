@@ -1464,6 +1464,153 @@
 }
 
 /* ── Defense Equities & Commodities Grid ── */
+.markets-module-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.markets-ticker-tape {
+  display: flex;
+  align-items: center;
+  margin: 0 16px;
+  background: rgba(10, 15, 25, 0.85);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  border-radius: 12px;
+  padding: 6px 12px;
+  overflow: hidden;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.ticker-tape-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding-right: 14px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #facc15;
+  letter-spacing: 0.5px;
+}
+
+.ticker-pulse-icon {
+  color: #00f5a0;
+  animation: pulseLiveDot 1.8s infinite;
+}
+
+.markets-ticker-track-wrapper {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  mask-image: linear-gradient(90deg, transparent, #000 15px, #000 calc(100% - 15px), transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 15px, #000 calc(100% - 15px), transparent);
+  margin-left: 10px;
+}
+
+.markets-ticker-track {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  animation: tickerTape 50s linear infinite;
+}
+
+.markets-ticker-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes tickerTape {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-tape-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  padding: 0 10px;
+}
+
+.ticker-symbol {
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.ticker-price {
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.ticker-change {
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ticker-change.positive {
+  color: #00f5a0;
+}
+
+.ticker-change.negative {
+  color: #ff3366;
+}
+
+.ticker-sep {
+  color: rgba(255, 255, 255, 0.15);
+  font-size: 10px;
+  margin-left: 6px;
+}
+
+.markets-subfilter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.markets-subfilter-bar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.markets-subfilter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.markets-subfilter-btn:hover {
+  background: rgba(234, 179, 8, 0.08);
+  border-color: rgba(234, 179, 8, 0.3);
+  color: #facc15;
+}
+
+.markets-subfilter-btn.is-active {
+  background: rgba(234, 179, 8, 0.18);
+  border-color: #eab308;
+  color: #fef08a;
+  box-shadow: 0 0 12px rgba(234, 179, 8, 0.2);
+}
+
 .markets-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1497,6 +1644,12 @@
   justify-content: space-between;
 }
 
+.market-symbol-block {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .market-symbol-tag {
   font-family: var(--font-mono, monospace);
   font-size: 10px;
@@ -1506,6 +1659,17 @@
   background: rgba(234, 179, 8, 0.15);
   color: #facc15;
   border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.market-exchange-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 600;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .market-change-badge {
@@ -1525,6 +1689,12 @@
   color: #ff3366;
 }
 
+.market-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
 .market-price-val {
   font-family: var(--font-mono, monospace);
   font-size: 20px;
@@ -1537,13 +1707,55 @@
   font-size: 11px;
   font-weight: 500;
   color: var(--neo-text-muted);
-  margin-left: 4px;
 }
 
 .market-name-label {
-  font-size: 11.5px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.market-desc-label {
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: #94a3b8;
+}
+
+.market-range-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.market-range-label {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  color: #64748b;
+}
+
+.market-range-label strong {
   color: #cbd5e1;
+}
+
+.market-range-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.market-range-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease-out;
 }
 
 .market-status-footer {
@@ -1555,6 +1767,31 @@
   font-family: var(--font-mono, monospace);
   font-size: 9px;
   color: #64748b;
+}
+
+.market-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9.5px;
+  color: #00f5a0;
+  font-weight: 700;
+}
+
+.market-live-pulse {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #00f5a0;
+  box-shadow: 0 0 6px #00f5a0;
+  animation: pulseLiveDot 1.5s infinite;
+}
+
+.tv-news-module-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
 }
 
 /* ── OSINT Reconnaissance Console ── */

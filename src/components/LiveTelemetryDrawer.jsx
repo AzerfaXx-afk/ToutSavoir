@@ -78,6 +78,10 @@ const UNIFIED_CATEGORIES = [
   { id: 'maritime', label: 'Flotte Maritime AIS', type: 'maritime' },
   { id: 'telluric', label: 'Séismes USGS Direct', type: 'telluric' },
   { id: 'infrastructure', label: 'Câbles & Nucléaire', type: 'infrastructure' },
+  { id: 'defense_markets', label: 'Marchés & Matières Premières', type: 'markets' },
+  { id: 'tv_news', label: 'Télévision Monde 24/7', type: 'tv_news' },
+  { id: 'cyber', label: 'Cyber Menaces', type: 'cyber' },
+  { id: 'video', label: 'Webcams & DOT en Direct', type: 'cctv' },
   { id: 'population', label: 'Démographie', type: 'metrics' },
   { id: 'economy', label: 'Économie & Gouv', type: 'metrics' },
   { id: 'media', label: 'Société & Médias', type: 'metrics' },
@@ -86,13 +90,20 @@ const UNIFIED_CATEGORIES = [
   { id: 'water', label: 'Eau Potable', type: 'metrics' },
   { id: 'energy', label: 'Énergie & Réserves', type: 'metrics' },
   { id: 'health', label: 'Santé Publique', type: 'metrics' },
-  { id: 'defense_markets', label: 'Marchés & Défense', type: 'markets' },
-  { id: 'cyber', label: 'Cyber Menaces', type: 'cyber' },
-  { id: 'video', label: 'Vidéo en Direct', type: 'cctv' },
   { id: 'satellites', label: 'Satellites', type: 'satellites' },
   { id: 'osint', label: 'OSINT Recon', type: 'osint' },
   { id: 'intel', label: 'Renseignement', type: 'intel' },
   { id: 'country', label: 'Fiche Pays', type: 'country' },
+];
+
+const MARKET_CATEGORIES = [
+  { id: 'ALL', label: 'TOUS LES ACTIFS' },
+  { id: 'energy', label: 'ÉNERGIE & HYDROCARBURES' },
+  { id: 'metals', label: 'MÉTAUX STRATÉGIQUES & CRITIQUES' },
+  { id: 'defense', label: 'DÉFENSE & INDUSTRIE' },
+  { id: 'agriculture', label: 'AGRO-ALIMENTAIRE' },
+  { id: 'crypto', label: 'CRYPTO-ACTIFS' },
+  { id: 'indices', label: 'INDICES MONDIAUX' },
 ];
 
 const CAT_LABELS_FR = {
@@ -228,6 +239,7 @@ export function LiveTelemetryDrawer({
   const [liveEarthquakes, setLiveEarthquakes] = useState(() => realtimeStream.stats?.recentEarthquakes || []);
   const [earthquakeFilter, setEarthquakeFilter] = useState('ALL');
   const [infraSubMode, setInfraSubMode] = useState('cables'); // 'cables' | 'nuclear'
+  const [marketFilter, setMarketFilter] = useState('ALL');
   const [osintTarget, setOsintTarget] = useState('8.8.8.8');
   const [searchQuery, setSearchQuery] = useState('');
   const [metrics, setMetrics] = useState(() => computeWorldometerMetrics(1));
@@ -606,6 +618,23 @@ export function LiveTelemetryDrawer({
     });
   }, [searchQuery]);
 
+  const filteredMarkets = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return DEFENSE_COMMODITIES_MARKETS.filter((m) => {
+      const matchesSearch =
+        !q ||
+        m.name.toLowerCase().includes(q) ||
+        m.symbol.toLowerCase().includes(q) ||
+        (m.exchange && m.exchange.toLowerCase().includes(q)) ||
+        (m.category && m.category.toLowerCase().includes(q)) ||
+        (m.description && m.description.toLowerCase().includes(q));
+
+      if (!matchesSearch) return false;
+      if (marketFilter === 'ALL') return true;
+      return m.category === marketFilter;
+    });
+  }, [searchQuery, marketFilter]);
+
   /* ── Country data ──────────────────────────────────────────────── */
   const countryData = useMemo(() => {
     const code = selectedCountry || 'FR';
@@ -788,7 +817,8 @@ export function LiveTelemetryDrawer({
     if (activeType === 'maritime') return filteredVessels.length;
     if (activeType === 'telluric') return filteredEarthquakes.length;
     if (activeType === 'infrastructure') return infraSubMode === 'cables' ? filteredCables.length : filteredNuclear.length;
-    if (activeType === 'markets') return DEFENSE_COMMODITIES_MARKETS.length;
+    if (activeType === 'markets') return filteredMarkets.length;
+    if (activeType === 'tv_news') return filteredTV.length;
     if (activeType === 'cyber') return filteredCyber.length;
     if (activeType === 'cctv') return cctvSubMode === 'cameras' ? filteredCCTV.length : filteredTV.length;
     if (activeType === 'satellites') return filteredSatellites.length;
@@ -803,6 +833,7 @@ export function LiveTelemetryDrawer({
     filteredCables,
     filteredNuclear,
     infraSubMode,
+    filteredMarkets,
     filteredCyber,
     filteredCCTV,
     filteredTV,
@@ -937,13 +968,21 @@ export function LiveTelemetryDrawer({
                         ? METRIC_DEFINITIONS.length
                         : METRIC_DEFINITIONS.filter((m) => m.cat === cat.id).length
                       : cat.type === 'aviation'
-                      ? liveFlights.length
+                      ? (liveFlights.length || totalGlobalFlights)
+                      : cat.type === 'maritime'
+                      ? (liveVessels.length || totalGlobalVessels)
+                      : cat.type === 'telluric'
+                      ? liveEarthquakes.length
+                      : cat.type === 'infrastructure'
+                      ? SUBMARINE_CABLES.length + STRATEGIC_NUCLEAR_SITES.length
                       : cat.type === 'markets'
                       ? DEFENSE_COMMODITIES_MARKETS.length
+                      : cat.type === 'tv_news'
+                      ? WORLD_TV_CHANNELS.length
                       : cat.type === 'cyber'
                       ? CYBER_ATTACK_VECTORS.length
                       : cat.type === 'cctv'
-                      ? CCTV_FEEDS.length + WORLD_TV_CHANNELS.length
+                      ? CCTV_FEEDS.length
                       : cat.type === 'satellites'
                       ? SATELLITES_DATA.length
                       : cat.type === 'osint'
@@ -1746,34 +1785,185 @@ export function LiveTelemetryDrawer({
 
           {/* ── MARCHÉS & MATIÈRES PREMIÈRES (OSIRIS PARITY) ── */}
           {activeType === 'markets' && (
-            <div className="markets-grid">
-              {DEFENSE_COMMODITIES_MARKETS.filter((item) => {
-                const q = searchQuery.toLowerCase();
-                return !q || item.name.toLowerCase().includes(q) || item.symbol.toLowerCase().includes(q);
-              }).map((m, i) => (
-                <div
-                  key={m.id}
-                  className="market-card"
-                  style={{ animationDelay: `${i * 0.04}s` }}
-                >
-                  <div className="market-card-header">
-                    <span className="market-symbol-tag">{m.symbol}</span>
-                    <span className={`market-change-badge ${m.positive ? 'positive' : 'negative'}`}>
-                      {m.positive ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-                      {m.change}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="market-price-val">{m.price}</span>
-                    <span className="market-price-unit">{m.unit}</span>
-                  </div>
-                  <div className="market-name-label">{m.name}</div>
-                  <div className="market-status-footer">
-                    <span>COTATION SPOT</span>
-                    <span style={{ color: '#00f5a0' }}>● DIRECT LIVE</span>
+            <div className="markets-module-wrapper">
+              {/* Continuous Live Marquee Ticker Tape */}
+              <div className="markets-ticker-tape">
+                <div className="ticker-tape-badge">
+                  <Activity size={12} className="ticker-pulse-icon" />
+                  <span>FLUX SPOT EN DIRECT</span>
+                </div>
+                <div className="markets-ticker-track-wrapper">
+                  <div className="markets-ticker-track">
+                    {[...DEFENSE_COMMODITIES_MARKETS, ...DEFENSE_COMMODITIES_MARKETS].map((m, idx) => (
+                      <div key={`${m.id}-ticker-${idx}`} className="ticker-tape-item">
+                        <span className="ticker-symbol">{m.symbol}</span>
+                        <span className="ticker-price">{m.price}</span>
+                        <span className={`ticker-change ${m.positive ? 'positive' : 'negative'}`}>
+                          {m.positive ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                          {m.change}
+                        </span>
+                        <span className="ticker-sep">•</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {/* Markets Filter Chips */}
+              <div className="markets-subfilter-bar">
+                {MARKET_CATEGORIES.map((cat) => {
+                  const count = cat.id === 'ALL'
+                    ? DEFENSE_COMMODITIES_MARKETS.length
+                    : DEFENSE_COMMODITIES_MARKETS.filter((m) => m.category === cat.id).length;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      className={`markets-subfilter-btn ${marketFilter === cat.id ? 'is-active' : ''}`}
+                      onClick={() => {
+                        sound.click(0.4);
+                        setMarketFilter(cat.id);
+                      }}
+                      onMouseEnter={() => sound.hover()}
+                    >
+                      <span>{cat.label}</span>
+                      <span className="subfilter-count">{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Markets Grid */}
+              {filteredMarkets.length === 0 ? (
+                <div className="empty-state">Aucun actif ou matière première trouvé.</div>
+              ) : (
+                <div className="markets-grid">
+                  {filteredMarkets.map((m, i) => (
+                    <div
+                      key={m.id}
+                      className="market-card"
+                      style={{ animationDelay: `${i * 0.03}s` }}
+                    >
+                      <div className="market-card-header">
+                        <div className="market-symbol-block">
+                          <span className="market-symbol-tag">{m.symbol}</span>
+                          {m.exchange && <span className="market-exchange-tag">{m.exchange}</span>}
+                        </div>
+                        <span className={`market-change-badge ${m.positive ? 'positive' : 'negative'}`}>
+                          {m.positive ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                          {m.change}
+                        </span>
+                      </div>
+
+                      <div className="market-price-row">
+                        <span className="market-price-val">{m.price}</span>
+                        <span className="market-price-unit">{m.unit}</span>
+                      </div>
+
+                      <div className="market-name-label">{m.name}</div>
+                      {m.description && (
+                        <div className="market-desc-label">{m.description}</div>
+                      )}
+
+                      {/* 24h High/Low Spread Bar */}
+                      {(m.low24h || m.high24h) && (
+                        <div className="market-range-strip">
+                          <div className="market-range-label">
+                            <span>24H BAS: <strong>{m.low24h || '--'}</strong></span>
+                            <span>24H HAUT: <strong>{m.high24h || '--'}</strong></span>
+                          </div>
+                          <div className="market-range-track">
+                            <div
+                              className="market-range-fill"
+                              style={{
+                                width: m.positive ? '68%' : '35%',
+                                background: m.positive ? 'linear-gradient(90deg, rgba(0,245,160,0.3), #00f5a0)' : 'linear-gradient(90deg, rgba(255,51,102,0.3), #ff3366)',
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="market-status-footer">
+                        <span>VOL 24H: <strong style={{ color: '#cbd5e1' }}>{m.volume || 'Standard'}</strong></span>
+                        <span className="market-live-pill">
+                          <span className="market-live-pulse" />
+                          COTATION DIRECT
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── TÉLÉVISION MONDE 24/7 (DIRECT SANS CLIC & MULTI-PAYS) ── */}
+          {activeType === 'tv_news' && (
+            <div className="tv-news-module-wrapper">
+              {/* Grand Écran Master Theater Direct 24/7 */}
+              <MasterLiveTheater
+                feed={activeMasterTV}
+                isTv={true}
+                onPrevFeed={() => {
+                  if (filteredTV.length === 0) return;
+                  const idx = filteredTV.findIndex((t) => t.id === activeMasterTV?.id);
+                  const prev = filteredTV[(idx - 1 + filteredTV.length) % filteredTV.length];
+                  if (prev) setActiveMasterTV(prev);
+                }}
+                onNextFeed={() => {
+                  if (filteredTV.length === 0) return;
+                  const idx = filteredTV.findIndex((t) => t.id === activeMasterTV?.id);
+                  const next = filteredTV[(idx + 1) % filteredTV.length];
+                  if (next) setActiveMasterTV(next);
+                }}
+                onExpandModal={(f) => {
+                  if (onSelectCCTV) onSelectCCTV(f);
+                }}
+              />
+
+              {/* Barre sélecteur pays pour les chaînes TV */}
+              <div className="cctv-subfilter-bar tv-country-bar">
+                {TV_COUNTRIES.map((cty) => (
+                  <button
+                    key={cty.id}
+                    type="button"
+                    className={`cctv-subfilter-btn tv-country-btn ${tvCountry === cty.id ? 'is-active' : ''}`}
+                    onClick={() => {
+                      sound.click(0.4);
+                      setTvCountry(cty.id);
+                    }}
+                    onMouseEnter={() => sound.hover()}
+                  >
+                    <span className="tv-country-flag">{cty.flag}</span>
+                    <span>{cty.label}</span>
+                    <span className="subfilter-count">{cty.count}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Grille des flux TV internationaux */}
+              {filteredTV.length === 0 ? (
+                <div className="empty-state">Aucune chaîne trouvée pour ce pays ou cette recherche.</div>
+              ) : (
+                <div className="cctv-live-grid">
+                  {filteredTV.map((tv, i) => (
+                    <InlineLiveCard
+                      key={tv.id}
+                      feed={tv}
+                      index={i}
+                      isActiveMaster={activeMasterTV?.id === tv.id}
+                      isTv={true}
+                      onSelectMaster={(f) => {
+                        setActiveMasterTV(f);
+                      }}
+                      onExpandModal={(f) => {
+                        if (onSelectCCTV) onSelectCCTV(f);
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
