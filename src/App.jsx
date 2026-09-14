@@ -20,21 +20,21 @@ export default function App() {
   const [autoRotate, setAutoRotate] = useState(true);
   const [selectedYear, setSelectedYear] = useState(2026);
 
-  // Essential live layers activated by default for immediate real-world dynamism (Aviation, Maritime, CCTV, Satellites, Conflicts)
+  // Clean, lightweight tactical layers activated by default (Aviation & Maritime start OFF for zero-lag instant loading)
   const [activeLayers, setActiveLayers] = useState(
-    () => new Set(['aviation', 'maritime', 'cctv', 'satellites', 'conflicts'])
+    () => new Set(['cctv', 'conflicts'])
   );
 
-  // Flight traffic density limit (default: 2500 for authentic dense Flightradar24 experience at 60 FPS)
-  const [flightLimit, setFlightLimit] = useState(2500);
+  // Flight traffic density limit (default: 500 for high-performance fluid 60 FPS)
+  const [flightLimit, setFlightLimit] = useState(500);
 
   const handleFlightLimitChange = useCallback((limit) => {
     setFlightLimit(limit);
     flightRadarService.setFlightLimit(limit);
   }, []);
 
-  // Maritime traffic density limit (default: 5000 for authentic dense MarineTraffic experience at 60 FPS)
-  const [vesselLimit, setVesselLimit] = useState(5000);
+  // Maritime traffic density limit (default: 1000 for high-performance fluid 60 FPS)
+  const [vesselLimit, setVesselLimit] = useState(1000);
 
   const handleVesselLimitChange = useCallback((limit) => {
     setVesselLimit(limit);

@@ -379,10 +379,17 @@ export function TacticalMap2D({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
 
-      const limit = flightLimitRef.current || 3500;
+      const limit = flightLimitRef.current || 500;
       const selectedId = inspectedTargetRef.current?.id;
       const hoveredId = hoveredFlight?.id;
       const zoom = map.getZoom();
+
+      const bounds = map.getBounds();
+      const minLat = bounds.getSouth() - 2;
+      const maxLat = bounds.getNorth() + 2;
+      const minLng = bounds.getWest() - 3;
+      const maxLng = bounds.getEast() + 3;
+      const spansAntimeridian = minLng > maxLng;
 
       const basePlaneSize = zoom <= 3 ? 12 : zoom <= 5 ? 15 : zoom <= 8 ? 18 : 22;
       let selectedFlightToDrawLast = null;
@@ -392,6 +399,11 @@ export function TacticalMap2D({
       for (let i = 0; i < currentRawFlights.length; i++) {
         const fl = currentRawFlights[i];
         if (typeof fl.lat !== 'number' || typeof fl.lng !== 'number') continue;
+
+        // Instant numeric culling before expensive CRS projection:
+        if (fl.lat < minLat || fl.lat > maxLat) continue;
+        if (!spansAntimeridian && (fl.lng < minLng || fl.lng > maxLng)) continue;
+
         const pt = map.latLngToContainerPoint([fl.lat, fl.lng]);
 
         // Fast screen bounds culling with 45px padding
@@ -590,6 +602,7 @@ export function TacticalMap2D({
     };
 
     const requestDrawAviation = () => {
+      if (!isAviationActive) return;
       if (animFrameAviationId) return;
       animFrameAviationId = requestAnimationFrame(() => {
         animFrameAviationId = null;
@@ -599,6 +612,7 @@ export function TacticalMap2D({
 
     const updateFlightradarPlanes = (flightsList) => {
       if (flightsList) currentRawFlights = flightsList;
+      if (!isAviationActive) return;
       requestDrawAviation();
     };
 
@@ -778,10 +792,17 @@ export function TacticalMap2D({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
 
-      const limit = vesselLimitRef.current || 5000;
+      const limit = vesselLimitRef.current || 1000;
       const selectedId = inspectedTargetRef.current?.id;
       const hoveredId = hoveredVessel?.id;
       const zoom = map.getZoom();
+
+      const bounds = map.getBounds();
+      const minLat = bounds.getSouth() - 1.5;
+      const maxLat = bounds.getNorth() + 1.5;
+      const minLng = bounds.getWest() - 2.5;
+      const maxLng = bounds.getEast() + 2.5;
+      const spansAntimeridian = minLng > maxLng;
 
       // Dynamic sizing based on zoom level: crisp, luminous chevrons matching MarineTraffic
       const baseLen = zoom <= 3 ? 9.2 : zoom <= 5 ? 12.0 : zoom <= 8 ? 15.5 : 19.0;
@@ -795,6 +816,11 @@ export function TacticalMap2D({
       for (let i = 0; i < currentRawVessels.length; i++) {
         const ves = currentRawVessels[i];
         if (typeof ves.lat !== 'number' || typeof ves.lng !== 'number') continue;
+
+        // Instant numeric culling before expensive CRS projection:
+        if (ves.lat < minLat || ves.lat > maxLat) continue;
+        if (!spansAntimeridian && (ves.lng < minLng || ves.lng > maxLng)) continue;
+
         const pt = map.latLngToContainerPoint([ves.lat, ves.lng]);
 
         // Fast viewport culling with 35px margin
@@ -968,6 +994,7 @@ export function TacticalMap2D({
     };
 
     const requestDrawMaritime = () => {
+      if (!isMaritimeActive) return;
       if (animFrameMaritimeId) return;
       animFrameMaritimeId = requestAnimationFrame(() => {
         animFrameMaritimeId = null;
@@ -977,6 +1004,7 @@ export function TacticalMap2D({
 
     const updateMarineTrafficVessels = (vesselsList) => {
       if (vesselsList) currentRawVessels = vesselsList;
+      if (!isMaritimeActive) return;
       requestDrawMaritime();
     };
 
