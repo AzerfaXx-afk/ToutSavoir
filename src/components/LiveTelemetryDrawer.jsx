@@ -38,7 +38,6 @@ import { TERRITORY_NAMES_FR } from '../utils/countryData';
 import {
   ChevronRight,
   ChevronLeft,
-  RefreshCw,
   Search,
   X,
   Crosshair,
@@ -902,23 +901,6 @@ export function LiveTelemetryDrawer({
         {/* ─── Centered Cockpit Chronometer Header ─── */}
         <div className="drawer-header">
           <div className="drawer-chrono-frame">
-            {/* Realtime Live Header Row */}
-            <div className="chrono-live-top-row">
-              <div className="chrono-live-status-pill">
-                <span className="chrono-live-dot" />
-                <span className="chrono-live-label">TEMPS RÉEL // DIRECT</span>
-              </div>
-              <button
-                type="button"
-                className={`chrono-sync-arrow-btn ${isRefreshing ? 'is-spinning' : ''}`}
-                onClick={handleTopRightArrowClick}
-                title="Actualiser les métriques en direct"
-                aria-label="Actualiser les métriques"
-              >
-                <RefreshCw size={12} />
-              </button>
-            </div>
-
             {/* Big Prominent Digital Monospace Clock */}
             <div className="drawer-time-display-clean">
               <span className="drawer-time-big">{localTime}</span>

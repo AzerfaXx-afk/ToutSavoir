@@ -76,16 +76,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  background: linear-gradient(180deg, rgba(14, 20, 32, 0.92) 0%, rgba(8, 12, 20, 0.98) 100%);
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(180deg, rgba(14, 22, 36, 0.95) 0%, rgba(8, 12, 20, 0.98) 100%);
   border: 1px solid rgba(0, 242, 254, 0.22);
   border-radius: 14px;
-  padding: 12px 14px 10px;
+  padding: 16px 20px 14px;
   box-shadow: 
-    inset 0 1px 1px rgba(255, 255, 255, 0.1),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.8),
-    0 10px 30px rgba(0, 0, 0, 0.65),
-    0 0 15px rgba(0, 242, 254, 0.08);
+    inset 0 1px 1px rgba(255, 255, 255, 0.12),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.8),
+    0 8px 24px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(0, 242, 254, 0.08);
   position: relative;
   overflow: hidden;
 }
@@ -97,87 +98,17 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.65), transparent);
 }
 
-/* Realtime Live Header Row */
-.chrono-live-top-row {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 4px;
-  height: 22px;
-}
-
-.chrono-live-status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(0, 245, 160, 0.08);
-  border: 1px solid rgba(0, 245, 160, 0.25);
-  box-shadow: 0 0 10px rgba(0, 245, 160, 0.1);
-}
-
-.chrono-live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #00f5a0;
-  box-shadow: 0 0 8px #00f5a0;
-  animation: livePillBlink 1.5s infinite ease-in-out;
-}
-
-@keyframes livePillBlink {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.4;
-    transform: scale(0.85);
-  }
-}
-
-.chrono-live-label {
-  font-family: var(--font-mono, monospace);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  color: #00f5a0;
-  text-transform: uppercase;
-}
-
-.chrono-sync-arrow-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 7px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--neo-text-secondary);
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.chrono-sync-arrow-btn:hover {
-  color: #00f2fe;
-  border-color: rgba(0, 242, 254, 0.4);
-  background: rgba(0, 242, 254, 0.12);
-  box-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
-  transform: scale(1.08);
-}
-
-.chrono-sync-arrow-btn:active {
-  transform: scale(0.94);
-}
-
-.chrono-sync-arrow-btn.is-spinning svg {
-  animation: spinRefresh 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+.drawer-chrono-frame::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  right: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.25), transparent);
 }
 
 /* Big Monospace Time Display Clean */
@@ -185,18 +116,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 0 2px;
+  padding: 2px 0;
 }
 
 .drawer-time-big {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 36px;
+  font-family: var(--font-mono, 'JetBrains Mono', 'Roboto Mono', monospace);
+  font-size: 38px;
   font-weight: 800;
   color: #ffffff;
-  letter-spacing: 4px;
+  letter-spacing: 5px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 20px rgba(0, 242, 254, 0.5), 0 0 45px rgba(0, 242, 254, 0.2);
+  text-shadow: 
+    0 0 16px rgba(0, 242, 254, 0.55),
+    0 0 36px rgba(0, 242, 254, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.8);
   user-select: none;
 }
 
@@ -205,22 +139,24 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 3px 12px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 8px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(0, 242, 254, 0.05);
+  border: 1px solid rgba(0, 242, 254, 0.18);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .chrono-calendar-icon {
   color: #00f2fe;
+  filter: drop-shadow(0 0 4px rgba(0, 242, 254, 0.5));
 }
 
 .drawer-date-text {
   font-family: var(--font-mono, monospace);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 1.8px;
+  letter-spacing: 2px;
   color: #e2e8f0;
   user-select: none;
 }
