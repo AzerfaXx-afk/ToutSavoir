@@ -232,9 +232,10 @@ export default function App() {
     setIsDrawerOpen(true);
   }, []);
 
-  // Satellite select handler (2D & 3D parity)
+  // Satellite select handler (Satellites exist in 3D outer space)
   const handleSelectSatellite = useCallback((sat) => {
     if (!sat) return;
+    setIs3D(true);
     const currentLat = typeof sat.lat === 'number' ? sat.lat : (sat.inclination || 45) * 0.5;
     const currentLng = typeof sat.lng === 'number' ? sat.lng : 0;
     setInspectedTarget({ type: 'satellite', ...sat, lat: currentLat, lng: currentLng });

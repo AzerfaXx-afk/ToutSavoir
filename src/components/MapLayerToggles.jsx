@@ -302,7 +302,14 @@ export function MapLayerToggles({
                           </div>
 
                           <div className="layer-row-info">
-                            <span className="layer-row-name">{layer.label}</span>
+                            <span className="layer-row-name">
+                              {layer.label}
+                              {layer.id === 'satellites' && !is3D && (
+                                <span style={{ fontSize: '9px', marginLeft: '6px', color: '#00f2fe', background: 'rgba(0,242,254,0.12)', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
+                                  ORBITE 3D
+                                </span>
+                              )}
+                            </span>
                             <div className="layer-row-source-line">
                               <span className="layer-row-source">{layer.source}</span>
                               <span className="layer-source-dot">•</span>
