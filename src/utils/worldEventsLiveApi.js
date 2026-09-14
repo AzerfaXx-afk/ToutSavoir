@@ -175,22 +175,82 @@ function categorizeEvent(text = '', defaultCategory = 'GÉOPOLITIQUE') {
   return defaultCategory;
 }
 
-// Conversion propre de date RSS en minutes du jour (0..1439) et UTC
+// Helper pour calculer le temps relatif fluide ("Il y a 12 min", "Il y a 2 h")
+export function formatRelativeTime(timestamp) {
+  if (!timestamp) return '';
+  const diffSec = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
+  if (diffSec < 60) return 'À l’instant';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `Il y a ${diffMin} min`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `Il y a ${diffHours} h`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `Il y a ${diffDays} j`;
+}
+
+// Conversion propre de date RSS en minutes du jour (0..1439), heure locale et timestamp absolu
 function parsePubDate(pubDateStr) {
-  if (!pubDateStr) return { minutesOfDay: 0, timeStr: '00:00 UTC', dateStr: '' };
+  if (!pubDateStr) {
+    const now = new Date();
+    const h = now.getHours();
+    const m = now.getMinutes();
+    return {
+      minutesOfDay: h * 60 + m,
+      timeStr: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
+      dateStr: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
+      timestamp: now.getTime(),
+    };
+  }
   try {
-    const d = new Date(pubDateStr.replace(' ', 'T'));
-    if (isNaN(d.getTime())) return { minutesOfDay: 0, timeStr: '00:00 UTC', dateStr: '' };
-    const h = d.getUTCHours();
-    const m = d.getUTCMinutes();
+    const formattedStr = (pubDateStr.includes('Z') || pubDateStr.includes('+'))
+      ? pubDateStr
+      : pubDateStr.replace(' ', 'T') + 'Z';
+    const d = new Date(formattedStr);
+    if (isNaN(d.getTime())) {
+      const fallback = new Date(pubDateStr);
+      if (isNaN(fallback.getTime())) {
+        const now = new Date();
+        const h = now.getHours();
+        const m = now.getMinutes();
+        return {
+          minutesOfDay: h * 60 + m,
+          timeStr: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
+          dateStr: '',
+          timestamp: now.getTime(),
+        };
+      }
+      const h = fallback.getHours();
+      const m = fallback.getMinutes();
+      return {
+        minutesOfDay: h * 60 + m,
+        timeStr: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
+        dateStr: `${fallback.getFullYear()}-${String(fallback.getMonth() + 1).padStart(2, '0')}-${String(fallback.getDate()).padStart(2, '0')}`,
+        timestamp: fallback.getTime(),
+      };
+    }
+    const h = d.getHours();
+    const m = d.getMinutes();
     const minutesOfDay = h * 60 + m;
-    const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} UTC`;
-    const yyyy = d.getUTCFullYear();
-    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-    const dd = String(d.getUTCDate()).padStart(2, '0');
-    return { minutesOfDay, timeStr, dateStr: `${yyyy}-${mm}-${dd}` };
+    const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return {
+      minutesOfDay,
+      timeStr,
+      dateStr: `${yyyy}-${mm}-${dd}`,
+      timestamp: d.getTime(),
+    };
   } catch {
-    return { minutesOfDay: 0, timeStr: '00:00 UTC', dateStr: '' };
+    const now = new Date();
+    const h = now.getHours();
+    const m = now.getMinutes();
+    return {
+      minutesOfDay: h * 60 + m,
+      timeStr: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
+      dateStr: '',
+      timestamp: now.getTime(),
+    };
   }
 }
 
@@ -216,6 +276,7 @@ async function fetchFrance24Dispatches() {
         title,
         text,
         time: parsed.timeStr,
+        timestamp: parsed.timestamp,
         minutesOfDay: parsed.minutesOfDay,
         dateStr: parsed.dateStr,
         source: 'FRANCE 24',
@@ -259,6 +320,7 @@ async function fetchRFIDispatches() {
         title,
         text,
         time: parsed.timeStr,
+        timestamp: parsed.timestamp,
         minutesOfDay: parsed.minutesOfDay,
         dateStr: parsed.dateStr,
         source: 'RFI MONDE',
@@ -302,6 +364,7 @@ async function fetchUNNewsDispatches() {
         title,
         text,
         time: parsed.timeStr,
+        timestamp: parsed.timestamp,
         minutesOfDay: parsed.minutesOfDay,
         dateStr: parsed.dateStr,
         source: 'NATIONS UNIES',
@@ -345,6 +408,7 @@ async function fetchEuronewsDispatches() {
         title,
         text,
         time: parsed.timeStr,
+        timestamp: parsed.timestamp,
         minutesOfDay: parsed.minutesOfDay,
         dateStr: parsed.dateStr,
         source: 'EURONEWS MONDE',
@@ -386,10 +450,10 @@ async function fetchUSGSWorldEarthquakes(year, month, day) {
       const mag = props.mag ? Number(props.mag.toFixed(1)) : 4.0;
       const depth = Math.round(geom.coordinates[2] || 10);
       const d = new Date(props.time);
-      const h = d.getUTCHours();
-      const m = d.getUTCMinutes();
+      const h = d.getHours();
+      const m = d.getMinutes();
       const minutesOfDay = h * 60 + m;
-      const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} UTC`;
+      const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
       const frenchPlace = translateUsgsPlace(props.place || 'Région sous-marine');
 
       return {
@@ -402,6 +466,7 @@ async function fetchUSGSWorldEarthquakes(year, month, day) {
         title: `Séisme M ${mag} — ${frenchPlace}`,
         text: `Secousse tellurique de magnitude ${mag} enregistrée à une profondeur de ${depth} km sous la croûte terrestre. Télémétrie sismique mondiale certifiée par l’USGS.`,
         time: timeStr,
+        timestamp: props.time,
         minutesOfDay,
         dateStr: `${year}-${month}-${day}`,
         source: 'USGS SÉISMES',
@@ -433,7 +498,8 @@ async function fetchNASANaturalEvents(dateStr) {
     return data.events.slice(0, 8).map((ev, idx) => {
       const geom = ev.geometry && ev.geometry[0] ? ev.geometry[0] : null;
       let minutesOfDay = 600;
-      let timeStr = '10:00 UTC';
+      let timeStr = '10:00';
+      let timestamp = Date.now();
       let lat = 0;
       let lng = 0;
 
@@ -441,10 +507,11 @@ async function fetchNASANaturalEvents(dateStr) {
         if (geom.date) {
           const d = new Date(geom.date);
           if (!isNaN(d.getTime())) {
-            const h = d.getUTCHours();
-            const m = d.getUTCMinutes();
+            const h = d.getHours();
+            const m = d.getMinutes();
             minutesOfDay = h * 60 + m;
-            timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} UTC`;
+            timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            timestamp = d.getTime();
           }
         }
         if (Array.isArray(geom.coordinates)) {
@@ -478,6 +545,7 @@ async function fetchNASANaturalEvents(dateStr) {
         title: `${catFr} : ${titleFr}`,
         text: `Événement environnemental sous surveillance satellitaire constante de la NASA (EONET). Coordonnées géospatiales actives.`,
         time: timeStr,
+        timestamp,
         minutesOfDay,
         dateStr,
         source: 'NASA EONET',
@@ -500,13 +568,16 @@ async function fetchNASANaturalEvents(dateStr) {
 
 // Données de secours 100% françaises de haute volée
 function getVerifiedFrenchFallback(year, month, day) {
+  const baseMidnight = new Date(`${year}-${month}-${day}T00:00:00`).getTime();
   return [
     {
       id: 'fb-fr-1',
       title: 'Moyen-Orient : Les forces yéménites annoncent avoir ciblé des installations militaires',
       text: 'Les vecteurs de tir aériens et missiles ont visé des sites stratégiques dans la région. Surveillance radar et diplomatique internationale en alerte maximale.',
-      time: '05:03 UTC',
+      time: '05:03',
+      timestamp: baseMidnight + 303 * 60 * 1000,
       minutesOfDay: 303,
+      dateStr: `${year}-${month}-${day}`,
       source: 'FRANCE 24',
       sourceType: 'DÉPÊCHE MONDE',
       sourceColor: '#00f2fe',
@@ -522,8 +593,10 @@ function getVerifiedFrenchFallback(year, month, day) {
       id: 'fb-fr-2',
       title: 'Sécurité maritime : Déploiement renforcé de patrouilles dans le détroit d’Ormuz',
       text: 'Surveillance conjointe du transit pétrolier et commercial face aux menaces balistiques et de guerre asymétrique.',
-      time: '07:15 UTC',
+      time: '07:15',
+      timestamp: baseMidnight + 435 * 60 * 1000,
       minutesOfDay: 435,
+      dateStr: `${year}-${month}-${day}`,
       source: 'RFI MONDE',
       sourceType: 'REPORTAGE INTERNATIONAL',
       sourceColor: '#ef4444',
@@ -539,8 +612,10 @@ function getVerifiedFrenchFallback(year, month, day) {
       id: 'fb-fr-3',
       title: 'Conseil de sécurité de l’ONU : Débat d’urgence sur l’aide humanitaire en Haïti',
       text: 'Les représentants des États membres préconisent de nouvelles mesures pour sécuriser les couloirs logistiques scolaires et sanitaires.',
-      time: '08:40 UTC',
+      time: '08:40',
+      timestamp: baseMidnight + 520 * 60 * 1000,
       minutesOfDay: 520,
+      dateStr: `${year}-${month}-${day}`,
       source: 'NATIONS UNIES',
       sourceType: 'BULLETIN DIPLOMATIQUE',
       sourceColor: '#38bdf8',
@@ -556,8 +631,10 @@ function getVerifiedFrenchFallback(year, month, day) {
       id: 'fb-fr-4',
       title: 'Séisme M 5.2 — Ceinture de Feu du Pacifique',
       text: 'Secousse tellurique enregistrée à 35 km de profondeur. Aucun risque de tsunami majeur d’après les capteurs du centre d’alerte Pacifique.',
-      time: '09:22 UTC',
+      time: '09:22',
+      timestamp: baseMidnight + 562 * 60 * 1000,
       minutesOfDay: 562,
+      dateStr: `${year}-${month}-${day}`,
       source: 'USGS SÉISMES',
       sourceType: 'TÉLÉMÉTRIE SISMOLOGIQUE',
       sourceColor: '#f43f5e',
@@ -585,7 +662,7 @@ export async function fetchWorldDailyIntel(dateObj = new Date(), options = {}) {
   const selectedDateStr = `${year}-${month}-${day}`;
 
   const currentMinuteOfDay = d.getHours() * 60 + d.getMinutes();
-  const currentTimeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} UTC`;
+  const currentTimeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
   const cacheKey = `${CACHE_PREFIX}${selectedDateStr}`;
 
@@ -636,11 +713,15 @@ export async function fetchWorldDailyIntel(dateObj = new Date(), options = {}) {
     } catch {}
   }
 
-  // Tri strictement chronologique par minute de la journée
-  rawList.sort((a, b) => (a.minutesOfDay || 0) - (b.minutesOfDay || 0));
+  // Tri chronologique de base (du matin au soir)
+  rawList.sort((a, b) => {
+    const tA = a.timestamp || (a.minutesOfDay ? a.minutesOfDay * 60000 : 0);
+    const tB = b.timestamp || (b.minutesOfDay ? b.minutesOfDay * 60000 : 0);
+    return tA - tB;
+  });
 
-  // Filtrage jusqu'à l'heure active
-  const filterUpToHour = options.showAll24h ? 1440 : currentMinuteOfDay;
+  // Filtrage jusqu'à l'heure active (avec tolérance pour décalages serveurs)
+  const filterUpToHour = options.showAll24h ? 1440 : currentMinuteOfDay + 10;
 
   const itemsUpToCurrentTime = rawList.filter((item) => {
     if (options.showAll24h) return true;

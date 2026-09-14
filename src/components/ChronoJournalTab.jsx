@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { fetchWorldDailyIntel } from '../utils/worldEventsLiveApi';
+import { fetchWorldDailyIntel, formatRelativeTime } from '../utils/worldEventsLiveApi';
 import { sound } from '../utils/soundFX';
 import {
   BookOpen,
@@ -15,6 +15,13 @@ import {
   Compass,
   Crosshair,
   MapPin,
+  ArrowDownUp,
+  Zap,
+  History,
+  TrendingUp,
+  Users,
+  ShieldAlert,
+  HeartPulse,
 } from 'lucide-react';
 import './ChronoJournalTab.css';
 
@@ -29,6 +36,8 @@ export function ChronoJournalTab({
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAll24h, setShowAll24h] = useState(false);
+  // 'recent' : les plus récents en premier (décroissant) | 'beginning_of_day' : depuis le début de la journée (croissant de 00:00 à maintenant)
+  const [sortOrder, setSortOrder] = useState('recent');
   const [targetedId, setTargetedId] = useState(null);
 
   // Charger les données mondiales en temps réel
@@ -51,7 +60,7 @@ export function ChronoJournalTab({
     loadDailyIntel();
   }, [selectedDate, showAll24h]);
 
-  // Liste active selon le filtre horaire
+  // Liste active selon le filtre horaire (cycle 24h ou jusqu'à maintenant)
   const activeTimeline = useMemo(() => {
     if (!intelData) return [];
     return showAll24h ? (intelData.allItems24h || []) : (intelData.filteredItems || []);
@@ -69,7 +78,7 @@ export function ChronoJournalTab({
     };
   }, [activeTimeline]);
 
-  // Filtrage par onglet & recherche
+  // Filtrage thématique & recherche textuelle
   const filteredTimeline = useMemo(() => {
     let list = activeTimeline;
 
@@ -99,6 +108,27 @@ export function ChronoJournalTab({
     return list;
   }, [activeTimeline, activeFilter, searchQuery]);
 
+  // Tri selon l'ordre choisi : SOIT les plus récents en premier (décroissant), SOIT depuis le début du jour (croissant 00:00 -> maintenant)
+  const sortedTimeline = useMemo(() => {
+    const list = [...filteredTimeline];
+    if (sortOrder === 'recent') {
+      // Décroissant : plus récents en premier
+      list.sort((a, b) => {
+        const tA = a.timestamp || (a.minutesOfDay !== undefined ? a.minutesOfDay * 60000 : 0);
+        const tB = b.timestamp || (b.minutesOfDay !== undefined ? b.minutesOfDay * 60000 : 0);
+        return tB - tA;
+      });
+    } else {
+      // Croissant : depuis le début de la journée (00:00 du matin)
+      list.sort((a, b) => {
+        const tA = a.timestamp || (a.minutesOfDay !== undefined ? a.minutesOfDay * 60000 : 0);
+        const tB = b.timestamp || (b.minutesOfDay !== undefined ? b.minutesOfDay * 60000 : 0);
+        return tA - tB;
+      });
+    }
+    return list;
+  }, [filteredTimeline, sortOrder]);
+
   const handleFilterClick = (filterId) => {
     sound.click(0.35);
     setActiveFilter(filterId);
@@ -107,6 +137,12 @@ export function ChronoJournalTab({
   const handleToggleRange = () => {
     sound.tick();
     setShowAll24h((prev) => !prev);
+  };
+
+  const handleToggleSortOrder = (newOrder) => {
+    if (newOrder === sortOrder) return;
+    sound.tick();
+    setSortOrder(newOrder);
   };
 
   // Centrage immédiat sur la carte lors d'un clic sur l'événement
@@ -139,7 +175,7 @@ export function ChronoJournalTab({
         <div className="journal-header-top">
           <div className="journal-title-tag">
             <Radio size={13} className="journal-pulse-icon" />
-            <span>JOURNAL DU JOUR // MONDE EN DIRECT</span>
+            <span>JOURNAL DU JOUR // DIRECT MONDIAL</span>
           </div>
           <button
             type="button"
@@ -148,7 +184,7 @@ export function ChronoJournalTab({
               sound.tick();
               loadDailyIntel(true);
             }}
-            title="Actualiser les dépêches mondiales"
+            title="Actualiser les dépêches mondiales et séismes"
           >
             <RefreshCw size={11} className={isRefreshing ? 'journal-spin-icon' : ''} />
             <span>ACTUALISER</span>
@@ -159,13 +195,13 @@ export function ChronoJournalTab({
           {intelData?.formattedDate || 'Aujourd’hui'}
         </div>
 
-        {/* Sélecteur de fenêtre horaire */}
+        {/* Sélecteur de fenêtre horaire (Direct jusqu'à présent vs 24h complètes) */}
         <div className="journal-time-window-row">
           <div className="time-window-badge">
             <Clock size={11} />
             <span>
               {showAll24h
-                ? 'Cycle complet 24 heures (00:00 - 23:59 UTC)'
+                ? 'Cycle complet 24 heures (00:00 - 23:59)'
                 : `Flux direct : depuis 00:00 jusqu’à ${intelData?.currentTimeStr || 'l’heure actuelle'}`}
             </span>
           </div>
@@ -200,31 +236,100 @@ export function ChronoJournalTab({
         </div>
       </div>
 
-      {/* ─── Indicateurs Vitaux du Monde (Worldometer) ─── */}
+      {/* ─── Sélecteur d'Ordre Chronologique : Plus Récent vs Depuis le Début de Journée ─── */}
+      <div className="journal-order-selector-card">
+        <div className="order-selector-header">
+          <div className="order-selector-title">
+            <ArrowDownUp size={12} className="order-title-icon" />
+            <span>ORDRE D'AFFICHAGE DU FIL :</span>
+          </div>
+          <span className="order-selector-status">
+            {sortOrder === 'recent' ? '⚡ DERNIÈRES MINUTES EN PREMIER' : '⏳ CHRONOLOGIE DEPUIS 00:00'}
+          </span>
+        </div>
+
+        <div className="order-pills-row">
+          <button
+            type="button"
+            className={`order-pill-btn ${sortOrder === 'recent' ? 'is-active is-recent' : ''}`}
+            onClick={() => handleToggleSortOrder('recent')}
+            title="Afficher les événements les plus récents en premier (en direct au sommet du fil)"
+          >
+            <Zap size={12} className="order-pill-icon" />
+            <div className="order-pill-content">
+              <span className="order-pill-main">LE PLUS RÉCENT</span>
+              <span className="order-pill-hint">Dernières dépêches en haut</span>
+            </div>
+            {sortOrder === 'recent' && <span className="order-live-dot" />}
+          </button>
+
+          <button
+            type="button"
+            className={`order-pill-btn ${sortOrder === 'beginning_of_day' ? 'is-active is-chronological' : ''}`}
+            onClick={() => handleToggleSortOrder('beginning_of_day')}
+            title="Afficher la chronologie depuis le début de journée (00:00 du matin vers maintenant)"
+          >
+            <History size={12} className="order-pill-icon" />
+            <div className="order-pill-content">
+              <span className="order-pill-main">DEPUIS LE DÉBUT DU JOUR</span>
+              <span className="order-pill-hint">00:00 &rarr; maintenant (chronologique)</span>
+            </div>
+            {sortOrder === 'beginning_of_day' && <span className="order-live-dot" />}
+          </button>
+        </div>
+      </div>
+
+      {/* ─── Indicateurs Vitaux du Monde (Worldometer Calibré) ─── */}
       <div className="journal-figures-grid">
+        <div className="journal-fig-card is-pop-card">
+          <span className="journal-fig-label">
+            <Users size={10} /> Population mondiale
+          </span>
+          <span className="journal-fig-val is-cyan">
+            {metrics.world_pop ? Number(metrics.world_pop).toLocaleString('fr-FR') : '8 316 502 341'}
+          </span>
+          <span className="journal-fig-sub">+2.2 hab/s</span>
+        </div>
         <div className="journal-fig-card">
           <span className="journal-fig-label">Naissances aujourd’hui</span>
           <span className="journal-fig-val is-emerald">
-            {metrics.births_today ? Number(metrics.births_today).toLocaleString('fr-FR') : '345 852'}
+            {metrics.births_today ? Number(metrics.births_today).toLocaleString('fr-FR') : '239 026'}
           </span>
+          <span className="journal-fig-sub is-emerald">+4.2 / sec</span>
         </div>
         <div className="journal-fig-card">
           <span className="journal-fig-label">Décès aujourd’hui</span>
           <span className="journal-fig-val is-crimson">
-            {metrics.deaths_today ? Number(metrics.deaths_today).toLocaleString('fr-FR') : '162 967'}
+            {metrics.deaths_today ? Number(metrics.deaths_today).toLocaleString('fr-FR') : '112 630'}
           </span>
+          <span className="journal-fig-sub is-crimson">+2.0 / sec</span>
         </div>
         <div className="journal-fig-card">
-          <span className="journal-fig-label">Dépenses de santé mondiales</span>
+          <span className="journal-fig-label">
+            <TrendingUp size={10} /> Croissance nette auj.
+          </span>
           <span className="journal-fig-val is-cyan">
-            ${metrics.health_spending_public_today ? Math.round(Number(metrics.health_spending_public_today) / 1e9 * 10) / 10 + ' Mds' : '$17.5 Mds'}
+            {metrics.net_growth_today ? Number(metrics.net_growth_today).toLocaleString('fr-FR') : '+126 396'}
           </span>
+          <span className="journal-fig-sub">Solde net</span>
         </div>
         <div className="journal-fig-card">
-          <span className="journal-fig-label">Dépenses militaires mondiales</span>
-          <span className="journal-fig-val is-amber">
-            ${metrics.military_spending_today ? Math.round(Number(metrics.military_spending_today) / 1e9 * 10) / 10 + ' Mds' : '$5.8 Mds'}
+          <span className="journal-fig-label">
+            <HeartPulse size={10} /> Dépenses santé publiques
           </span>
+          <span className="journal-fig-val is-cyan">
+            ${metrics.health_spending_public_today ? (Number(metrics.health_spending_public_today) / 1e9).toFixed(2) + ' Mds' : '$12.09 Mds'}
+          </span>
+          <span className="journal-fig-sub">Aujourd'hui (OMS)</span>
+        </div>
+        <div className="journal-fig-card">
+          <span className="journal-fig-label">
+            <ShieldAlert size={10} /> Dépenses militaires
+          </span>
+          <span className="journal-fig-val is-amber">
+            ${metrics.military_spending_today ? (Number(metrics.military_spending_today) / 1e9).toFixed(2) + ' Mds' : '$3.17 Mds'}
+          </span>
+          <span className="journal-fig-sub">Aujourd'hui (SIPRI)</span>
         </div>
       </div>
 
@@ -293,7 +398,7 @@ export function ChronoJournalTab({
       <div className="journal-timeline-feed">
         <div className="timeline-spine-rail" />
 
-        {filteredTimeline.length === 0 ? (
+        {sortedTimeline.length === 0 ? (
           <div className="journal-empty-state">
             <Globe size={24} className="journal-empty-icon" />
             <span>Aucune dépêche ou événement dans cette tranche horaire.</span>
@@ -308,9 +413,10 @@ export function ChronoJournalTab({
             )}
           </div>
         ) : (
-          filteredTimeline.map((item, index) => {
+          sortedTimeline.map((item, index) => {
             const isQuake = item.category === 'SÉISME';
             const isTargeted = targetedId === item.id;
+            const relTime = formatRelativeTime(item.timestamp);
 
             return (
               <div
@@ -320,7 +426,10 @@ export function ChronoJournalTab({
                 {/* Repère temporel sur l'axe vertical */}
                 <div className="timeline-node-marker">
                   <span className="node-dot" />
-                  <span className="node-time-badge">{item.time}</span>
+                  <div className="node-time-container">
+                    <span className="node-time-badge">{item.time}</span>
+                    {relTime && <span className="node-relative-pill">{relTime}</span>}
+                  </div>
                 </div>
 
                 {/* Carte de l'événement cliquable pour centrer sur la carte */}
