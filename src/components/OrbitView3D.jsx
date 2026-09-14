@@ -1469,12 +1469,21 @@ export function OrbitView3D({
     const activeSatellites = [];
     const satelliteClickMeshes = [];
 
-    // Helper: Compute Keplerian 3D orbital position from altitude radius, inclination, RAAN, and orbital angle
+    // Reusable math objects for Keplerian orbits (zero GC allocations)
+    const axisX = new THREE.Vector3(1, 0, 0);
+    const axisY = new THREE.Vector3(0, 1, 0);
+    const scratchNextOrbitalPos = new THREE.Vector3();
+
+    // Helper: Compute Keplerian 3D orbital position directly into a target vector
+    const computeKeplerianOrbitalVector = (target, radius, inclinationDeg, raanDeg, thetaRad) => {
+      target.set(radius * Math.cos(thetaRad), 0, radius * Math.sin(thetaRad));
+      target.applyAxisAngle(axisX, (inclinationDeg * Math.PI) / 180);
+      target.applyAxisAngle(axisY, (raanDeg * Math.PI) / 180);
+      return target;
+    };
+
     const getKeplerianOrbitalVector = (radius, inclinationDeg, raanDeg, thetaRad) => {
-      const v = new THREE.Vector3(radius * Math.cos(thetaRad), 0, radius * Math.sin(thetaRad));
-      v.applyAxisAngle(new THREE.Vector3(1, 0, 0), (inclinationDeg * Math.PI) / 180);
-      v.applyAxisAngle(new THREE.Vector3(0, 1, 0), (raanDeg * Math.PI) / 180);
-      return v;
+      return computeKeplerianOrbitalVector(new THREE.Vector3(), radius, inclinationDeg, raanDeg, thetaRad);
     };
 
     SATELLITES_DATA.forEach((sat, idx) => {
@@ -2471,17 +2480,16 @@ export function OrbitView3D({
       cablesGroup.visible = layers.has('cables');
       weatherGroup.visible = layers.has('weather');
 
-      // Animate satellites along their 3D Keplerian orbital planes
+      // Animate satellites along their 3D Keplerian orbital planes (Zero-Allocation 60 FPS)
       if (satellitesGroup.visible) {
         activeSatellites.forEach((item) => {
           const theta = (frameCount * item.speed + item.phase) % (Math.PI * 2);
-          const pos = getKeplerianOrbitalVector(item.R_orb, item.inclination, item.raan, theta);
-          item.mesh.position.copy(pos);
+          computeKeplerianOrbitalVector(item.mesh.position, item.R_orb, item.inclination, item.raan, theta);
 
           // Orient satellite solar arrays along orbit tangent (zero allocation)
           const nextTheta = theta + 0.01;
-          const nextPos = getKeplerianOrbitalVector(item.R_orb, item.inclination, item.raan, nextTheta);
-          scratchSatTangent.subVectors(nextPos, pos).normalize();
+          computeKeplerianOrbitalVector(scratchNextOrbitalPos, item.R_orb, item.inclination, item.raan, nextTheta);
+          scratchSatTangent.subVectors(scratchNextOrbitalPos, item.mesh.position).normalize();
           item.mesh.quaternion.setFromUnitVectors(upZAxis, scratchSatTangent);
 
           // Pulsing orbital halo
@@ -2489,31 +2497,34 @@ export function OrbitView3D({
           item.haloMesh.scale.set(haloScale, haloScale, haloScale);
         });
 
-        // Animate Starlink swarm nodes
+        // Animate Starlink swarm nodes (zero allocation)
         starlinkNodes.forEach((node) => {
           const theta = (frameCount * node.speed + node.phase) % (Math.PI * 2);
-          const pos = getKeplerianOrbitalVector(node.R_orb, node.inclination, node.raan, theta);
-          node.mesh.position.copy(pos);
+          computeKeplerianOrbitalVector(node.mesh.position, node.R_orb, node.inclination, node.raan, theta);
         });
 
         // Continuously update inspected satellite 3D nadir beam and ground footprint
         if (selectedSatGroup && currentSelectedSatItem) {
           const satPos = currentSelectedSatItem.mesh.position;
-          const normal = satPos.clone().normalize();
-          const nadirSurfacePos = normal.clone().multiplyScalar(R_EARTH + 0.004);
+          scratchNormal.copy(satPos).normalize();
+          scratchPos.copy(scratchNormal).multiplyScalar(R_EARTH + 0.004);
 
           const { beamLine, fpRingMesh, nadirDotMesh } = selectedSatGroup.userData || {};
           if (beamLine) {
-            beamLine.geometry.setFromPoints([satPos, nadirSurfacePos]);
-            beamLine.geometry.attributes.position.needsUpdate = true;
-            beamLine.computeLineDistances();
+            const posAttr = beamLine.geometry.attributes.position;
+            if (posAttr && posAttr.count >= 2) {
+              posAttr.setXYZ(0, satPos.x, satPos.y, satPos.z);
+              posAttr.setXYZ(1, scratchPos.x, scratchPos.y, scratchPos.z);
+              posAttr.needsUpdate = true;
+              beamLine.computeLineDistances();
+            }
           }
           if (fpRingMesh) {
-            fpRingMesh.position.copy(nadirSurfacePos);
-            fpRingMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+            fpRingMesh.position.copy(scratchPos);
+            fpRingMesh.quaternion.setFromUnitVectors(upZAxis, scratchNormal);
           }
           if (nadirDotMesh) {
-            nadirDotMesh.position.copy(nadirSurfacePos);
+            nadirDotMesh.position.copy(scratchPos);
           }
         }
       }
@@ -2640,8 +2651,8 @@ export function OrbitView3D({
           if (t < 0.94) {
             att.headMesh.visible = true;
             att.trailMesh.visible = true;
-            att.headMesh.position.copy(att.curve.getPoint(t));
-            att.trailMesh.position.copy(att.curve.getPoint(Math.max(0, t - 0.035)));
+            att.curve.getPoint(t, att.headMesh.position);
+            att.curve.getPoint(Math.max(0, t - 0.035), att.trailMesh.position);
             // Idle impact ring
             att.impactMesh.scale.setScalar(1.0);
             att.impactMat.opacity = 0.25;
@@ -2672,8 +2683,7 @@ export function OrbitView3D({
         activeTrajectories.forEach((tr) => {
           if (tr.missileMesh && tr.curve) {
             const t = (frameCount * tr.speed) % 1.0;
-            const pt = tr.curve.getPointAt(t);
-            tr.missileMesh.position.copy(pt);
+            tr.curve.getPointAt(t, tr.missileMesh.position);
           }
         });
       }
