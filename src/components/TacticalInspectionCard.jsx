@@ -359,6 +359,20 @@ export function TacticalInspectionCard({
                 {target.speedKmh?.toLocaleString('fr-FR')} km/h (Mach {(target.speedKmh / 1234.8).toFixed(1)})
               </span>
             </div>
+            {target.lat !== undefined && target.lng !== undefined && (
+              <div className="tic-metric-cell">
+                <span className="tic-label">COORDONNÉES NADIR SOL</span>
+                <span className="tic-val mono cyan" style={{ color: '#00f5a0' }}>
+                  {typeof target.lat === 'number' ? target.lat.toFixed(2) : target.lat}° • {typeof target.lng === 'number' ? target.lng.toFixed(2) : target.lng}°
+                </span>
+              </div>
+            )}
+            <div className="tic-metric-cell">
+              <span className="tic-label">EMPREINTE SOL HORIZON</span>
+              <span className="tic-val mono">
+                {target.footprintKm?.toLocaleString('fr-FR') || Math.round(6371 * Math.acos(Math.max(0.01, Math.min(0.999, 6371 / (6371 + (target.altitudeKm || 400))))) * 2).toLocaleString('fr-FR')} km
+              </span>
+            </div>
             <div className="tic-metric-cell">
               <span className="tic-label">PÉRIODE DE RÉVOLUTION</span>
               <span className="tic-val mono">{target.periodMin} min ({((target.periodMin || 90) / 60).toFixed(1)} h)</span>
@@ -368,8 +382,10 @@ export function TacticalInspectionCard({
               <span className="tic-val mono">{target.inclination}° • {target.raan !== undefined ? `${target.raan}°` : 'Équatorial'}</span>
             </div>
             <div className="tic-metric-cell full-width">
-              <span className="tic-label">STATUT OPÉRATIONNEL</span>
-              <span className="tic-val green" style={{ color: '#10b981' }}>● {target.status || 'ACTIF'}</span>
+              <span className="tic-label">CATALOGUE SPATIAL & STATUT</span>
+              <span className="tic-val mono green" style={{ color: '#10b981' }}>
+                NORAD #{target.noradId || '—'} • {target.status || 'OPÉRATIONNEL'}
+              </span>
             </div>
             {target.description && (
               <div className="tic-metric-cell full-width">
@@ -625,6 +641,25 @@ export function TacticalInspectionCard({
             <Video size={13} />
             <span>DIRECT DE L'ESPACE (ISS 4K)</span>
           </button>
+        )}
+
+        {isSatellite && target.noradId && (
+          <a
+            href={`https://www.n2yo.com/satellite/?s=${target.noradId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="tic-action-btn primary"
+            style={{
+              textDecoration: 'none',
+              background: 'rgba(0, 242, 254, 0.15)',
+              borderColor: 'rgba(0, 242, 254, 0.4)',
+              color: '#00f2fe',
+            }}
+            onMouseEnter={() => sound.hover()}
+          >
+            <ExternalLink size={13} />
+            <span>N2YO ORBIT TRACKER</span>
+          </a>
         )}
 
         {isFlight && (target.flightNum || target.callsign) && (

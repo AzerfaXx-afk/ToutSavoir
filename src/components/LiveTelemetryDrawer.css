@@ -1166,6 +1166,55 @@
   box-shadow: 0 0 14px rgba(0, 242, 254, 0.4);
 }
 
+.sat-filter-pills-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 0 16px 10px;
+  scrollbar-width: none;
+}
+
+.sat-filter-pills-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.sat-filter-pill {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 600;
+  background: var(--neo-surface-2);
+  border: 1px solid var(--neo-border-subtle);
+  color: var(--neo-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sat-filter-pill:hover {
+  color: var(--neo-cyan);
+  border-color: rgba(0, 242, 254, 0.4);
+}
+
+.sat-filter-pill.is-active {
+  background: rgba(0, 242, 254, 0.15);
+  border-color: #00f2fe;
+  color: #00f2fe;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.25);
+}
+
+.sat-telemetry-row.col-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 600px) {
+  .sat-telemetry-row.col-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* ── 10. Intel / Bulletin Cards ───────────────────────────────────── */
 .intel-feed {
   display: flex;

@@ -18,11 +18,13 @@ import {
   THERMAL_ANOMALIES,
   WEATHER_SYSTEMS,
   STRATEGIC_NUCLEAR_SITES,
+  SATELLITES_DATA,
 } from '../data/osirisStreams';
 import { WORLD_TV_CHANNELS } from '../data/worldTvChannels';
 import { LIVE_FLIGHTS, LIVE_VESSELS, getLiveTransitPositions, interpolateGreatCircle } from '../data/liveTransits';
 import { flightRadarService, getFlightradarPlaneSvg } from '../services/flightRadarService';
 import { marineTrafficService, getMarineTrafficVesselSvg } from '../services/marineTrafficService';
+import { computeSatelliteState, getSatelliteGroundTrackSegments } from '../utils/satelliteOrbital';
 import { TacticalInspectionCard } from './TacticalInspectionCard';
 
 export function TacticalMap2D({
@@ -32,6 +34,7 @@ export function TacticalMap2D({
   flightLimit = 25,
   vesselLimit = 500,
   onSelectCCTV,
+  onSelectSatellite,
   onSelectCountry,
   targetLocation,
   isDrawerOpen = false,
@@ -49,6 +52,7 @@ export function TacticalMap2D({
   const conflictsLayerRef = useRef(null);
   const telluricLayerRef = useRef(null);
   const cctvLayerRef = useRef(null);
+  const satellitesLayerRef = useRef(null);
   const cablesLayerRef = useRef(null);
   const weatherLayerRef = useRef(null);
   const nuclearLayerRef = useRef(null);
@@ -1508,6 +1512,120 @@ export function TacticalMap2D({
       marker.addTo(nuclearLayer);
     });
 
+    // 11. Orbital Space Assets & Satellites Layer (2D / 3D Full Parity)
+    const satellitesLayer = L.layerGroup();
+    satellitesLayerRef.current = satellitesLayer;
+    const satelliteItems = [];
+
+    SATELLITES_DATA.forEach((sat) => {
+      const pos = computeSatelliteState(sat, Date.now());
+      const satColor = sat.color || '#00f2fe';
+
+      // 1. Instantaneous Horizon Footprint Circle (Sensor Coverage Horizon)
+      const footprintCircle = L.circle([pos.lat, pos.lng], {
+        radius: pos.footprintRadiusM,
+        color: satColor,
+        fillColor: satColor,
+        fillOpacity: 0.04,
+        weight: 1,
+        dashArray: '4, 4',
+        interactive: false,
+      });
+      footprintCircle.addTo(satellitesLayer);
+
+      // 2. Ground Track Polyline (S-curve multi-segment to avoid antimeridian wrap)
+      const trackSegments = getSatelliteGroundTrackSegments(sat, Date.now(), 25, 70, 60);
+      const trackPolylines = trackSegments.map((segment) => {
+        const line = L.polyline(segment, {
+          color: satColor,
+          weight: 1.5,
+          opacity: 0.35,
+          dashArray: '4, 6',
+          interactive: false,
+        });
+        line.addTo(satellitesLayer);
+        return line;
+      });
+
+      // 3. High-Tech Satellite Tactical Marker
+      const icon = L.divIcon({
+        className: 'satellite-div-icon-wrapper',
+        html: `<div class="satellite-div-marker" style="--sat-color: ${satColor};" title="${sat.name}">
+          <div class="sat-orbit-pulse"></div>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="${satColor}" stroke-width="2">
+            <polygon points="12 2 15 8 21 9 17 14 18 20 12 17 6 20 7 14 3 9 9 8 12 2" fill="${satColor}" fill-opacity="0.25"/>
+            <circle cx="12" cy="12" r="3" fill="${satColor}"/>
+          </svg>
+          <span class="sat-label-tag">${sat.code || sat.name.slice(0, 10)}</span>
+        </div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+
+      const marker = L.marker([pos.lat, pos.lng], { icon, pane: 'transitsPane' });
+      marker.bindTooltip(`
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px;">
+          <b style="color: ${satColor}; font-size: 12px;">${sat.name}</b><br/>
+          <span style="color: #94a3b8;">${sat.type} • ${sat.country}</span><br/>
+          <span>Alt: <b style="color:#00f2fe;">${sat.altitudeKm} km</b> • Vit: <b>${sat.speedKmh?.toLocaleString('fr-FR')} km/h</b></span><br/>
+          <span>NORAD: <b>${sat.noradId}</b> • Inclinaison: <b>${sat.inclination}°</b></span><br/>
+          <span style="color: #00f5a0; font-size: 10px;">➔ Cliquer pour inspecter la télémétrie spatiale</span>
+        </div>
+      `);
+
+      marker.on('click', (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        sound.click();
+        const currentPos = computeSatelliteState(sat, Date.now());
+        const enrichedSat = {
+          type: 'satellite',
+          ...sat,
+          lat: currentPos.lat,
+          lng: currentPos.lng,
+          footprintKm: currentPos.footprintKm,
+        };
+        setInspectedTarget(enrichedSat);
+        if (onSelectSatellite) onSelectSatellite(enrichedSat);
+      });
+      marker.addTo(satellitesLayer);
+
+      satelliteItems.push({
+        sat,
+        marker,
+        footprintCircle,
+        trackPolylines,
+        lastTrackUpdate: Date.now(),
+      });
+    });
+
+    // Smooth Periodic Propagation Interval (updates positions every 2.5s)
+    const satPropagationInterval = setInterval(() => {
+      const now = Date.now();
+      satelliteItems.forEach((item) => {
+        const curPos = computeSatelliteState(item.sat, now);
+        item.marker.setLatLng([curPos.lat, curPos.lng]);
+        item.footprintCircle.setLatLng([curPos.lat, curPos.lng]);
+
+        // Refresh ground track geometry every 90 seconds
+        if (now - item.lastTrackUpdate > 90000) {
+          item.lastTrackUpdate = now;
+          const newSegments = getSatelliteGroundTrackSegments(item.sat, now, 25, 70, 60);
+          item.trackPolylines.forEach((line) => satellitesLayer.removeLayer(line));
+          item.trackPolylines = newSegments.map((seg) => {
+            const l = L.polyline(seg, {
+              color: item.sat.color || '#00f2fe',
+              weight: 1.5,
+              opacity: 0.35,
+              dashArray: '4, 6',
+              interactive: false,
+            });
+            l.addTo(satellitesLayer);
+            return l;
+          });
+        }
+      });
+    }, 2500);
+
     // Attach initial active layers
     if (activeLayers.has('aviation')) aviationLayer.addTo(map);
     if (activeLayers.has('maritime')) maritimeLayer.addTo(map);
@@ -1515,6 +1633,7 @@ export function TacticalMap2D({
     if (activeLayers.has('conflicts')) conflictsLayer.addTo(map);
     if (activeLayers.has('telluric')) telluricLayer.addTo(map);
     if (activeLayers.has('cctv')) cctvLayer.addTo(map);
+    if (activeLayers.has('satellites')) satellitesLayer.addTo(map);
     if (activeLayers.has('cables')) cablesLayer.addTo(map);
     if (activeLayers.has('weather')) weatherLayer.addTo(map);
     if (activeLayers.has('nuclear')) nuclearLayer.addTo(map);
@@ -1694,6 +1813,9 @@ export function TacticalMap2D({
       if (animFrameMaritimeId) {
         cancelAnimationFrame(animFrameMaritimeId);
       }
+      if (satPropagationInterval) {
+        clearInterval(satPropagationInterval);
+      }
       map.off('mousemove', onMapMouseMove);
       map.off('click', onMapClick);
       map.off('moveend', onMapMoveEnd);
@@ -1739,6 +1861,7 @@ export function TacticalMap2D({
       conflicts: conflictsLayerRef.current,
       telluric: telluricLayerRef.current,
       cctv: cctvLayerRef.current,
+      satellites: satellitesLayerRef.current,
       cables: cablesLayerRef.current,
       weather: weatherLayerRef.current,
       nuclear: nuclearLayerRef.current,
@@ -1912,6 +2035,58 @@ export function TacticalMap2D({
         });
         planeBeacon.addTo(routeGroup);
       }
+
+      routeGroup.addTo(map);
+      inspectedRouteLayerRef.current = routeGroup;
+    }
+
+    // 3. Inspected Orbital Satellite Trajectory & Ground Footprint
+    if (inspectedTarget.type === 'satellite' || inspectedTarget.noradId !== undefined) {
+      const sat = inspectedTarget;
+      const curPos = computeSatelliteState(sat, Date.now());
+      const satColor = sat.color || '#00f2fe';
+
+      // Outer Footprint coverage circle (sensor horizon)
+      L.circle([curPos.lat, curPos.lng], {
+        radius: curPos.footprintRadiusM,
+        color: satColor,
+        fillColor: satColor,
+        fillOpacity: 0.12,
+        weight: 2,
+        dashArray: '6, 6',
+        interactive: false,
+      }).addTo(routeGroup);
+
+      // High-visibility illuminated ground track (predicted orbit + recent pass)
+      const segments = getSatelliteGroundTrackSegments(sat, Date.now(), 45, 95, 45);
+      segments.forEach((seg) => {
+        // Ambient glow
+        L.polyline(seg, {
+          color: satColor,
+          weight: 5,
+          opacity: 0.35,
+          interactive: false,
+        }).addTo(routeGroup);
+        // Core crisp illuminated line
+        L.polyline(seg, {
+          color: '#ffffff',
+          weight: 1.8,
+          opacity: 0.95,
+          dashArray: '6, 6',
+          interactive: false,
+        }).addTo(routeGroup);
+      });
+
+      // Sub-satellite Nadir beacon marker
+      const nadirMarker = L.circleMarker([curPos.lat, curPos.lng], {
+        radius: 8,
+        color: '#ffffff',
+        fillColor: satColor,
+        fillOpacity: 0.9,
+        weight: 2,
+      });
+      nadirMarker.bindTooltip(`<b>POINT SOUS-SATELLITE (NADIR)</b><br/>${sat.name}<br/>Alt: ${curPos.altitudeKm} km • Vit: ${sat.speedKmh?.toLocaleString('fr-FR')} km/h`);
+      nadirMarker.addTo(routeGroup);
 
       routeGroup.addTo(map);
       inspectedRouteLayerRef.current = routeGroup;

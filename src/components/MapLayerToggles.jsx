@@ -65,12 +65,12 @@ export const LAYER_CONFIGS = [
   {
     id: 'satellites',
     label: 'Satellites & Espace',
-    shortLabel: 'Satellites (3D)',
+    shortLabel: 'Satellites & ISS',
     icon: Radio,
-    count: 'NORAD / CelesTrak (3D)',
-    source: 'NORAD / CelesTrak TLE',
+    count: `${SATELLITES_DATA.length} actifs + Starlink`,
+    source: 'NORAD / CelesTrak Direct',
     accentColor: '#00f2fe',
-    category: 'ESPACE 3D',
+    category: 'ESPACE',
   },
   {
     id: 'nuclear',

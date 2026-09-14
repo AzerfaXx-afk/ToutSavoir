@@ -89,6 +89,7 @@ export function OrbitView3D({
   const hoveredFeatureRef = useRef(null);
   const updateSelectedFlightPathRef = useRef(null);
   const updateSelectedVesselMarkerRef = useRef(null);
+  const updateSelectedSatelliteRef = useRef(null);
   const update3DPlanesRef = useRef(null);
   const update3DVesselsRef = useRef(null);
   const updateConflicts3DRef = useRef(null);
@@ -137,6 +138,13 @@ export function OrbitView3D({
   useEffect(() => {
     if (updateSelectedVesselMarkerRef.current) {
       updateSelectedVesselMarkerRef.current(inspectedTarget?.type === 'vessel' ? inspectedTarget : null);
+    }
+  }, [inspectedTarget]);
+
+  // Sync selected satellite nadir beam & footprint with inspectedTarget prop
+  useEffect(() => {
+    if (updateSelectedSatelliteRef.current) {
+      updateSelectedSatelliteRef.current(inspectedTarget?.type === 'satellite' ? inspectedTarget : null);
     }
   }, [inspectedTarget]);
 
@@ -1622,6 +1630,87 @@ export function OrbitView3D({
       });
     });
 
+    // Selected satellite tactical 3D inspection (Nadir projection beam down to Earth surface + Ground footprint ring)
+    let selectedSatGroup = null;
+    let currentSelectedSatItem = null;
+
+    const updateSelectedSatellite = (sat) => {
+      try {
+        if (selectedSatGroup) {
+          satellitesGroup.remove(selectedSatGroup);
+          selectedSatGroup.traverse((child) => {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) child.material.dispose();
+          });
+          selectedSatGroup = null;
+          currentSelectedSatItem = null;
+        }
+
+        if (!sat) return;
+
+        // Find matching active satellite item
+        const match = activeSatellites.find(
+          (it) => it.sat.id === sat.id || it.sat.noradId === sat.noradId || it.sat.name === sat.name
+        );
+        if (!match) return;
+
+        currentSelectedSatItem = match;
+        selectedSatGroup = new THREE.Group();
+
+        // 1. 3D Nadir Beam (connects orbital satellite to Earth surface)
+        const beamGeom = new THREE.BufferGeometry().setFromPoints([
+          match.mesh.position.clone(),
+          match.mesh.position.clone().normalize().multiplyScalar(R_EARTH + 0.003),
+        ]);
+        const satColorHex = match.sat.color ? new THREE.Color(match.sat.color) : new THREE.Color(0x00f2fe);
+        const beamMat = new THREE.LineDashedMaterial({
+          color: satColorHex,
+          dashSize: 0.04,
+          gapSize: 0.02,
+          transparent: true,
+          opacity: 0.85,
+        });
+        const beamLine = new THREE.Line(beamGeom, beamMat);
+        beamLine.computeLineDistances();
+        selectedSatGroup.add(beamLine);
+
+        // 2. 3D Footprint Ring on Earth surface
+        const altKm = match.sat.altitudeKm || 400;
+        const angRad = Math.acos(Math.max(0.01, Math.min(0.999, 6371 / (6371 + altKm))));
+        const fpWorldRadius = Math.sin(angRad) * R_EARTH * 0.95;
+        const fpRingGeom = new THREE.RingGeometry(Math.max(0.01, fpWorldRadius * 0.96), Math.max(0.015, fpWorldRadius * 1.04), 48);
+        const fpRingMat = new THREE.MeshBasicMaterial({
+          color: satColorHex,
+          transparent: true,
+          opacity: 0.55,
+          side: THREE.DoubleSide,
+        });
+        const fpRingMesh = new THREE.Mesh(fpRingGeom, fpRingMat);
+        selectedSatGroup.add(fpRingMesh);
+
+        // 3. Nadir Sub-Satellite Ground Spot
+        const nadirDotGeom = new THREE.SphereGeometry(0.012, 16, 16);
+        const nadirDotMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const nadirDotMesh = new THREE.Mesh(nadirDotGeom, nadirDotMat);
+        selectedSatGroup.add(nadirDotMesh);
+
+        selectedSatGroup.userData = {
+          beamLine,
+          fpRingMesh,
+          nadirDotMesh,
+          satItem: match,
+        };
+
+        satellitesGroup.add(selectedSatGroup);
+      } catch (err) {
+        console.warn('updateSelectedSatellite error:', err);
+      }
+    };
+    updateSelectedSatelliteRef.current = updateSelectedSatellite;
+    if (inspectedTarget?.type === 'satellite') {
+      updateSelectedSatellite(inspectedTarget);
+    }
+
     // 11h. CCTV Cameras Layer (Pulsing 3D Video Beacons)
     const cctvGroup = new THREE.Group();
     earthGroup.add(cctvGroup);
@@ -1972,6 +2061,7 @@ export function OrbitView3D({
                 lat: subLat,
                 lng: subLng,
               };
+              updateSelectedSatellite(enrichedSat);
               setInspectedTarget(enrichedSat);
               if (onSelectSatellite) onSelectSatellite(enrichedSat);
               return;
@@ -2405,6 +2495,27 @@ export function OrbitView3D({
           const pos = getKeplerianOrbitalVector(node.R_orb, node.inclination, node.raan, theta);
           node.mesh.position.copy(pos);
         });
+
+        // Continuously update inspected satellite 3D nadir beam and ground footprint
+        if (selectedSatGroup && currentSelectedSatItem) {
+          const satPos = currentSelectedSatItem.mesh.position;
+          const normal = satPos.clone().normalize();
+          const nadirSurfacePos = normal.clone().multiplyScalar(R_EARTH + 0.004);
+
+          const { beamLine, fpRingMesh, nadirDotMesh } = selectedSatGroup.userData || {};
+          if (beamLine) {
+            beamLine.geometry.setFromPoints([satPos, nadirSurfacePos]);
+            beamLine.geometry.attributes.position.needsUpdate = true;
+            beamLine.computeLineDistances();
+          }
+          if (fpRingMesh) {
+            fpRingMesh.position.copy(nadirSurfacePos);
+            fpRingMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+          }
+          if (nadirDotMesh) {
+            nadirDotMesh.position.copy(nadirSurfacePos);
+          }
+        }
       }
 
       // Animate CCTV beacons

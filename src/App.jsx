@@ -232,12 +232,13 @@ export default function App() {
     setIsDrawerOpen(true);
   }, []);
 
-  // Satellite select handler (strictly exclusive to 3D Orbit view)
+  // Satellite select handler (2D & 3D parity)
   const handleSelectSatellite = useCallback((sat) => {
-    setIs3D(true);
-    setDrawerTab('satellites');
-    setIsDrawerOpen(true);
-    setTargetLocation({ lat: (sat.inclination || 45) * 0.6, lng: 15, zoom: 4 });
+    if (!sat) return;
+    const currentLat = typeof sat.lat === 'number' ? sat.lat : (sat.inclination || 45) * 0.5;
+    const currentLng = typeof sat.lng === 'number' ? sat.lng : 0;
+    setInspectedTarget({ type: 'satellite', ...sat, lat: currentLat, lng: currentLng });
+    setTargetLocation({ lat: currentLat, lng: currentLng, zoom: 4 });
   }, []);
 
   // CCTV select handler

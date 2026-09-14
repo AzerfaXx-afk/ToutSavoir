@@ -15,6 +15,11 @@ import {
   STRATEGIC_NUCLEAR_SITES,
 } from '../data/osirisStreams';
 import {
+  computeSatelliteState,
+  SATELLITE_ORBIT_CATEGORIES,
+  matchesSatelliteCategory,
+} from '../utils/satelliteOrbital';
+import {
   TV_COUNTRIES,
   WORLD_TV_CHANNELS,
 } from '../data/worldTvChannels';
@@ -239,6 +244,8 @@ export function LiveTelemetryDrawer({
   const [liveEarthquakes, setLiveEarthquakes] = useState(() => realtimeStream.stats?.recentEarthquakes || []);
   const [earthquakeFilter, setEarthquakeFilter] = useState('ALL');
   const [infraSubMode, setInfraSubMode] = useState('cables'); // 'cables' | 'nuclear'
+  const [satelliteCategory, setSatelliteCategory] = useState('ALL');
+  const [satTick, setSatTick] = useState(0);
   const [marketFilter, setMarketFilter] = useState('ALL');
   const [osintTarget, setOsintTarget] = useState('8.8.8.8');
   const [searchQuery, setSearchQuery] = useState('');
@@ -246,6 +253,14 @@ export function LiveTelemetryDrawer({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [localTime, setLocalTime] = useState('');
   const [localDate, setLocalDate] = useState('');
+
+  // Continuous real-time orbital telemetry ticker (every 2.5s)
+  useEffect(() => {
+    const satTimer = setInterval(() => {
+      setSatTick((t) => t + 1);
+    }, 2500);
+    return () => clearInterval(satTimer);
+  }, []);
   const categoryScrollRef = useRef(null);
   const dateInputRef = useRef(null);
   const timeInputRef = useRef(null);
@@ -521,15 +536,20 @@ export function LiveTelemetryDrawer({
   }, [searchQuery, tvCountry]);
 
   const filteredSatellites = useMemo(() => {
-    if (!searchQuery) return SATELLITES_DATA;
     const q = searchQuery.toLowerCase();
-    return SATELLITES_DATA.filter(
-      (s) =>
+    return SATELLITES_DATA.filter((s) => {
+      if (satelliteCategory !== 'ALL' && !matchesSatelliteCategory(s, satelliteCategory)) {
+        return false;
+      }
+      if (!q) return true;
+      return (
         s.name.toLowerCase().includes(q) ||
         s.code.toLowerCase().includes(q) ||
-        s.country.toLowerCase().includes(q)
-    );
-  }, [searchQuery]);
+        s.country.toLowerCase().includes(q) ||
+        (s.type && s.type.toLowerCase().includes(q))
+      );
+    });
+  }, [searchQuery, satelliteCategory]);
 
   const filteredFlights = useMemo(() => {
     const q = searchQuery.toLowerCase();
@@ -2414,98 +2434,146 @@ export function LiveTelemetryDrawer({
           {/* ── SATELLITES ── */}
           {activeType === 'satellites' && (
             <>
+              {/* Orbital Category Filter Pills */}
+              <div className="sat-filter-pills-bar">
+                {SATELLITE_ORBIT_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    className={`sat-filter-pill ${satelliteCategory === cat.id ? 'is-active' : ''}`}
+                    onClick={() => {
+                      sound.tick();
+                      setSatelliteCategory(cat.id);
+                    }}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
               {filteredSatellites.length === 0 ? (
-                <div className="empty-state">Aucun satellite trouvé.</div>
+                <div className="empty-state">Aucun satellite trouvé pour ce filtre.</div>
               ) : (
                 <div className="sat-grid">
-                  {filteredSatellites.map((sat, i) => (
-                    <div
-                      key={sat.id}
-                      className="sat-card"
-                      style={{ animationDelay: `${i * 0.04}s` }}
-                    >
-                      <div className="sat-card-top">
-                        <div className="sat-card-name">{sat.name}</div>
-                        <span className="sat-card-code">{sat.code}</span>
-                      </div>
-                      <div className="sat-card-type">
-                        {sat.type} — {sat.country}
-                      </div>
-                      <div className="sat-telemetry-row">
-                        <div className="sat-stat">
-                          <span className="sat-stat-label">Altitude</span>
-                          <span className="sat-stat-value">
-                            {sat.altitudeKm.toLocaleString('fr-FR')} km
-                          </span>
-                        </div>
-                        <div className="sat-stat">
-                          <span className="sat-stat-label">Vitesse</span>
-                          <span className="sat-stat-value">
-                            {sat.speedKmh.toLocaleString('fr-FR')} km/h
-                          </span>
-                        </div>
-                        <div className="sat-stat">
-                          <span className="sat-stat-label">Inclinaison</span>
-                          <span className="sat-stat-value">{sat.inclination}°</span>
-                        </div>
-                      </div>
-                      <div className="sat-card-bottom">
-                        <span className="sat-norad">
-                          NORAD {sat.noradId} • {sat.status}
-                        </span>
-                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                          {sat.hasLiveVideo && (
-                            <button
-                              type="button"
-                              className="sat-live-direct-btn"
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                padding: '4px 8px',
-                                fontSize: '10px',
-                                fontWeight: 600,
-                                background: 'rgba(56, 189, 248, 0.2)',
-                                border: '1px solid #38bdf8',
-                                color: '#38bdf8',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                              }}
-                              onClick={() => {
-                                sound.click();
-                                const cctv = CCTV_FEEDS.find((c) => c.id === sat.liveStreamId) || {
-                                  id: sat.liveStreamId || 'cctv-iss-hdev',
-                                  name: 'Station Spatiale Internationale (ISS)',
-                                  location: 'Orbite Basse Terrestre (LEO)',
-                                  country: 'Espace International',
-                                  category: 'Espace & Orbite',
-                                  embedUrl: 'https://www.youtube-nocookie.com/embed/P9C25Un7xaM?autoplay=1&mute=1',
-                                  resolution: '1080p HD',
-                                  fps: 60,
-                                };
-                                if (onSelectCCTV) onSelectCCTV(cctv);
-                              }}
-                              title="Ouvrir le flux vidéo 4K en direct de l'ISS"
-                            >
-                              <Video size={10} />
-                              <span>DIRECT ISS 4K</span>
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            className="sat-target-btn"
-                            onClick={() => {
-                              sound.click();
-                              if (onSelectSatellite) onSelectSatellite(sat);
+                  {filteredSatellites.map((sat, i) => {
+                    const curPos = computeSatelliteState(sat, Date.now());
+                    const latFmt = `${curPos.lat >= 0 ? curPos.lat.toFixed(1) + '°N' : Math.abs(curPos.lat).toFixed(1) + '°S'}`;
+                    const lngFmt = `${curPos.lng >= 0 ? curPos.lng.toFixed(1) + '°E' : Math.abs(curPos.lng).toFixed(1) + '°O'}`;
+
+                    return (
+                      <div
+                        key={sat.id}
+                        className="sat-card"
+                        style={{ animationDelay: `${i * 0.03}s` }}
+                      >
+                        <div className="sat-card-top">
+                          <div className="sat-card-name">{sat.name}</div>
+                          <span
+                            className="sat-card-code"
+                            style={{
+                              color: sat.color || '#00f2fe',
+                              borderColor: sat.color || '#00f2fe',
                             }}
                           >
-                            <Crosshair size={10} />
-                            <span>Cibler</span>
-                          </button>
+                            {sat.code}
+                          </span>
+                        </div>
+                        <div className="sat-card-type">
+                          {sat.type} — {sat.country}
+                        </div>
+                        <div className="sat-telemetry-row col-4">
+                          <div className="sat-stat">
+                            <span className="sat-stat-label">Altitude</span>
+                            <span className="sat-stat-value" style={{ color: '#00f2fe' }}>
+                              {sat.altitudeKm.toLocaleString('fr-FR')} km
+                            </span>
+                          </div>
+                          <div className="sat-stat">
+                            <span className="sat-stat-label">Vitesse Sol</span>
+                            <span className="sat-stat-value">
+                              {sat.speedKmh.toLocaleString('fr-FR')} km/h
+                            </span>
+                          </div>
+                          <div className="sat-stat">
+                            <span className="sat-stat-label">Nadir Actuel</span>
+                            <span className="sat-stat-value" style={{ color: '#00f5a0' }}>
+                              {latFmt}, {lngFmt}
+                            </span>
+                          </div>
+                          <div className="sat-stat">
+                            <span className="sat-stat-label">Empreinte Sol</span>
+                            <span className="sat-stat-value">
+                              {curPos.footprintKm?.toLocaleString('fr-FR')} km
+                            </span>
+                          </div>
+                        </div>
+                        <div className="sat-card-bottom">
+                          <span className="sat-norad">
+                            NORAD {sat.noradId} • {sat.status}
+                          </span>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            {sat.hasLiveVideo && (
+                              <button
+                                type="button"
+                                className="sat-live-direct-btn"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  padding: '4px 8px',
+                                  fontSize: '10px',
+                                  fontWeight: 600,
+                                  background: 'rgba(56, 189, 248, 0.2)',
+                                  border: '1px solid #38bdf8',
+                                  color: '#38bdf8',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                }}
+                                onClick={() => {
+                                  sound.click();
+                                  const cctv = CCTV_FEEDS.find((c) => c.id === sat.liveStreamId) || {
+                                    id: sat.liveStreamId || 'cctv-iss-hdev',
+                                    name: 'Station Spatiale Internationale (ISS)',
+                                    location: 'Orbite Basse Terrestre (LEO)',
+                                    country: 'Espace International',
+                                    category: 'Espace & Orbite',
+                                    embedUrl: 'https://www.youtube-nocookie.com/embed/P9C25Un7xaM?autoplay=1&mute=1',
+                                    resolution: '1080p HD',
+                                    fps: 60,
+                                  };
+                                  if (onSelectCCTV) onSelectCCTV(cctv);
+                                }}
+                                title="Ouvrir le flux vidéo 4K en direct de l'ISS"
+                              >
+                                <Video size={10} />
+                                <span>DIRECT ISS 4K</span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="sat-target-btn"
+                              onClick={() => {
+                                sound.click();
+                                const enrichedSat = {
+                                  type: 'satellite',
+                                  ...sat,
+                                  lat: curPos.lat,
+                                  lng: curPos.lng,
+                                  footprintKm: curPos.footprintKm,
+                                  heading: curPos.heading,
+                                };
+                                if (onInspectTarget) onInspectTarget(enrichedSat);
+                                if (onSelectSatellite) onSelectSatellite(enrichedSat);
+                              }}
+                            >
+                              <Crosshair size={10} />
+                              <span>Inspecter</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </>
