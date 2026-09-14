@@ -20,9 +20,9 @@ export default function App() {
   const [autoRotate, setAutoRotate] = useState(true);
   const [selectedYear, setSelectedYear] = useState(2026);
 
-  // All layers disabled by default for zero clutter, maximum performance, and 100% fluid live experience
+  // Essential live layers activated by default for immediate real-world dynamism (Aviation, Maritime, CCTV, Satellites, Conflicts)
   const [activeLayers, setActiveLayers] = useState(
-    () => new Set()
+    () => new Set(['aviation', 'maritime', 'cctv', 'satellites', 'conflicts'])
   );
 
   // Flight traffic density limit (default: 2500 for authentic dense Flightradar24 experience at 60 FPS)

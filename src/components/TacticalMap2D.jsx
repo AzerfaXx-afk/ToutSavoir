@@ -36,7 +36,6 @@ export function TacticalMap2D({
   const geoJsonLayerRef = useRef(null);
   const selectedLayerRef = useRef(null);
 
-  const pulsesLayerRef = useRef(null);
   const aviationLayerRef = useRef(null);
   const maritimeLayerRef = useRef(null);
   const cyberLayerRef = useRef(null);
@@ -249,10 +248,7 @@ export function TacticalMap2D({
       }
     });
 
-    // 1. Live pulses layer for real-time births & deaths
-    const pulsesLayer = L.layerGroup();
-    pulsesLayerRef.current = pulsesLayer;
-    pulsesLayer.addTo(map);
+
 
     // ===================================================================
     // 2. Authentic Flightradar24 Canvas Engine (60 FPS Hardware-Accelerated)
@@ -1386,7 +1382,6 @@ export function TacticalMap2D({
     });
 
     // Attach initial active layers
-    pulsesLayer.addTo(map);
     if (activeLayers.has('aviation')) aviationLayer.addTo(map);
     if (activeLayers.has('maritime')) maritimeLayer.addTo(map);
     if (activeLayers.has('cyber')) cyberLayer.addTo(map);
@@ -1398,23 +1393,6 @@ export function TacticalMap2D({
     if (activeLayers.has('nuclear')) nuclearLayer.addTo(map);
 
     const unsubscribeStream = realtimeStream.subscribe((data) => {
-      if (data.type === 'new_event' && data.event && mapInstanceRef.current) {
-        const evt = data.event;
-        const isDeath = evt.type === 'death';
-        const icon = L.divIcon({
-          className: 'pulse-div-icon',
-          html: `<div class="tactical-pulse-dot ${isDeath ? 'is-death' : 'is-birth'}"><span class="pulse-ring"></span><span class="pulse-core"></span></div>`,
-          iconSize: [22, 22],
-          iconAnchor: [11, 11],
-        });
-        const marker = L.marker([evt.lat, evt.lng], { icon, interactive: false });
-        marker.addTo(pulsesLayer);
-        setTimeout(() => {
-          if (mapInstanceRef.current && pulsesLayer.hasLayer(marker)) {
-            pulsesLayer.removeLayer(marker);
-          }
-        }, 1600);
-      }
       if (data.earthquakes) {
         updateTelluricMarkers(data.earthquakes);
       }
@@ -1683,6 +1661,7 @@ export function TacticalMap2D({
 
     const routeGroup = L.layerGroup();
 
+    // 1. Maritime Track & Ports
     if (inspectedTarget.type === 'vessel' && inspectedTarget.routeWaypoints?.length > 1) {
       const pts = inspectedTarget.routeWaypoints;
 
@@ -1713,7 +1692,7 @@ export function TacticalMap2D({
         fillOpacity: 1,
         weight: 2,
       });
-      startMarker.bindTooltip(`<b>PORT DE DÉPART</b><br/>${inspectedTarget.originPort}`);
+      startMarker.bindTooltip(`<b>PORT DE DÉPART</b><br/>${inspectedTarget.originPort || 'Origine'}`);
       startMarker.addTo(routeGroup);
 
       // Destination Harbor
@@ -1725,8 +1704,87 @@ export function TacticalMap2D({
         fillOpacity: 1,
         weight: 2,
       });
-      endMarker.bindTooltip(`<b>DESTINATION</b><br/>${inspectedTarget.destinationPort}`);
+      endMarker.bindTooltip(`<b>DESTINATION</b><br/>${inspectedTarget.destinationPort || 'Destination'}`);
       endMarker.addTo(routeGroup);
+
+      routeGroup.addTo(map);
+      inspectedRouteLayerRef.current = routeGroup;
+    }
+
+    // 2. Commercial & Tactical Flight Great Circle Arc & Airports
+    if (inspectedTarget.type === 'flight') {
+      const fl = inspectedTarget;
+      const origCoords = fl.origin?.coords;
+      const destCoords = fl.destination?.coords;
+
+      if (origCoords && destCoords && origCoords.length === 2 && destCoords.length === 2) {
+        const steps = 48;
+        const pts = [];
+        for (let i = 0; i <= steps; i++) {
+          const pt = interpolateGreatCircle(origCoords, destCoords, i / steps);
+          if (pt && !isNaN(pt[0]) && !isNaN(pt[1])) {
+            pts.push(pt);
+          }
+        }
+
+        if (pts.length > 1) {
+          // Outer ambient cyan glow
+          L.polyline(pts, {
+            color: '#00f2fe',
+            weight: 6,
+            opacity: 0.35,
+            lineCap: 'round',
+            interactive: false,
+          }).addTo(routeGroup);
+
+          // Core crisp golden dashed flight line
+          L.polyline(pts, {
+            color: '#ffd700',
+            weight: 2.5,
+            opacity: 0.95,
+            dashArray: '6, 6',
+            interactive: false,
+          }).addTo(routeGroup);
+
+          // Departure Airport Marker
+          const startMarker = L.circleMarker(origCoords, {
+            radius: 5.5,
+            color: '#ffffff',
+            fillColor: '#10b981',
+            fillOpacity: 1,
+            weight: 2,
+          });
+          const origCity = fl.origin.city || fl.origin.name || fl.origin.code || 'Départ';
+          startMarker.bindTooltip(`<b>AÉROPORT DE DÉPART</b><br/>${origCity} (${fl.origin.code || '—'})<br/>${fl.origin.name || ''}`);
+          startMarker.addTo(routeGroup);
+
+          // Destination Airport Marker
+          const endMarker = L.circleMarker(destCoords, {
+            radius: 5.5,
+            color: '#ffffff',
+            fillColor: '#f59e0b',
+            fillOpacity: 1,
+            weight: 2,
+          });
+          const destCity = fl.destination.city || fl.destination.name || fl.destination.code || 'Arrivée';
+          endMarker.bindTooltip(`<b>AÉROPORT D'ARRIVÉE</b><br/>${destCity} (${fl.destination.code || '—'})<br/>${fl.destination.name || ''}`);
+          endMarker.addTo(routeGroup);
+        }
+      }
+
+      // Plane position beacon ring on 2D map
+      if (typeof fl.lat === 'number' && typeof fl.lng === 'number' && !isNaN(fl.lat) && !isNaN(fl.lng)) {
+        const planeBeacon = L.circleMarker([fl.lat, fl.lng], {
+          radius: 14,
+          color: '#00f2fe',
+          fillColor: '#ffd700',
+          fillOpacity: 0.25,
+          weight: 1.8,
+          dashArray: '4, 4',
+          interactive: false,
+        });
+        planeBeacon.addTo(routeGroup);
+      }
 
       routeGroup.addTo(map);
       inspectedRouteLayerRef.current = routeGroup;

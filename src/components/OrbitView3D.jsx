@@ -20,6 +20,7 @@ import { WORLD_TV_CHANNELS } from '../data/worldTvChannels';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { flightRadarService } from '../services/flightRadarService';
 import { marineTrafficService } from '../services/marineTrafficService';
+import { interpolateGreatCircle } from '../data/liveTransits';
 import { TacticalInspectionCard } from './TacticalInspectionCard';
 
 // Fast point-in-polygon ray-casting algorithm
@@ -755,61 +756,8 @@ export function OrbitView3D({
     const atmosMesh = new THREE.Mesh(atmosGeo, atmosMat);
     scene.add(atmosMesh);
 
-    // 11b. Realtime Event Pulse Markers (Deaths = red, Births = emerald)
-    const pulsesGroup = new THREE.Group();
-    earthGroup.add(pulsesGroup);
-    const activePulses = [];
-
+    // 11b. Realtime Telluric Events (Live Earthquakes)
     const unsubscribeStream = realtimeStream.subscribe((data) => {
-      if (data.type === 'new_event' && data.event) {
-        const evt = data.event;
-        const isDeath = evt.type === 'death';
-        const color = isDeath ? 0xff3366 : 0x00f5a0;
-        const [x, y, z] = coordsToVector(evt.lng, evt.lat, R_EARTH + 0.007);
-        const pos = new THREE.Vector3(x, y, z);
-
-        const ringGeom = new THREE.RingGeometry(0.008, 0.022, 24);
-        const ringMat = new THREE.MeshBasicMaterial({
-          color,
-          transparent: true,
-          opacity: 0.85,
-          side: THREE.DoubleSide,
-          depthTest: true,
-          depthWrite: false,
-        });
-        const ringMesh = new THREE.Mesh(ringGeom, ringMat);
-        ringMesh.position.copy(pos);
-        ringMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), pos.clone().normalize());
-
-        const coreGeom = new THREE.CircleGeometry(0.006, 16);
-        const coreMat = new THREE.MeshBasicMaterial({
-          color: 0xffffff,
-          transparent: true,
-          opacity: 0.95,
-          side: THREE.DoubleSide,
-          depthTest: true,
-          depthWrite: false,
-        });
-        const coreMesh = new THREE.Mesh(coreGeom, coreMat);
-        ringMesh.add(coreMesh);
-
-        pulsesGroup.add(ringMesh);
-        activePulses.push({
-          mesh: ringMesh,
-          ringMat,
-          coreMat,
-          maxAge: 65,
-          age: 0,
-        });
-
-        if (activePulses.length > 35) {
-          const oldest = activePulses.shift();
-          pulsesGroup.remove(oldest.mesh);
-          oldest.mesh.geometry.dispose();
-          oldest.ringMat.dispose();
-          oldest.coreMat.dispose();
-        }
-      }
       if (data.earthquakes) {
         updateEarthquakeMeshes(data.earthquakes);
       }
@@ -942,11 +890,11 @@ export function OrbitView3D({
           });
           selectedFlightGroup = null;
         }
-        if (!fl || !fl.origin?.coords || !fl.destination?.coords) return;
+        if (!fl) return;
 
         selectedFlightGroup = new THREE.Group();
 
-        // Targeting Reticle on the selected aircraft itself (pulsing cyan ring)
+        // 1. Targeting Reticle on the selected aircraft itself (pulsing cyan ring)
         const lat = fl.lat ?? fl.origin?.coords?.[0];
         const lng = fl.lng ?? fl.origin?.coords?.[1];
         if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
@@ -964,6 +912,55 @@ export function OrbitView3D({
             targetRing.position.copy(vPlane);
             targetRing.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), vPlane.clone().normalize());
             selectedFlightGroup.add(targetRing);
+          }
+        }
+
+        // 2. 3D Great Circle Trajectory Arc connecting Departure -> Cruise -> Destination
+        const origCoords = fl.origin?.coords;
+        const destCoords = fl.destination?.coords;
+        if (origCoords && destCoords && origCoords.length === 2 && destCoords.length === 2) {
+          const steps = 50;
+          const arcPoints = [];
+          for (let i = 0; i <= steps; i++) {
+            const t = i / steps;
+            const [ptLat, ptLng] = interpolateGreatCircle(origCoords, destCoords, t);
+            if (!isNaN(ptLat) && !isNaN(ptLng)) {
+              // Altitude curve: rises from ground at airports to cruise altitude above the globe
+              const altApex = 0.038;
+              const altOffset = Math.sin(t * Math.PI) * altApex;
+              const r = R_EARTH + 0.006 + altOffset;
+              const [x, y, z] = coordsToVector(ptLng, ptLat, r);
+              arcPoints.push(new THREE.Vector3(x, y, z));
+            }
+          }
+
+          if (arcPoints.length > 1) {
+            const curveGeom = new THREE.BufferGeometry().setFromPoints(arcPoints);
+            const curveMat = new THREE.LineBasicMaterial({
+              color: 0x00f2fe,
+              transparent: true,
+              opacity: 0.85,
+            });
+            const flightArc = new THREE.Line(curveGeom, curveMat);
+            selectedFlightGroup.add(flightArc);
+
+            // Departure Airport Pin (Emerald)
+            const [oLat, oLng] = origCoords;
+            const [ox, oy, oz] = coordsToVector(oLng, oLat, R_EARTH + 0.005);
+            const origPinGeom = new THREE.SphereGeometry(0.008, 16, 16);
+            const origPinMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+            const origPinMesh = new THREE.Mesh(origPinGeom, origPinMat);
+            origPinMesh.position.set(ox, oy, oz);
+            selectedFlightGroup.add(origPinMesh);
+
+            // Destination Airport Pin (Amber)
+            const [dLat, dLng] = destCoords;
+            const [dx, dy, dz] = coordsToVector(dLng, dLat, R_EARTH + 0.005);
+            const destPinGeom = new THREE.SphereGeometry(0.008, 16, 16);
+            const destPinMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+            const destPinMesh = new THREE.Mesh(destPinGeom, destPinMat);
+            destPinMesh.position.set(dx, dy, dz);
+            selectedFlightGroup.add(destPinMesh);
           }
         }
 
@@ -1123,6 +1120,40 @@ export function OrbitView3D({
         beacon.position.copy(vShip);
         beacon.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), shipNormal);
         selectedVesselGroup.add(beacon);
+
+        // 3. 3D Maritime Route Waypoints & Port Pins (Full Parity with 2D)
+        if (ves.routeWaypoints && ves.routeWaypoints.length > 1) {
+          const pts3D = ves.routeWaypoints.map(([wLat, wLng]) => {
+            const [wx, wy, wz] = coordsToVector(wLng, wLat, R_EARTH + 0.0042);
+            return new THREE.Vector3(wx, wy, wz);
+          });
+          const routeGeom = new THREE.BufferGeometry().setFromPoints(pts3D);
+          const routeMat = new THREE.LineBasicMaterial({
+            color: 0xfbbf24,
+            transparent: true,
+            opacity: 0.85,
+          });
+          const routeLine = new THREE.Line(routeGeom, routeMat);
+          selectedVesselGroup.add(routeLine);
+
+          // Departure Port Pin
+          const [startLat, startLng] = ves.routeWaypoints[0];
+          const [sx, sy, sz] = coordsToVector(startLng, startLat, R_EARTH + 0.005);
+          const startPinGeom = new THREE.SphereGeometry(0.007, 16, 16);
+          const startPinMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+          const startPin = new THREE.Mesh(startPinGeom, startPinMat);
+          startPin.position.set(sx, sy, sz);
+          selectedVesselGroup.add(startPin);
+
+          // Destination Port Pin
+          const [endLat, endLng] = ves.routeWaypoints[ves.routeWaypoints.length - 1];
+          const [ex, ey, ez] = coordsToVector(endLng, endLat, R_EARTH + 0.005);
+          const endPinGeom = new THREE.SphereGeometry(0.007, 16, 16);
+          const endPinMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+          const endPin = new THREE.Mesh(endPinGeom, endPinMat);
+          endPin.position.set(ex, ey, ez);
+          selectedVesselGroup.add(endPin);
+        }
 
         maritimeGroup.add(selectedVesselGroup);
       } catch (err) {
@@ -2238,28 +2269,8 @@ export function OrbitView3D({
         cloudsMesh.rotation.y += 0.00008;
       }
 
-      // Update real-time event pulses (deaths & births)
-      for (let i = activePulses.length - 1; i >= 0; i--) {
-        const p = activePulses[i];
-        p.age++;
-        const progress = p.age / p.maxAge;
-        const scale = 1.0 + progress * 1.5;
-        p.mesh.scale.set(scale, scale, scale);
-        p.ringMat.opacity = 0.85 * (1 - progress);
-        p.coreMat.opacity = Math.max(0, 0.95 * (1 - progress * 1.4));
-
-        if (p.age >= p.maxAge) {
-          pulsesGroup.remove(p.mesh);
-          p.mesh.geometry.dispose();
-          p.ringMat.dispose();
-          p.coreMat.dispose();
-          activePulses.splice(i, 1);
-        }
-      }
-
       // Tactical Mode Visibility & Animations
       const layers = activeLayersRef.current || new Set();
-      pulsesGroup.visible = true;
       aviationGroup.visible = layers.has('aviation');
       cyberGroup.visible = layers.has('cyber');
       conflictsGroup.visible = layers.has('conflicts');
@@ -2514,13 +2525,7 @@ export function OrbitView3D({
       unsubscribeStream();
       if (unsubscribeFR24_3D) unsubscribeFR24_3D();
       if (unsubscribeMTS_3D) unsubscribeMTS_3D();
-      activePulses.forEach((p) => {
-        pulsesGroup.remove(p.mesh);
-        p.mesh.geometry.dispose();
-        p.ringMat.dispose();
-        p.coreMat.dispose();
-      });
-      earthGroup.remove(pulsesGroup);
+
 
       controls.dispose();
       renderer.dispose();
