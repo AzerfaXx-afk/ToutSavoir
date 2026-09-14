@@ -257,33 +257,6 @@ export default function App() {
 
   return (
     <div className="aegis-app-root">
-      {/* Top-Left: ToutSavoir Brand Identity */}
-      <div className="top-left-dock">
-        <div
-          className="toutsavoir-brand-badge"
-          onClick={() => {
-            sound.click();
-            setIsSpotlightOpen(true);
-          }}
-          onMouseEnter={() => sound.hover()}
-          title="ToutSavoir - le globe intéractif (Recherche Ctrl+K)"
-          role="button"
-          tabIndex={0}
-        >
-          <div className="brand-logo-container">
-            <img src="/logo.png" alt="ToutSavoir Globe Logo" className="brand-logo-img" />
-            <span className="brand-logo-pulse" />
-          </div>
-          <div className="brand-text-col">
-            <div className="brand-main-title">
-              ToutSavoir
-              <span className="brand-live-dot" />
-            </div>
-            <span className="brand-sub-title">le globe intéractif</span>
-          </div>
-        </div>
-      </div>
-
       {/* Centered Top: Pure 2D/3D Switcher with Pause/Play directly below */}
       <div className="top-center-dock">
         <Switch3D

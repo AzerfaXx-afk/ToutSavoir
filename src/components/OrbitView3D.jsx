@@ -1789,7 +1789,7 @@ export function OrbitView3D({
         isRightDragging = false;
         container.classList.remove('is-grabbing');
         document.body.classList.remove('is-grabbing');
-        container.style.cursor = 'pointer';
+        container.style.cursor = hoveredFeatureRef.current ? 'pointer' : 'default';
         if (e.button === 2) return;
       }
 
@@ -2116,13 +2116,13 @@ export function OrbitView3D({
             hoveredFeatureRef.current = foundFeature;
 
             const hoverMesh = createTerritoryMesh(foundFeature, {
-              surfaceRadius: R_HOVER_BASE + 0.003,
-              borderRadius: R_HOVER_BASE + 0.005,
-              baseRadius: R_HOVER_BASE,
+              surfaceRadius: 2.013,
+              borderRadius: 2.016,
+              baseRadius: 2.008,
               fillColor: 0x00f2fe,
-              fillOpacity: 0.28,
+              fillOpacity: 0.32,
               borderColor: 0x00ffff,
-              borderOpacity: 0.95,
+              borderOpacity: 1.0,
               hasWalls: false,
             });
 
@@ -2160,13 +2160,17 @@ export function OrbitView3D({
         }
 
         if (!isRightDragging && !(e.buttons & 2)) {
-          // Check hover on CCTV beacon meshes
-          let isHoveringCCTV = false;
-          if (activeLayersRef.current.has('cctv') && cctvMeshes.length > 0) {
-            const cctvHits = raycaster.intersectObjects(cctvMeshes, true);
-            if (cctvHits.length > 0) isHoveringCCTV = true;
+          let isInteractive = !!foundFeature;
+          if (!isInteractive && activeLayersRef.current.has('cctv') && cctvMeshes.length > 0) {
+            if (raycaster.intersectObjects(cctvMeshes, true).length > 0) isInteractive = true;
           }
-          container.style.cursor = (foundFeature || isHoveringCCTV) ? 'pointer' : 'default';
+          if (!isInteractive && activeLayersRef.current.has('satellites') && satelliteClickMeshes.length > 0) {
+            if (raycaster.intersectObjects(satelliteClickMeshes, true).length > 0) isInteractive = true;
+          }
+          if (!isInteractive && activeLayersRef.current.has('nuclear') && nuclearClickMeshes.length > 0) {
+            if (raycaster.intersectObjects(nuclearClickMeshes, true).length > 0) isInteractive = true;
+          }
+          container.style.cursor = isInteractive ? 'pointer' : 'default';
         }
       } else {
         if (hoveredFeatureRef.current) {
@@ -2179,12 +2183,17 @@ export function OrbitView3D({
         updateCoordsFromLocalPoint(localPoint);
 
         if (!isRightDragging && !(e.buttons & 2)) {
-          let isHoveringCCTV = false;
+          let isInteractive = false;
           if (activeLayersRef.current.has('cctv') && cctvMeshes.length > 0) {
-            const cctvHits = raycaster.intersectObjects(cctvMeshes, true);
-            if (cctvHits.length > 0) isHoveringCCTV = true;
+            if (raycaster.intersectObjects(cctvMeshes, true).length > 0) isInteractive = true;
           }
-          container.style.cursor = isHoveringCCTV ? 'pointer' : 'default';
+          if (!isInteractive && activeLayersRef.current.has('satellites') && satelliteClickMeshes.length > 0) {
+            if (raycaster.intersectObjects(satelliteClickMeshes, true).length > 0) isInteractive = true;
+          }
+          if (!isInteractive && activeLayersRef.current.has('nuclear') && nuclearClickMeshes.length > 0) {
+            if (raycaster.intersectObjects(nuclearClickMeshes, true).length > 0) isInteractive = true;
+          }
+          container.style.cursor = isInteractive ? 'pointer' : 'default';
         }
       }
 

@@ -49,6 +49,7 @@ export function TacticalMap2D({
   const inspectedRouteLayerRef = useRef(null);
 
   const [selectedTerritory, setSelectedTerritory] = useState(null);
+  const [hoveredTerritory, setHoveredTerritory] = useState(null);
   const [internalInspectedTarget, setInternalInspectedTarget] = useState(null);
   const inspectedTarget = propInspectedTarget !== undefined ? propInspectedTarget : internalInspectedTarget;
   const setInspectedTarget = useCallback((target) => {
@@ -1441,11 +1442,54 @@ export function TacticalMap2D({
             const areaFormatted = formatAreaKm2(areaKm2);
 
             layer.on({
+              mouseover: (e) => {
+                const target = e.target;
+                if (target !== selectedLayerRef.current) {
+                  target.setStyle(hoverStyle);
+                  target.bringToFront();
+                  if (selectedLayerRef.current) {
+                    selectedLayerRef.current.bringToFront();
+                  }
+                  if (target._path) {
+                    target._path.classList.add('country-path-elevated');
+                  }
+                  sound.hover(0.08);
+                }
+                const clientX = e.originalEvent?.clientX || 0;
+                const clientY = e.originalEvent?.clientY || 0;
+                setHoveredTerritory({
+                  x: clientX,
+                  y: clientY,
+                  name: displayName,
+                  sovereign: sovereign !== displayName ? sovereign : null,
+                  continent,
+                  pop: popFormatted,
+                  area: areaFormatted,
+                });
+              },
+              mousemove: (e) => {
+                if (e.originalEvent) {
+                  setHoveredTerritory((prev) =>
+                    prev ? { ...prev, x: e.originalEvent.clientX, y: e.originalEvent.clientY } : null
+                  );
+                }
+              },
+              mouseout: (e) => {
+                const target = e.target;
+                if (target !== selectedLayerRef.current) {
+                  geoLayer.resetStyle(target);
+                  if (target._path) {
+                    target._path.classList.remove('country-path-elevated');
+                  }
+                }
+                setHoveredTerritory(null);
+              },
               click: (e) => {
                 // Only left click selects
                 if (e.originalEvent && e.originalEvent.button !== 0) return;
                 L.DomEvent.stopPropagation(e);
                 sound.click();
+                setHoveredTerritory(null);
 
                 const target = e.target;
 
@@ -1775,6 +1819,37 @@ export function TacticalMap2D({
               <Maximize2 size={12} />
               <span>VUE GLOBALE</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 2D Country Hover Tooltip (Matching 3D Orbit HUD style) */}
+      {hoveredTerritory && !selectedTerritory && (
+        <div
+          className="orbit-country-hover-tooltip"
+          style={{
+            position: 'fixed',
+            left: `${hoveredTerritory.x + 16}px`,
+            top: `${hoveredTerritory.y - 30}px`,
+          }}
+        >
+          <div className="orbit-tooltip-inner">
+            <div className="orbit-tooltip-title">{hoveredTerritory.name}</div>
+            {hoveredTerritory.sovereign && (
+              <div className="orbit-tooltip-sub">Rattaché : {hoveredTerritory.sovereign}</div>
+            )}
+            <div className="orbit-tooltip-stats">
+              <span>{hoveredTerritory.continent}</span>
+              <span className="dot-sep">•</span>
+              <span>{hoveredTerritory.pop} hab.</span>
+              {hoveredTerritory.area && (
+                <>
+                  <span className="dot-sep">•</span>
+                  <span>{hoveredTerritory.area}</span>
+                </>
+              )}
+            </div>
+            <div className="orbit-tooltip-hint">Cliquer pour dossier stratégique</div>
           </div>
         </div>
       )}
