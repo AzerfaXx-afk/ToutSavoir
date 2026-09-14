@@ -57,6 +57,7 @@ export function TacticalMap2D({
 
   const [selectedTerritory, setSelectedTerritory] = useState(null);
   const [hoveredTerritory, setHoveredTerritory] = useState(null);
+  const hoveredLayerRef = useRef(null);
   const [internalInspectedTarget, setInternalInspectedTarget] = useState(null);
   const inspectedTarget = propInspectedTarget !== undefined ? propInspectedTarget : internalInspectedTarget;
   const setInspectedTarget = useCallback((target) => {
@@ -72,6 +73,22 @@ export function TacticalMap2D({
 
   useEffect(() => {
     inspectedTargetRef.current = inspectedTarget;
+    if (inspectedTarget) {
+      // Exclusivity: Close country selection & unhighlight any country when inspecting a target
+      setSelectedTerritory(null);
+      setHoveredTerritory(null);
+      if (geoJsonLayerRef.current) {
+        geoJsonLayerRef.current.eachLayer((l) => {
+          geoJsonLayerRef.current.resetStyle(l);
+          if (l._path) {
+            l._path.classList.remove('country-path-selected');
+            l._path.classList.remove('country-path-elevated');
+          }
+        });
+      }
+      selectedLayerRef.current = null;
+      hoveredLayerRef.current = null;
+    }
     if (updateMarineTrafficVesselsRef.current) {
       updateMarineTrafficVesselsRef.current();
     }
@@ -246,23 +263,43 @@ export function TacticalMap2D({
       if (coordLngRef.current) coordLngRef.current.textContent = lngStr;
     });
 
-    // Close selected card & unhighlight when clicking empty ocean
-    map.on('click', (e) => {
-      if (e.originalEvent.target.classList.contains('leaflet-container')) {
-        sound.click();
-        if (geoJsonLayerRef.current) {
-          geoJsonLayerRef.current.eachLayer((l) => {
-            geoJsonLayerRef.current.resetStyle(l);
-            if (l._path) {
-              l._path.classList.remove('country-path-selected');
-              l._path.classList.remove('country-path-elevated');
-            }
-          });
-        }
-        selectedLayerRef.current = null;
-        setSelectedTerritory(null);
+    // Close selected card & unhighlight when clicking empty ocean or map background
+    map.on('click', () => {
+      sound.click();
+      if (geoJsonLayerRef.current) {
+        geoJsonLayerRef.current.eachLayer((l) => {
+          geoJsonLayerRef.current.resetStyle(l);
+          if (l._path) {
+            l._path.classList.remove('country-path-selected');
+            l._path.classList.remove('country-path-elevated');
+          }
+        });
       }
+      selectedLayerRef.current = null;
+      if (hoveredLayerRef.current && geoJsonLayerRef.current) {
+        geoJsonLayerRef.current.resetStyle(hoveredLayerRef.current);
+        if (hoveredLayerRef.current._path) {
+          hoveredLayerRef.current._path.classList.remove('country-path-elevated');
+        }
+      }
+      hoveredLayerRef.current = null;
+      setSelectedTerritory(null);
+      setHoveredTerritory(null);
+      setInspectedTarget(null);
     });
+
+    // Reset hover highlight as soon as cursor leaves the map viewport
+    const onMapMouseLeave = () => {
+      if (hoveredLayerRef.current && hoveredLayerRef.current !== selectedLayerRef.current && geoJsonLayerRef.current) {
+        geoJsonLayerRef.current.resetStyle(hoveredLayerRef.current);
+        if (hoveredLayerRef.current._path) {
+          hoveredLayerRef.current._path.classList.remove('country-path-elevated');
+        }
+      }
+      hoveredLayerRef.current = null;
+      setHoveredTerritory(null);
+    };
+    container.addEventListener('mouseleave', onMapMouseLeave);
 
 
 
@@ -1578,17 +1615,27 @@ export function TacticalMap2D({
             layer.on({
               mouseover: (e) => {
                 const target = e.target;
-                if (target !== selectedLayerRef.current) {
-                  target.setStyle(hoverStyle);
-                  target.bringToFront();
-                  if (selectedLayerRef.current) {
-                    selectedLayerRef.current.bringToFront();
+                if (target === selectedLayerRef.current) return;
+
+                // Instantly reset any previously hovered country so only ONE polygon can ever be elevated
+                if (hoveredLayerRef.current && hoveredLayerRef.current !== target && hoveredLayerRef.current !== selectedLayerRef.current) {
+                  geoLayer.resetStyle(hoveredLayerRef.current);
+                  if (hoveredLayerRef.current._path) {
+                    hoveredLayerRef.current._path.classList.remove('country-path-elevated');
                   }
-                  if (target._path) {
-                    target._path.classList.add('country-path-elevated');
-                  }
-                  sound.hover(0.08);
                 }
+                hoveredLayerRef.current = target;
+
+                target.setStyle(hoverStyle);
+                target.bringToFront();
+                if (selectedLayerRef.current) {
+                  selectedLayerRef.current.bringToFront();
+                }
+                if (target._path) {
+                  target._path.classList.add('country-path-elevated');
+                }
+                sound.hover(0.08);
+
                 const clientX = e.originalEvent?.clientX || 0;
                 const clientY = e.originalEvent?.clientY || 0;
                 setHoveredTerritory({
@@ -1616,6 +1663,9 @@ export function TacticalMap2D({
                     target._path.classList.remove('country-path-elevated');
                   }
                 }
+                if (hoveredLayerRef.current === target) {
+                  hoveredLayerRef.current = null;
+                }
                 setHoveredTerritory(null);
               },
               click: (e) => {
@@ -1624,6 +1674,10 @@ export function TacticalMap2D({
                 L.DomEvent.stopPropagation(e);
                 sound.click();
                 setHoveredTerritory(null);
+                hoveredLayerRef.current = null;
+
+                // Close any conflict or ballistic inspection card to guarantee ONE single active selection
+                setInspectedTarget(null);
 
                 const target = e.target;
 
@@ -2037,14 +2091,16 @@ export function TacticalMap2D({
         </div>
       )}
 
-      {/* 2D Country Hover Tooltip (Matching 3D Orbit HUD style) */}
-      {hoveredTerritory && !selectedTerritory && (
+      {/* 2D Country Hover Tooltip (Matching 3D Orbit HUD style, strictly single hover & no pointer blocking) */}
+      {hoveredTerritory && !selectedTerritory && !inspectedTarget && (
         <div
           className="orbit-country-hover-tooltip"
           style={{
             position: 'fixed',
             left: `${hoveredTerritory.x + 16}px`,
             top: `${hoveredTerritory.y - 30}px`,
+            pointerEvents: 'none',
+            zIndex: 9999,
           }}
         >
           <div className="orbit-tooltip-inner">

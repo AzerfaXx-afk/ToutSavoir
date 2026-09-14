@@ -74,6 +74,19 @@ export function OrbitView3D({
     if (onInspectTarget) onInspectTarget(target);
   }, [onInspectTarget]);
 
+  useEffect(() => {
+    if (inspectedTarget) {
+      setSelectedTerritory(null);
+      setHoveredTerritory(null);
+      if (selectedMeshRef.current && earthGroupRef.current) {
+        earthGroupRef.current.remove(selectedMeshRef.current);
+        selectedMeshRef.current.geometry.dispose();
+        selectedMeshRef.current.material.dispose();
+        selectedMeshRef.current = null;
+      }
+    }
+  }, [inspectedTarget]);
+
   // References
   const controlsRef = useRef(null);
   const cameraRef = useRef(null);
@@ -2271,6 +2284,9 @@ export function OrbitView3D({
             const areaKm2 = getCountryAreaKm2(foundFeature);
             const areaFormatted = formatAreaKm2(areaKm2);
 
+            // Deselect any active inspected target card (missile, flight, vessel, conflict) to guarantee single selection
+            setInspectedTarget(null);
+
             setSelectedTerritory({
               name: displayName,
               sovereign,
@@ -2796,13 +2812,15 @@ export function OrbitView3D({
       />
 
       {/* 3D Interactive Country Hover Floating Tooltip */}
-      {hoveredTerritory && !selectedTerritory && (
+      {hoveredTerritory && !selectedTerritory && !inspectedTarget && (
         <div
           className="orbit-country-hover-tooltip"
           style={{
             position: 'fixed',
             left: `${hoveredTerritory.x + 16}px`,
             top: `${hoveredTerritory.y - 30}px`,
+            pointerEvents: 'none',
+            zIndex: 9999,
           }}
         >
           <div className="orbit-tooltip-inner">

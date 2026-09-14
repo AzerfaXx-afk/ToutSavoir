@@ -26,8 +26,8 @@ export const METRIC_DEFINITIONS = [
     unit: 'habitants',
     type: 'counter',
     scope: 'instant',
-    ratePerSec: 2.2144,
-    baseVal: 8316180710,
+    ratePerSec: 2.2202,
+    baseVal: 8161972572,
     color: 'var(--cyan-bright)',
   },
   {
@@ -37,7 +37,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'naissances',
     type: 'counter',
     scope: 'year',
-    ratePerSec: 4.1815,
+    ratePerSec: 4.1986,
     baseVal: 0,
     color: 'var(--emerald-live)',
   },
@@ -48,7 +48,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'naissances',
     type: 'counter',
     scope: 'day',
-    ratePerSec: 4.1879,
+    ratePerSec: 4.1986,
     baseVal: 0,
     color: 'var(--emerald-live)',
   },
@@ -59,7 +59,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'décès',
     type: 'counter',
     scope: 'year',
-    ratePerSec: 1.9703,
+    ratePerSec: 1.9784,
     baseVal: 0,
     color: 'var(--crimson-alert)',
   },
@@ -70,7 +70,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'décès',
     type: 'counter',
     scope: 'day',
-    ratePerSec: 1.9733,
+    ratePerSec: 1.9784,
     baseVal: 0,
     color: 'var(--crimson-alert)',
   },
@@ -81,7 +81,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'personnes',
     type: 'counter',
     scope: 'year',
-    ratePerSec: 2.2111,
+    ratePerSec: 2.2202,
     baseVal: 0,
     color: 'var(--cyan-bright)',
   },
@@ -92,7 +92,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'personnes',
     type: 'counter',
     scope: 'day',
-    ratePerSec: 2.2144,
+    ratePerSec: 2.2202,
     baseVal: 0,
     color: 'var(--cyan-bright)',
   },
@@ -143,7 +143,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'véhicules',
     type: 'counter',
     scope: 'year',
-    ratePerSec: 2.919,
+    ratePerSec: 2.9308,
     baseVal: 0,
     color: '#cbd5e1',
   },
@@ -154,7 +154,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'vélos',
     type: 'counter',
     scope: 'year',
-    ratePerSec: 5.128,
+    ratePerSec: 5.1485,
     baseVal: 0,
     color: '#94a3b8',
   },
@@ -165,7 +165,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'unités',
     type: 'counter',
     scope: 'year',
-    ratePerSec: 7.0109,
+    ratePerSec: 7.0378,
     baseVal: 0,
     color: 'var(--cyan-bright)',
   },
@@ -180,7 +180,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'ouvrages',
     type: 'counter',
     scope: 'year',
-    ratePerSec: 0.09145,
+    ratePerSec: 0.09181,
     baseVal: 0,
     color: '#cbd5e1',
   },
@@ -191,7 +191,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'exemplaires',
     type: 'counter',
     scope: 'day',
-    ratePerSec: 5195.34,
+    ratePerSec: 5216.0,
     baseVal: 0,
     color: '#94a3b8',
   },
@@ -202,7 +202,7 @@ export const METRIC_DEFINITIONS = [
     unit: 'appareils',
     type: 'counter',
     scope: 'day',
-    ratePerSec: 7.8538,
+    ratePerSec: 7.8855,
     baseVal: 0,
     color: '#38bdf8',
   },
@@ -796,32 +796,97 @@ export function getBenchmarkPopulationForYear(year) {
   return Math.round(HISTORICAL_UN_POPULATIONS[prev] + ratio * (HISTORICAL_UN_POPULATIONS[next] - HISTORICAL_UN_POPULATIONS[prev]));
 }
 
-// Helper to calculate current live snapshot or historical date snapshot for all metrics
+// Exact official mathematical engine matching Worldometer (worldometers.info/fr)
 export function computeWorldometerMetrics(yearMultiplier = 1, referenceDate = null) {
   const dateObj = referenceDate ? new Date(referenceDate) : new Date();
-  const year = dateObj.getUTCFullYear();
+  const year = dateObj.getFullYear();
 
-  // Start of UTC day for the specified date
-  const startOfDay = new Date(Date.UTC(year, dateObj.getUTCMonth(), dateObj.getUTCDate(), 0, 0, 0));
+  // 1. Client local midnight (start of today in local time, as per Worldometer)
+  const startOfDay = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 0, 0, 0, 0);
   const secondsToday = Math.max(0, (dateObj.getTime() - startOfDay.getTime()) / 1000);
 
-  // Start of UTC year for the specified date
-  const startOfYear = new Date(Date.UTC(year, 0, 1, 0, 0, 0));
+  // 2. Client local start of year (January 1st 00:00:00 local time)
+  const startOfYear = new Date(dateObj.getFullYear(), 0, 1, 0, 0, 0, 0);
   const secondsYear = Math.max(0, (dateObj.getTime() - startOfYear.getTime()) / 1000);
 
-  // Demography benchmark scale for the active year relative to 2026
+  // Demography benchmark scale for historical years (1900-2050+)
   const yearBasePop = getBenchmarkPopulationForYear(year);
   const nextYearBasePop = getBenchmarkPopulationForYear(year + 1);
   const annualGrowth = Math.max(1000000, nextYearBasePop - yearBasePop);
   const dynamicRatePerSec = annualGrowth / (365.25 * 86400);
   const eraScale = yearBasePop / 8264179671;
 
+  // Exact Worldometer reference anchor points
+  const seconds_since_jul24 = Math.round((dateObj.getTime() - 1719792000000) / 1000);
+  const seconds_since_end13 = (dateObj.getTime() - 1388448000000) / 1000;
+  const seconds_since_end16 = (dateObj.getTime() - 1483142400000) / 1000;
+
   const results = {};
 
   for (const def of METRIC_DEFINITIONS) {
-    let val = def.baseVal;
+    let val = 0;
+
     if (def.id === 'world_pop') {
-      val = Math.floor(yearBasePop + secondsYear * dynamicRatePerSec);
+      if (year === 2026) {
+        // Exact official Worldometer formula:
+        val = Math.round(seconds_since_jul24 * 2.2202 + 8161972572 - secondsToday * 2.2202) + Math.round(secondsToday * 4.1986) - Math.round(secondsToday * 1.9784);
+      } else {
+        val = Math.floor(yearBasePop + secondsYear * dynamicRatePerSec);
+      }
+    } else if (def.id === 'births_year') {
+      if (year === 2026) {
+        val = Math.round(secondsYear * 4.1986 - secondsToday * 4.1986) + Math.round(secondsToday * 4.1986);
+      } else {
+        val = Math.floor(secondsYear * def.ratePerSec * eraScale);
+      }
+    } else if (def.id === 'births_today') {
+      if (year === 2026) {
+        val = Math.round(secondsToday * 4.1986);
+      } else {
+        val = Math.floor(secondsToday * def.ratePerSec * eraScale);
+      }
+    } else if (def.id === 'deaths_year') {
+      if (year === 2026) {
+        val = Math.round(secondsYear * 1.9784 - secondsToday * 1.9784) + Math.round(secondsToday * 1.9784);
+      } else {
+        val = Math.floor(secondsYear * def.ratePerSec * eraScale);
+      }
+    } else if (def.id === 'deaths_today') {
+      if (year === 2026) {
+        val = Math.round(secondsToday * 1.9784);
+      } else {
+        val = Math.floor(secondsToday * def.ratePerSec * eraScale);
+      }
+    } else if (def.id === 'net_growth_year') {
+      if (year === 2026) {
+        val = (results['births_year'] || Math.round(secondsYear * 4.1986)) - (results['deaths_year'] || Math.round(secondsYear * 1.9784));
+      } else {
+        val = Math.floor(secondsYear * def.ratePerSec * eraScale);
+      }
+    } else if (def.id === 'net_growth_today') {
+      if (year === 2026) {
+        val = (results['births_today'] || Math.round(secondsToday * 4.1986)) - (results['deaths_today'] || Math.round(secondsToday * 1.9784));
+      } else {
+        val = Math.floor(secondsToday * def.ratePerSec * eraScale);
+      }
+    } else if (def.id === 'health_spending_public_today') {
+      if (year === 2026) {
+        val = Math.round((4498086121149 * Math.pow(Math.pow(4641584035116 / 4498086121149, 1 / 31556900), seconds_since_end13)) / 31556900 * secondsToday);
+      } else {
+        val = Math.floor(secondsToday * def.ratePerSec * Math.min(1.5, Math.max(0.1, eraScale)));
+      }
+    } else if (def.id === 'education_spending_today') {
+      if (year === 2026) {
+        val = Math.round((3465599783414 * Math.pow(Math.pow(3550465124803 / 3465599783414, 1 / 31556900), seconds_since_end16)) / 31556900 * secondsToday);
+      } else {
+        val = Math.floor(secondsToday * def.ratePerSec * Math.min(1.5, Math.max(0.1, eraScale)));
+      }
+    } else if (def.id === 'military_spending_today') {
+      if (year === 2026) {
+        val = Math.round((1690000000000 * Math.pow(Math.pow(1696760000000 / 1690000000000, 1 / 31556900), seconds_since_end16)) / 31556900 * secondsToday);
+      } else {
+        val = Math.floor(secondsToday * def.ratePerSec * Math.min(1.5, Math.max(0.1, eraScale)));
+      }
     } else if (def.scope === 'day') {
       const scaledRate = def.ratePerSec * (def.cat === 'population' ? eraScale : Math.min(1.5, Math.max(0.1, eraScale)));
       val = Math.floor(secondsToday * scaledRate);
@@ -837,6 +902,7 @@ export function computeWorldometerMetrics(yearMultiplier = 1, referenceDate = nu
       const yearsDiff = 2026 - year;
       val = Math.max(0, Math.floor(def.baseVal + yearsDiff * 365.25 - daysIntoYear));
     }
+
     results[def.id] = val;
   }
 
