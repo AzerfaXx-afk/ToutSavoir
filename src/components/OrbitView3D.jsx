@@ -5,7 +5,13 @@ import { X, Maximize2 } from 'lucide-react';
 import { sound } from '../utils/soundFX';
 import { TERRITORY_NAMES_FR, getCountryAreaKm2, formatAreaKm2 } from '../utils/countryData';
 import { realtimeStream } from '../utils/realtimeEvents';
-import { AVIATION_ROUTES, CYBER_ATTACK_VECTORS, GEOPOLITICAL_ZONES } from '../data/tacticalStreams';
+import {
+  AVIATION_ROUTES,
+  CYBER_ATTACK_VECTORS,
+  GEOPOLITICAL_ZONES,
+  BALLISTIC_TRAJECTORIES,
+  getGeopoliticalZonesForYear,
+} from '../data/tacticalStreams';
 import {
   SATELLITES_DATA,
   STARLINK_SWARM_NODES,
@@ -43,6 +49,7 @@ export function OrbitView3D({
   autoRotate = true,
   onAutoRotateChange,
   activeLayers = new Set(),
+  selectedYear = 2026,
   flightLimit = 2500,
   vesselLimit = 5000,
   onSelectCCTV,
@@ -84,6 +91,13 @@ export function OrbitView3D({
   const updateSelectedVesselMarkerRef = useRef(null);
   const update3DPlanesRef = useRef(null);
   const update3DVesselsRef = useRef(null);
+  const updateConflicts3DRef = useRef(null);
+
+  useEffect(() => {
+    if (updateConflicts3DRef.current) {
+      updateConflicts3DRef.current(selectedYear);
+    }
+  }, [selectedYear]);
 
   const autoRotateRef = useRef(autoRotate);
   const activeLayersRef = useRef(activeLayers);
@@ -1265,42 +1279,129 @@ export function OrbitView3D({
       });
     });
 
-    // 11e. Geopolitical Conflicts Layer (Radar circles over hotspot zones)
+    // 11e. Geopolitical Conflicts Layer (Radar circles & Ballistic Trajectories)
     const conflictsGroup = new THREE.Group();
     earthGroup.add(conflictsGroup);
-    const activeHotspots = [];
+    let activeHotspots = [];
+    let activeTrajectories = [];
     const conflictClickMeshes = [];
 
-    GEOPOLITICAL_ZONES.forEach((zone) => {
-      const [x, y, z] = coordsToVector(zone.lng, zone.lat, R_EARTH + 0.007);
-      const pos = new THREE.Vector3(x, y, z);
+    const updateConflicts3D = (year) => {
+      while (conflictsGroup.children.length > 0) {
+        const obj = conflictsGroup.children[0];
+        conflictsGroup.remove(obj);
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
+          else obj.material.dispose();
+        }
+      }
+      activeHotspots = [];
+      activeTrajectories = [];
+      conflictClickMeshes.length = 0;
 
-      const radarGeom = new THREE.RingGeometry(0.015, 0.045, 24);
-      const radarMat = new THREE.MeshBasicMaterial({
-        color: 0xff2a4d,
-        transparent: true,
-        opacity: 0.75,
-        side: THREE.DoubleSide,
+      const zones = getGeopoliticalZonesForYear(year);
+      zones.forEach((zone) => {
+        const [x, y, z] = coordsToVector(zone.lng, zone.lat, R_EARTH + 0.007);
+        const pos = new THREE.Vector3(x, y, z);
+        const hexColor = zone.defcon === 'DÉFCON 1' ? 0xff0033 : zone.defcon === 'DÉFCON 2' ? 0xff2a4d : 0xffb703;
+
+        // Outer radar pulse ring
+        const radarGeom = new THREE.RingGeometry(0.018, 0.055, 24);
+        const radarMat = new THREE.MeshBasicMaterial({
+          color: hexColor,
+          transparent: true,
+          opacity: 0.75,
+          side: THREE.DoubleSide,
+        });
+        const radarMesh = new THREE.Mesh(radarGeom, radarMat);
+        radarMesh.position.copy(pos);
+        radarMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), pos.clone().normalize());
+        conflictsGroup.add(radarMesh);
+
+        // Core dot
+        const dotGeom = new THREE.SphereGeometry(0.014, 8, 8);
+        const dotMat = new THREE.MeshBasicMaterial({ color: hexColor });
+        const dotMesh = new THREE.Mesh(dotGeom, dotMat);
+        dotMesh.position.copy(pos);
+        conflictsGroup.add(dotMesh);
+
+        // Click proxy for conflict zone
+        const conflictHitGeom = new THREE.SphereGeometry(0.07, 8, 8);
+        const conflictHitMat = new THREE.MeshBasicMaterial({ visible: false });
+        const conflictHitMesh = new THREE.Mesh(conflictHitGeom, conflictHitMat);
+        conflictHitMesh.position.copy(pos);
+        conflictHitMesh.userData = { isConflict: true, conflict: zone };
+        conflictsGroup.add(conflictHitMesh);
+        conflictClickMeshes.push(conflictHitMesh);
+
+        activeHotspots.push({
+          radarMesh,
+          radarMat,
+        });
       });
-      const radarMesh = new THREE.Mesh(radarGeom, radarMat);
-      radarMesh.position.copy(pos);
-      radarMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), pos.clone().normalize());
-      conflictsGroup.add(radarMesh);
 
-      // Click proxy for conflict zone
-      const conflictHitGeom = new THREE.SphereGeometry(0.06, 8, 8);
-      const conflictHitMat = new THREE.MeshBasicMaterial({ visible: false });
-      const conflictHitMesh = new THREE.Mesh(conflictHitGeom, conflictHitMat);
-      conflictHitMesh.position.copy(pos);
-      conflictHitMesh.userData = { isConflict: true, conflict: zone };
-      conflictsGroup.add(conflictHitMesh);
-      conflictClickMeshes.push(conflictHitMesh);
+      // Contemporary era (>= 2020) ballistic trajectories
+      if (year >= 2020) {
+        BALLISTIC_TRAJECTORIES.forEach((traj) => {
+          const vFrom = new THREE.Vector3(...coordsToVector(traj.startLng, traj.startLat, R_EARTH + 0.006));
+          const vTo = new THREE.Vector3(...coordsToVector(traj.endLng, traj.endLat, R_EARTH + 0.006));
+          const dist = vFrom.distanceTo(vTo);
+          const apex = R_EARTH + Math.min(0.35, 0.05 + dist * 0.28);
+          const vMid = vFrom.clone().add(vTo).multiplyScalar(0.5).normalize().multiplyScalar(apex);
 
-      activeHotspots.push({
-        radarMesh,
-        radarMat,
-      });
-    });
+          const curve = new THREE.QuadraticBezierCurve3(vFrom, vMid, vTo);
+          const points = curve.getPoints(45);
+          const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
+          const arcColor = new THREE.Color(traj.color || '#ff2a4d');
+          const lineMat = new THREE.LineBasicMaterial({
+            color: arcColor,
+            transparent: true,
+            opacity: 0.65,
+          });
+          const arcLine = new THREE.Line(lineGeom, lineMat);
+          conflictsGroup.add(arcLine);
+
+          // Moving missile pulse
+          const missileGeom = new THREE.SphereGeometry(0.013, 8, 8);
+          const missileMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+          const missileMesh = new THREE.Mesh(missileGeom, missileMat);
+          missileMesh.position.copy(vFrom);
+          conflictsGroup.add(missileMesh);
+
+          // Clickable hit proxy for missile trajectory
+          const trajHitGeom = new THREE.SphereGeometry(0.06, 8, 8);
+          const trajHitMat = new THREE.MeshBasicMaterial({ visible: false });
+          const trajHitMesh = new THREE.Mesh(trajHitGeom, trajHitMat);
+          trajHitMesh.position.copy(vMid);
+          trajHitMesh.userData = {
+            isConflict: true,
+            conflict: {
+              type: 'conflict',
+              name: traj.name,
+              defcon: 'ALERTE BALISTIQUE',
+              status: traj.status,
+              alert: traj.alert,
+              details: `${traj.weapon} — De ${traj.origin} vers ${traj.target}. ${traj.details}`,
+              activeMissiles: 1,
+              speedMach: traj.speedMach,
+              apogeeKm: traj.apogeeKm,
+            },
+          };
+          conflictsGroup.add(trajHitMesh);
+          conflictClickMeshes.push(trajHitMesh);
+
+          activeTrajectories.push({
+            missileMesh,
+            curve,
+            speed: 0.007 + (traj.speedMach || 5) * 0.001,
+          });
+        });
+      }
+    };
+
+    updateConflicts3DRef.current = updateConflicts3D;
+    updateConflicts3D(selectedYear);
 
     // 11f. Earthquakes Layer (Real USGS Live Seismic Epicenters)
     const earthquakesGroup = new THREE.Group();
@@ -2449,13 +2550,20 @@ export function OrbitView3D({
         });
       }
 
-      // Animate conflict radar hotspots
+      // Animate conflict radar hotspots & ballistic missile vectors
       conflictsGroup.visible = layers.has('conflicts');
       if (conflictsGroup.visible) {
         activeHotspots.forEach((hs, idx) => {
           const scale = 1.0 + 0.35 * Math.sin(frameCount * 0.08 + idx);
           hs.radarMesh.scale.set(scale, scale, scale);
           hs.radarMat.opacity = 0.5 + 0.35 * Math.sin(frameCount * 0.08 + idx);
+        });
+        activeTrajectories.forEach((tr) => {
+          if (tr.missileMesh && tr.curve) {
+            const t = (frameCount * tr.speed) % 1.0;
+            const pt = tr.curve.getPointAt(t);
+            tr.missileMesh.position.copy(pt);
+          }
         });
       }
 

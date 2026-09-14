@@ -4,7 +4,13 @@ import { sound } from '../utils/soundFX';
 import { X, Maximize2, MapPin } from 'lucide-react';
 import { TERRITORY_NAMES_FR, getCountryAreaKm2, formatAreaKm2 } from '../utils/countryData';
 import { realtimeStream } from '../utils/realtimeEvents';
-import { AVIATION_ROUTES, CYBER_ATTACK_VECTORS, GEOPOLITICAL_ZONES } from '../data/tacticalStreams';
+import {
+  AVIATION_ROUTES,
+  CYBER_ATTACK_VECTORS,
+  GEOPOLITICAL_ZONES,
+  BALLISTIC_TRAJECTORIES,
+  getGeopoliticalZonesForYear,
+} from '../data/tacticalStreams';
 import {
   CCTV_FEEDS,
   LIVE_NEWS_CHANNELS,
@@ -22,6 +28,7 @@ import { TacticalInspectionCard } from './TacticalInspectionCard';
 export function TacticalMap2D({
   activeLayer = 'satellite',
   activeLayers = new Set(),
+  selectedYear = 2026,
   flightLimit = 25,
   vesselLimit = 500,
   onSelectCCTV,
@@ -68,6 +75,14 @@ export function TacticalMap2D({
       updateMarineTrafficVesselsRef.current();
     }
   }, [inspectedTarget]);
+
+  const updateConflictsLayerRef = useRef(null);
+
+  useEffect(() => {
+    if (updateConflictsLayerRef.current) {
+      updateConflictsLayerRef.current(selectedYear);
+    }
+  }, [selectedYear]);
 
   useEffect(() => {
     flightLimitRef.current = flightLimit;
@@ -1211,25 +1226,137 @@ export function TacticalMap2D({
       dstMarker.addTo(cyberLayer);
     });
 
-    // 4. Geopolitical conflicts layer (Hotspot Zones)
+    // 4. Geopolitical conflicts layer (Hotspot Zones & Ballistic Trajectories)
     const conflictsLayer = L.layerGroup();
     conflictsLayerRef.current = conflictsLayer;
-    GEOPOLITICAL_ZONES.forEach((zone) => {
-      const circle = L.circle([zone.lat, zone.lng], {
-        radius: 320000,
-        color: '#ff2a4d',
-        fillColor: '#ff2a4d',
-        fillOpacity: 0.22,
-        weight: 1.5,
+
+    const updateConflicts = (year) => {
+      conflictsLayer.clearLayers();
+      const zones = getGeopoliticalZonesForYear(year);
+
+      zones.forEach((zone) => {
+        const strokeColor = zone.defcon === 'DÉFCON 1' ? '#ff0033' : zone.defcon === 'DÉFCON 2' ? '#ff2a4d' : '#ffb703';
+        const circle = L.circle([zone.lat, zone.lng], {
+          radius: (zone.radiusKm || 320) * 1000,
+          color: strokeColor,
+          fillColor: strokeColor,
+          fillOpacity: 0.18,
+          weight: 1.5,
+          dashArray: '4, 6',
+        });
+
+        // Pulsing animated radar marker icon at the center
+        const radarIcon = L.divIcon({
+          className: 'conflict-radar-marker',
+          html: `
+            <div class="conflict-radar-core">
+              <div class="conflict-pulse-ring" style="border-color:${strokeColor}"></div>
+              <div class="conflict-center-dot" style="background:${strokeColor};box-shadow:0 0 8px ${strokeColor}"></div>
+              <span class="conflict-defcon-tag">${zone.defcon || 'ALERTE'}</span>
+            </div>
+          `,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+        });
+        const marker = L.marker([zone.lat, zone.lng], { icon: radarIcon });
+
+        const tooltipHtml = `
+          <div class="conflict-tooltip-box">
+            <div class="ct-header" style="border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:4px;margin-bottom:4px;">
+              <span style="font-family:monospace;font-size:9.5px;font-weight:800;color:${strokeColor};background:rgba(255,42,77,0.15);padding:1px 5px;border-radius:4px;margin-right:6px;">${zone.defcon || 'ALERTE'}</span>
+              <strong style="color:#ffffff;font-size:11.5px;">${zone.name}</strong>
+            </div>
+            <div style="font-size:10.5px;color:#cbd5e1;line-height:1.4;">${zone.status}</div>
+            <div style="font-size:10px;color:#ff3366;margin-top:2px;">${zone.alert}</div>
+            ${zone.activeMissiles ? `<div style="font-size:9.5px;color:#ffb703;font-family:monospace;margin-top:2px;">🚀 MISSILES ACTIFS : ${zone.activeMissiles}</div>` : ''}
+            <div style="font-size:9px;color:#00f2fe;margin-top:4px;font-family:monospace;">CLIQUER POUR DOSSIER DE CRISE →</div>
+          </div>
+        `;
+        circle.bindTooltip(tooltipHtml);
+        marker.bindTooltip(tooltipHtml);
+
+        const handleClick = (e) => {
+          if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+          sound.click();
+          setInspectedTarget({ type: 'conflict', ...zone });
+        };
+        circle.on('click', handleClick);
+        marker.on('click', handleClick);
+        circle.addTo(conflictsLayer);
+        marker.addTo(conflictsLayer);
       });
-      circle.bindTooltip(`<b>${zone.name}</b><br/>${zone.status} — ${zone.defcon}<br/>${zone.alert}<br/><i style="color:#ff3366;">Cliquer pour dossier de crise</i>`);
-      circle.on('click', (e) => {
-        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
-        sound.click();
-        setInspectedTarget({ type: 'conflict', ...zone });
-      });
-      circle.addTo(conflictsLayer);
-    });
+
+      // If contemporary era (>= 2020), also render ballistic trajectories
+      if (year >= 2020) {
+        BALLISTIC_TRAJECTORIES.forEach((traj) => {
+          const start = [traj.startLat, traj.startLng];
+          const end = [traj.endLat, traj.endLng];
+
+          const arcLine = L.polyline([start, end], {
+            color: traj.color || '#ff2a4d',
+            weight: 2,
+            opacity: 0.85,
+            dashArray: '6, 8',
+          });
+
+          // Launch marker
+          const launchIcon = L.divIcon({
+            className: 'traj-launch-marker',
+            html: `<div style="width:8px;height:8px;border-radius:50%;background:#ffffff;border:2px solid ${traj.color || '#ff2a4d'};box-shadow:0 0 8px ${traj.color}"></div>`,
+            iconSize: [8, 8],
+            iconAnchor: [4, 4],
+          });
+          const launchMarker = L.marker(start, { icon: launchIcon });
+
+          // Target marker
+          const targetIcon = L.divIcon({
+            className: 'traj-target-marker',
+            html: `<div style="width:10px;height:10px;border-radius:50%;background:${traj.color || '#ff2a4d'};border:2px solid #ffffff;box-shadow:0 0 10px ${traj.color}"></div>`,
+            iconSize: [10, 10],
+            iconAnchor: [5, 5],
+          });
+          const targetMarker = L.marker(end, { icon: targetIcon });
+
+          const trajTooltip = `
+            <div class="traj-tooltip-box">
+              <div style="font-family:monospace;font-size:9.5px;font-weight:800;color:${traj.color};margin-bottom:2px;">${traj.alert}</div>
+              <strong style="color:#ffffff;font-size:11px;">${traj.name}</strong>
+              <div style="font-size:10px;color:#94a3b8;margin-top:2px;">${traj.weapon}</div>
+              <div style="font-size:9.5px;color:#00f5a0;margin-top:2px;">${traj.status}</div>
+              <div style="font-size:9px;color:#00f2fe;margin-top:4px;font-family:monospace;">CLIQUER POUR TÉLÉMÉTRIE BALISTIQUE →</div>
+            </div>
+          `;
+          arcLine.bindTooltip(trajTooltip);
+          targetMarker.bindTooltip(trajTooltip);
+
+          const handleTrajClick = (e) => {
+            if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+            sound.click();
+            setInspectedTarget({
+              type: 'conflict',
+              name: traj.name,
+              defcon: 'ALERTE BALISTIQUE',
+              status: traj.status,
+              alert: traj.alert,
+              details: `${traj.weapon} — De ${traj.origin} vers ${traj.target}. ${traj.details}`,
+              activeMissiles: 1,
+              speedMach: traj.speedMach,
+              apogeeKm: traj.apogeeKm,
+            });
+          };
+
+          arcLine.on('click', handleTrajClick);
+          targetMarker.on('click', handleTrajClick);
+
+          arcLine.addTo(conflictsLayer);
+          launchMarker.addTo(conflictsLayer);
+          targetMarker.addTo(conflictsLayer);
+        });
+      }
+    };
+
+    updateConflictsLayerRef.current = updateConflicts;
+    updateConflicts(selectedYear);
 
     // 5. Telluric earthquakes layer
     const telluricLayer = L.layerGroup();

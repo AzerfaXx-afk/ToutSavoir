@@ -3,7 +3,7 @@ import { Switch3D } from './components/Switch3D';
 import { TacticalMap2D } from './components/TacticalMap2D';
 import { OrbitView3D } from './components/OrbitView3D';
 import { LiveTelemetryDrawer } from './components/LiveTelemetryDrawer';
-import { TimelineWheel } from './components/TimelineWheel';
+import { TimelineWheel, getEstimatedPopulationForYear } from './components/TimelineWheel';
 import { GlobalSpotlightModal } from './components/GlobalSpotlightModal';
 import { CCTVLiveMonitor } from './components/CCTVLiveMonitor';
 import { TacticalShortcutsModal } from './components/TacticalShortcutsModal';
@@ -360,6 +360,7 @@ export default function App() {
           <TacticalMap2D
             activeLayer={activeLayer}
             activeLayers={activeLayers}
+            selectedYear={selectedYear}
             flightLimit={flightLimit}
             vesselLimit={vesselLimit}
             onSelectCCTV={handleSelectCCTV}
@@ -375,6 +376,7 @@ export default function App() {
             autoRotate={autoRotate}
             onAutoRotateChange={setAutoRotate}
             activeLayers={activeLayers}
+            selectedYear={selectedYear}
             flightLimit={flightLimit}
             vesselLimit={vesselLimit}
             onSelectCCTV={handleSelectCCTV}
@@ -387,6 +389,27 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* Historical Era Archive Banner (When scrubbing timeline into the past) */}
+      {selectedYear !== 2026 && (
+        <div className="historical-era-pill-banner">
+          <div className="hep-dot" />
+          <span className="hep-badge">ARCHIVE HISTORIQUE // {selectedYear}</span>
+          <span className="hep-pop">
+            POPULATION : {getEstimatedPopulationForYear(selectedYear).toLocaleString('fr-FR')} HAB.
+          </span>
+          <button
+            type="button"
+            className="hep-reset-btn"
+            onClick={() => {
+              sound.click();
+              setSelectedYear(2026);
+            }}
+          >
+            REVENIR AU DIRECT (2026) ➔
+          </button>
+        </div>
+      )}
 
       {/* Responsive Right-Side Unified Intelligence Drawer */}
       <LiveTelemetryDrawer

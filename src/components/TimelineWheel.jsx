@@ -2,16 +2,28 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { ChevronRight, X } from 'lucide-react';
 import { sound } from '../utils/soundFX';
 
-// UN Official Historical & Projected Population Benchmark Datapoints (1950 - 2100)
+// UN Official Historical & Projected Population Benchmark Datapoints (1900 - 2100)
 export const UN_POPULATION_BENCHMARKS = [
-  { year: 1950, pop: 2499322157, label: 'Début de l’ère moderne' },
+  { year: 1900, pop: 1650000000, label: 'Aube du XXe Siècle' },
+  { year: 1914, pop: 1780000000, label: 'Première Guerre Mondiale' },
+  { year: 1930, pop: 2070000000, label: 'Grande Dépression' },
+  { year: 1939, pop: 2300000000, label: 'Seconde Guerre Mondiale' },
+  { year: 1945, pop: 2350000000, label: 'Ère Nucléaire & Fondation ONU' },
+  { year: 1950, pop: 2499322157, label: 'Reconstruction d’après-guerre' },
   { year: 1960, pop: 3034949748, label: 'Première conquête spatiale' },
+  { year: 1962, pop: 3140000000, label: 'Crise des Missiles de Cuba' },
   { year: 1970, pop: 3700437046, label: 'Premier Jour de la Terre' },
+  { year: 1973, pop: 3920000000, label: 'Choc Pétrolier & Kippour' },
   { year: 1980, pop: 4458003514, label: 'Révolution numérique' },
+  { year: 1989, pop: 5240000000, label: 'Chute du Mur de Berlin' },
   { year: 1990, pop: 5327231061, label: 'Fin de la Guerre Froide' },
+  { year: 1991, pop: 5360000000, label: 'Dissolution de l’URSS' },
   { year: 2000, pop: 6143493823, label: 'Nouveau Millénaire' },
+  { year: 2001, pop: 6220000000, label: '11 Septembre & Guerre Terrorisme' },
   { year: 2010, pop: 6956823603, label: 'Ère des smartphones & réseaux' },
-  { year: 2020, pop: 7794798739, label: 'Décennie de transition' },
+  { year: 2011, pop: 7040000000, label: 'Printemps Arabe' },
+  { year: 2020, pop: 7794798739, label: 'Pandémie Globale COVID-19' },
+  { year: 2022, pop: 7975000000, label: 'Invasion de l’Ukraine' },
   { year: 2026, pop: 8185420000, label: 'PRÉSENT EN DIRECT' },
   { year: 2030, pop: 8512000000, label: 'Objectifs climat ONU' },
   { year: 2040, pop: 9180000000, label: 'Automatisation & IA' },
@@ -21,7 +33,7 @@ export const UN_POPULATION_BENCHMARKS = [
 ];
 
 export function getEstimatedPopulationForYear(year) {
-  if (year <= 1950) return UN_POPULATION_BENCHMARKS[0].pop;
+  if (year <= 1900) return UN_POPULATION_BENCHMARKS[0].pop;
   if (year >= 2100) return UN_POPULATION_BENCHMARKS[UN_POPULATION_BENCHMARKS.length - 1].pop;
 
   for (let i = 0; i < UN_POPULATION_BENCHMARKS.length - 1; i++) {
@@ -45,7 +57,7 @@ const CENTER_X = APEX_X - RADIUS; // -365px
 const DEG_PER_YEAR = 5.2; // Spacing per year in degrees
 const PIXELS_PER_YEAR = 38; // 38px of drag = 1 year
 
-const MIN_YEAR = 1950;
+const MIN_YEAR = 1900;
 const MAX_YEAR = 2100;
 
 export function TimelineWheel({ currentYear = 2026, onYearChange }) {
