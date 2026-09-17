@@ -339,6 +339,7 @@ export function TacticalMap2D({
     // Close selected card & unhighlight when clicking empty ocean or map background
     map.on('click', () => {
       // Do not play click sound when clicking in the void / ocean
+      sound.clearCountryHover();
       if (selectedLayersRef.current.length > 0 && geoJsonLayerRef.current) {
         selectedLayersRef.current.forEach((l) => {
           geoJsonLayerRef.current.resetStyle(l);
@@ -377,6 +378,7 @@ export function TacticalMap2D({
 
     // Reset hover highlight as soon as cursor leaves the map viewport
     const onMapMouseLeave = () => {
+      sound.clearCountryHover();
       if (hoveredGroupLayersRef.current.length > 0 && geoJsonLayerRef.current) {
         hoveredGroupLayersRef.current.forEach((l) => {
           if (!selectedLayersRef.current.includes(l)) {
@@ -1274,8 +1276,21 @@ export function TacticalMap2D({
       // 3. If cursor is moving over open ocean / non-country elements, reset hovered country key
       const targetEl = e.originalEvent?.target;
       if (targetEl && !targetEl.closest?.('.leaflet-interactive')) {
-        if (hoveredCountryIdRef.current !== null) {
+        if (hoveredCountryIdRef.current !== null || hoveredGroupKeyRef.current !== null) {
+          if (hoveredGroupLayersRef.current.length > 0 && geoJsonLayerRef.current) {
+            hoveredGroupLayersRef.current.forEach((l) => {
+              if (!selectedLayersRef.current.includes(l)) {
+                geoJsonLayerRef.current.resetStyle(l);
+                if (l._path) {
+                  l._path.classList.remove('country-path-elevated');
+                }
+              }
+            });
+            hoveredGroupLayersRef.current = [];
+          }
+          hoveredGroupKeyRef.current = null;
           hoveredCountryIdRef.current = null;
+          sound.clearCountryHover();
           setHoveredTerritory(null);
         }
       }
@@ -1740,11 +1755,16 @@ export function TacticalMap2D({
                 const targetGroupKey = target._groupKey || groupKey;
                 if (selectedGroupKeyRef.current === targetGroupKey) return;
 
-                // Play hover sound strictly ONCE per country group entry
-                if (hoveredCountryIdRef.current !== targetGroupKey) {
-                  hoveredCountryIdRef.current = targetGroupKey;
-                  sound.countryHover(targetGroupKey, 0.35);
+                // CRITICAL AWWWARDS GUARD: If already hovering this exact country,
+                // do NOT re-elevate styles, do NOT call bringToFront() (which causes DOM reparenting and drops clicks),
+                // and do NOT replay hover sound!
+                if (hoveredGroupKeyRef.current === targetGroupKey) {
+                  return;
                 }
+
+                // Play hover sound strictly ONCE per country group entry
+                sound.countryHover(targetGroupKey, 0.35);
+                hoveredCountryIdRef.current = targetGroupKey;
 
                 // Reset previously hovered group layers if switching groups
                 if (hoveredGroupKeyRef.current && hoveredGroupKeyRef.current !== targetGroupKey) {
@@ -1827,21 +1847,25 @@ export function TacticalMap2D({
                     hoveredGroupKeyRef.current = null;
                     hoveredGroupLayersRef.current = [];
                   }
-                }
 
-                if (!related || !related.closest || !related.closest('.leaflet-interactive')) {
-                  hoveredCountryIdRef.current = null;
-                  setHoveredTerritory(null);
+                  const isEnteringAnotherCountry = related && related.closest && related.closest('.leaflet-interactive');
+                  if (!isEnteringAnotherCountry) {
+                    hoveredCountryIdRef.current = null;
+                    sound.clearCountryHover();
+                    setHoveredTerritory(null);
+                  }
                 }
               },
               click: (e) => {
                 // Only left click selects
-                if (e.originalEvent && e.originalEvent.button !== 0) return;
+                if (e.originalEvent && typeof e.originalEvent.button === 'number' && e.originalEvent.button !== 0) return;
                 L.DomEvent.stopPropagation(e);
                 sound.click();
+                sound.clearCountryHover();
                 setHoveredTerritory(null);
                 hoveredGroupKeyRef.current = null;
                 hoveredGroupLayersRef.current = [];
+                hoveredCountryIdRef.current = null;
 
                 setInspectedTarget(null);
 
@@ -2224,6 +2248,7 @@ export function TacticalMap2D({
 
   const handleResetView = () => {
     sound.click();
+    sound.clearCountryHover();
     if (selectedLayersRef.current && selectedLayersRef.current.length > 0) {
       selectedLayersRef.current.forEach((l) => {
         geoJsonLayerRef.current?.resetStyle(l);

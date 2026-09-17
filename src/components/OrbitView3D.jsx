@@ -2360,6 +2360,7 @@ export function OrbitView3D({
           }
         } else {
           hoveredCountryIdRef.current = null;
+          sound.clearCountryHover();
         }
 
         if (foundFeature && foundFeature !== hoveredFeatureRef.current) {
@@ -2432,6 +2433,7 @@ export function OrbitView3D({
         }
       } else {
         hoveredCountryIdRef.current = null;
+        sound.clearCountryHover();
         if (hoveredFeatureRef.current) {
           removeHoverMesh();
           setHoveredTerritory(null);

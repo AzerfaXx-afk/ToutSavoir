@@ -9,6 +9,7 @@ class SoundFX {
     this.lastClickTime = 0;
     this.lastWooshTime = 0;
     this.lastCountryHoverTime = 0;
+    this.currentHoveredCountry = null;
     this.isInitialized = false;
     this.unlocked = false;
     this.muted = false;
@@ -182,55 +183,73 @@ class SoundFX {
     }
   }
 
-  // 1. Hover Sound (hover.mp3) - Plays on country borders, cards & buttons
-  hover(volume = 0.38) {
+  // 1. Hover Sound (hover.mp3) - Plays on cards, buttons & UI elements
+  hover(volume = 0.35) {
+    if (this.muted) return;
     const now = Date.now();
-    if (now - this.lastHoverTime < 50) return; // Prevent stutter on superfast sweep
+    if (now - this.lastHoverTime < 60) return; // Prevent stutter on superfast sweep
     this.lastHoverTime = now;
+
+    this.init();
     if (this.ctx && this.ctx.state === 'running' && this.buffers.has('hover')) {
-      this.playSound('hover', '/hover.mp3', volume, 0.025);
+      this.playSound('hover', '/hover.mp3', volume, 0.02);
+    } else if (this.ctx && this.ctx.state === 'running') {
+      this.synthAwwwardsTick(volume, 1350);
     } else {
-      this.playSound('hover', '/hover.mp3', volume, 0.025);
-      if (!this.buffers.has('hover')) {
-        this.synthAwwwardsTick(volume, 1350);
-      }
+      this.playSound('hover', '/hover.mp3', volume, 0.02);
     }
   }
 
-  // Signature Awwwards Country Hover Sound - Plays exactly once per country boundary entry
+  // Signature Awwwards Country Hover Sound - Plays strictly once per country entry
   countryHover(countryKey, volume = 0.35) {
-    if (this.muted) return;
+    if (this.muted || !countryKey) return;
+    // Strictly play ONCE per country. Moving or staying inside the same country produces zero sound re-triggers.
+    if (this.currentHoveredCountry === countryKey) return;
+
     const now = Date.now();
-    if (now - this.lastCountryHoverTime < 60) return;
+    if (now - this.lastCountryHoverTime < 75) return;
     this.lastCountryHoverTime = now;
+    this.currentHoveredCountry = countryKey;
 
     this.init();
-    if (this.ctx && this.ctx.state === 'running') {
-      if (this.buffers.has('hover')) {
-        this.playSound('hover', '/hover.mp3', volume, 0.03);
-      } else {
-        this.synthAwwwardsTick(volume, 1250);
-      }
+    if (this.ctx && this.ctx.state === 'running' && this.buffers.has('hover')) {
+      this.playSound('hover', '/hover.mp3', volume, 0.02);
+    } else if (this.ctx && this.ctx.state === 'running') {
+      this.synthAwwwardsTick(volume, 1250);
     } else {
-      this.hover(volume);
+      this.playSound('hover', '/hover.mp3', volume, 0.02);
     }
+  }
+
+  // Clear hovered country memory when cursor exits countries or hits empty ocean
+  clearCountryHover() {
+    this.currentHoveredCountry = null;
   }
 
   // Alias for hover
-  tick(volume = 0.38) {
+  tick(volume = 0.35) {
     this.hover(volume);
   }
 
   // 2. Click Sound for selections, territory cards, controls (click.mp3)
-  click(volume = 0.6) {
+  click(volume = 0.55) {
+    if (this.muted) return;
     const now = Date.now();
-    if (now - this.lastClickTime < 40) return;
+    if (now - this.lastClickTime < 50) return;
     this.lastClickTime = now;
-    this.playSound('click', '/click.mp3', volume);
+
+    this.init();
+    if (this.ctx && this.ctx.state === 'running' && this.buffers.has('click')) {
+      this.playSound('click', '/click.mp3', volume);
+    } else if (this.ctx && this.ctx.state === 'running') {
+      this.synthAwwwardsTick(volume * 0.9, 880);
+    } else {
+      this.playSound('click', '/click.mp3', volume);
+    }
   }
 
   // Alias for click
-  alert(volume = 0.6) {
+  alert(volume = 0.55) {
     this.click(volume);
   }
 
