@@ -2562,11 +2562,6 @@ export function TacticalMap2D({
       {/* Floating True Size Comparison HUD Bar */}
       {detachedCountry && (
         <div className="true-size-hud-bar">
-          <div className="tsh-badge">
-            <span className="tsh-pulse-dot" />
-            <span className="tsh-badge-text">TRUE SIZE</span>
-          </div>
-
           <div className="tsh-country-info">
             {detachedCountry.flagUrl && (
               <img src={detachedCountry.flagUrl} alt="" className="tsh-flag" />
