@@ -100,6 +100,7 @@ export function OrbitView3D({
   const selectedFillMatRef = useRef(null);
   const hoverMeshRef = useRef(null);
   const hoveredFeatureRef = useRef(null);
+  const hoveredCountryIdRef = useRef(null);
   const updateSelectedFlightPathRef = useRef(null);
   const updateSelectedVesselMarkerRef = useRef(null);
   const updateSelectedSatelliteRef = useRef(null);
@@ -2350,6 +2351,17 @@ export function OrbitView3D({
 
         const foundFeature = findCountryFeature(lat, lng);
 
+        if (foundFeature) {
+          const props = foundFeature.properties || {};
+          const countryKey = props.ADM0_A3 || props.ISO_A3 || props.SOVEREIGNT || props.NAME;
+          if (countryKey && countryKey !== hoveredCountryIdRef.current) {
+            hoveredCountryIdRef.current = countryKey;
+            sound.countryHover(countryKey, 0.35);
+          }
+        } else {
+          hoveredCountryIdRef.current = null;
+        }
+
         if (foundFeature && foundFeature !== hoveredFeatureRef.current) {
           const props = foundFeature.properties || {};
           const isCurrentSelected = selectedTerritory && (
@@ -2375,7 +2387,6 @@ export function OrbitView3D({
 
             earthGroup.add(hoverMesh);
             hoverMeshRef.current = hoverMesh;
-            sound.hover(0.08);
 
             const rawName = props.NAME || props.SUBUNIT || props.ADMIN || 'Territoire';
             const displayName = TERRITORY_NAMES_FR[rawName] || props.NAME_FR || rawName;
@@ -2420,6 +2431,7 @@ export function OrbitView3D({
           container.style.cursor = isInteractive ? 'pointer' : 'default';
         }
       } else {
+        hoveredCountryIdRef.current = null;
         if (hoveredFeatureRef.current) {
           removeHoverMesh();
           setHoveredTerritory(null);

@@ -487,8 +487,7 @@ export function TimelineWheel({ currentYear = 2026, onYearChange }) {
             aria-valuemin={MIN_YEAR}
             aria-valuemax={MAX_YEAR}
             aria-valuenow={roundedActive}
-            aria-label="Arc temporel interactif"
-            title="Maintenez le clic et glissez ou utilisez la molette pour faire défiler"
+            aria-label="Arc temporel interactif - Glisser ou molette pour naviguer"
           >
             <svg
               className="timeline-arc-svg"

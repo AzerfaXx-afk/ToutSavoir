@@ -362,6 +362,14 @@ export function LiveTelemetryDrawer({
     return () => clearInterval(id);
   }, []);
 
+  // Sync customDate back to live mode whenever parent resets year to 2026
+  useEffect(() => {
+    if (selectedYear === 2026 && customDateRef.current !== null) {
+      customDateRef.current = null;
+      setCustomDate(null);
+    }
+  }, [selectedYear]);
+
   /* ── Metrics Ticker (ticking live or exact date snapshot) ──────── */
   useEffect(() => {
     const tick = () => {

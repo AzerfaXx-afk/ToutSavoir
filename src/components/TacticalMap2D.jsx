@@ -58,6 +58,7 @@ export function TacticalMap2D({
   const [selectedTerritory, setSelectedTerritory] = useState(null);
   const [hoveredTerritory, setHoveredTerritory] = useState(null);
   const hoveredLayerRef = useRef(null);
+  const hoveredCountryIdRef = useRef(null);
   const [internalInspectedTarget, setInternalInspectedTarget] = useState(null);
   const inspectedTarget = propInspectedTarget !== undefined ? propInspectedTarget : internalInspectedTarget;
   const setInspectedTarget = useCallback((target) => {
@@ -283,6 +284,7 @@ export function TacticalMap2D({
         }
       }
       hoveredLayerRef.current = null;
+      hoveredCountryIdRef.current = null;
       setSelectedTerritory(null);
       setHoveredTerritory(null);
       setInspectedTarget(null);
@@ -297,6 +299,7 @@ export function TacticalMap2D({
         }
       }
       hoveredLayerRef.current = null;
+      hoveredCountryIdRef.current = null;
       setHoveredTerritory(null);
     };
     container.addEventListener('mouseleave', onMapMouseLeave);
@@ -1177,6 +1180,15 @@ export function TacticalMap2D({
         }
         requestDrawMaritime();
       }
+
+      // 3. If cursor is moving over open ocean / non-country elements, reset hovered country key
+      const targetEl = e.originalEvent?.target;
+      if (targetEl && !targetEl.closest?.('.leaflet-interactive')) {
+        if (hoveredCountryIdRef.current !== null) {
+          hoveredCountryIdRef.current = null;
+          setHoveredTerritory(null);
+        }
+      }
     };
 
     const onMapClick = (e) => {
@@ -1612,10 +1624,18 @@ export function TacticalMap2D({
             const areaKm2 = getCountryAreaKm2(feature);
             const areaFormatted = formatAreaKm2(areaKm2);
 
+            const countryKey = props.ADM0_A3 || props.ISO_A3 || props.SOVEREIGNT || displayName;
+
             layer.on({
               mouseover: (e) => {
                 const target = e.target;
                 if (target === selectedLayerRef.current) return;
+
+                // Play hover sound strictly ONCE per country entry
+                if (hoveredCountryIdRef.current !== countryKey) {
+                  hoveredCountryIdRef.current = countryKey;
+                  sound.countryHover(countryKey, 0.35);
+                }
 
                 // Instantly reset any previously hovered country so only ONE polygon can ever be elevated
                 if (hoveredLayerRef.current && hoveredLayerRef.current !== target && hoveredLayerRef.current !== selectedLayerRef.current) {
@@ -1624,17 +1644,18 @@ export function TacticalMap2D({
                     hoveredLayerRef.current._path.classList.remove('country-path-elevated');
                   }
                 }
-                hoveredLayerRef.current = target;
 
-                target.setStyle(hoverStyle);
-                target.bringToFront();
-                if (selectedLayerRef.current) {
-                  selectedLayerRef.current.bringToFront();
+                if (hoveredLayerRef.current !== target) {
+                  hoveredLayerRef.current = target;
+                  target.setStyle(hoverStyle);
+                  target.bringToFront();
+                  if (selectedLayerRef.current) {
+                    selectedLayerRef.current.bringToFront();
+                  }
+                  if (target._path) {
+                    target._path.classList.add('country-path-elevated');
+                  }
                 }
-                if (target._path) {
-                  target._path.classList.add('country-path-elevated');
-                }
-                sound.hover(0.08);
 
                 const clientX = e.originalEvent?.clientX || 0;
                 const clientY = e.originalEvent?.clientY || 0;
@@ -1666,7 +1687,11 @@ export function TacticalMap2D({
                 if (hoveredLayerRef.current === target) {
                   hoveredLayerRef.current = null;
                 }
-                setHoveredTerritory(null);
+                const related = e.originalEvent?.relatedTarget;
+                if (!related || !related.closest || !related.closest('.leaflet-interactive')) {
+                  hoveredCountryIdRef.current = null;
+                  setHoveredTerritory(null);
+                }
               },
               click: (e) => {
                 // Only left click selects
@@ -1781,6 +1806,7 @@ export function TacticalMap2D({
       map.off('click', onMapClick);
       map.off('moveend', onMapMoveEnd);
       container.removeEventListener('contextmenu', onContextMenu);
+      container.removeEventListener('mouseleave', onMapMouseLeave);
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);

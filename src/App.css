@@ -2570,73 +2570,98 @@ body.timeline-scrubbing-active * {
   to { opacity: 1; transform: translate(12px, -50%) scale(1.0); }
 }
 
-/* Historical Era Archive Banner */
-.historical-era-pill-banner {
+/* Sleek Minimalist Awwwards Date Reset Capsule Pill */
+.awwwards-date-pill-wrapper {
   position: absolute;
-  top: 68px;
+  top: 66px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 950;
-  display: flex;
+  pointer-events: auto;
+  animation: adrSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes adrSlideDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.awwwards-date-reset-pill {
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 18px;
-  background: rgba(15, 23, 42, 0.88);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  border-radius: 30px;
+  gap: 9px;
+  padding: 6px 14px;
+  background: rgba(10, 16, 30, 0.82);
+  border: 1px solid rgba(0, 242, 254, 0.28);
+  border-radius: 9999px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(245, 158, 11, 0.2);
-  animation: eraBannerSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 16px rgba(0, 242, 254, 0.1);
+  color: #e2e8f0;
+  font-family: 'JetBrains Mono', monospace, -apple-system, sans-serif;
+  font-size: 11px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes eraBannerSlideDown {
-  from { opacity: 0; transform: translate(-50%, -15px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+.awwwards-date-reset-pill:hover {
+  background: rgba(14, 22, 40, 0.94);
+  border-color: rgba(0, 242, 254, 0.65);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 24px rgba(0, 242, 254, 0.25);
+  color: #ffffff;
 }
 
-.hep-dot {
-  width: 8px;
-  height: 8px;
+.awwwards-date-reset-pill:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.adr-dot {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: #f59e0b;
-  box-shadow: 0 0 10px #f59e0b;
+  box-shadow: 0 0 8px #f59e0b;
   animation: pulseLiveDot 1.4s infinite;
 }
 
-.hep-badge {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 800;
+.adr-badge {
   color: #fef08a;
-  letter-spacing: 0.05em;
-}
-
-.hep-pop {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10.5px;
-  color: #cbd5e1;
-  border-left: 1px solid rgba(255, 255, 255, 0.15);
-  padding-left: 12px;
-}
-
-.hep-reset-btn {
-  background: rgba(245, 158, 11, 0.2);
-  border: 1px solid #f59e0b;
-  color: #fef08a;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  letter-spacing: 0.04em;
 }
 
-.hep-reset-btn:hover {
-  background: #f59e0b;
-  color: #0f172a;
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+.adr-divider {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 11px;
+  user-select: none;
+}
+
+.adr-action {
+  color: #94a3b8;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease;
+}
+
+.awwwards-date-reset-pill:hover .adr-action {
+  color: #00f2fe;
+}
+
+.adr-icon {
+  color: #00f2fe;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.awwwards-date-reset-pill:hover .adr-icon {
+  transform: rotate(-180deg);
 }
 
 /* Conflict radar markers & tooltips on 2D map */

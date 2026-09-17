@@ -8,12 +8,14 @@ class SoundFX {
     this.lastHoverTime = 0;
     this.lastClickTime = 0;
     this.lastWooshTime = 0;
+    this.lastCountryHoverTime = 0;
     this.isInitialized = false;
     this.unlocked = false;
     this.muted = false;
 
     // Auto-setup when running in browser
     if (typeof window !== 'undefined') {
+      this.init();
       this.setupAutoUnlock();
       this.setupGlobalInteractions();
     }
@@ -56,16 +58,19 @@ class SoundFX {
   }
 
   setupAutoUnlock() {
+    const unlockEvents = ['pointerdown', 'keydown', 'pointermove', 'pointerover', 'touchstart', 'wheel'];
     const unlock = () => {
       this.init();
       if (this.ctx && this.ctx.state === 'running') {
         this.unlocked = true;
-        window.removeEventListener('pointerdown', unlock);
-        window.removeEventListener('keydown', unlock);
+        unlockEvents.forEach((evt) => {
+          window.removeEventListener(evt, unlock);
+        });
       }
     };
-    window.addEventListener('pointerdown', unlock, { passive: true, once: false });
-    window.addEventListener('keydown', unlock, { passive: true, once: false });
+    unlockEvents.forEach((evt) => {
+      window.addEventListener(evt, unlock, { passive: true, once: false });
+    });
   }
 
   // Preload sound files into AudioBuffer for 0ms latency
@@ -150,16 +155,69 @@ class SoundFX {
     }
   }
 
+  // High-fidelity Awwwards micro-tone synthesized in Web Audio (0 ms latency guaranteed)
+  synthAwwwardsTick(volume = 0.28, baseFreq = 1200) {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx || this.ctx.state !== 'running') return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = this.ctx.currentTime;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(baseFreq, t);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.35, t + 0.012);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.7, t + 0.024);
+
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.linearRampToValueAtTime(volume * 0.35, t + 0.003);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.026);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.028);
+    } catch {
+      // ignore
+    }
+  }
+
   // 1. Hover Sound (hover.mp3) - Plays on country borders, cards & buttons
-  hover(volume = 0.45) {
+  hover(volume = 0.38) {
     const now = Date.now();
-    if (now - this.lastHoverTime < 55) return; // Prevent stutter on superfast sweep
+    if (now - this.lastHoverTime < 50) return; // Prevent stutter on superfast sweep
     this.lastHoverTime = now;
-    this.playSound('hover', '/hover.mp3', volume, 0.03);
+    if (this.ctx && this.ctx.state === 'running' && this.buffers.has('hover')) {
+      this.playSound('hover', '/hover.mp3', volume, 0.025);
+    } else {
+      this.playSound('hover', '/hover.mp3', volume, 0.025);
+      if (!this.buffers.has('hover')) {
+        this.synthAwwwardsTick(volume, 1350);
+      }
+    }
+  }
+
+  // Signature Awwwards Country Hover Sound - Plays exactly once per country boundary entry
+  countryHover(countryKey, volume = 0.35) {
+    if (this.muted) return;
+    const now = Date.now();
+    if (now - this.lastCountryHoverTime < 60) return;
+    this.lastCountryHoverTime = now;
+
+    this.init();
+    if (this.ctx && this.ctx.state === 'running') {
+      if (this.buffers.has('hover')) {
+        this.playSound('hover', '/hover.mp3', volume, 0.03);
+      } else {
+        this.synthAwwwardsTick(volume, 1250);
+      }
+    } else {
+      this.hover(volume);
+    }
   }
 
   // Alias for hover
-  tick(volume = 0.45) {
+  tick(volume = 0.38) {
     this.hover(volume);
   }
 
@@ -327,7 +385,7 @@ class SoundFX {
     const isInteractive = (el) => {
       if (!el || !el.closest) return null;
       return el.closest(
-        'button, a, [role="button"], input, select, label.switch-3d, .kpi-card, .country-pill-core, .top-rotation-toggle-btn, .inspector-close-btn, .inspector-reset-zoom-btn, .coord-item, [data-interactive="true"]'
+        'button, a, [role="button"], input, select, label.switch-3d, .kpi-card, .country-pill-core, .top-rotation-toggle-btn, .inspector-close-btn, .inspector-reset-zoom-btn, .coord-item, [data-interactive="true"], .leaflet-marker-icon, .cctv-div-marker, .news-div-marker, .nuclear-div-marker, .weather-div-marker, .conflict-div-marker, .telluric-div-marker, .marker-div-icon, .awwwards-date-reset-pill, .timeline-awwwards-trigger, .layer-pill-btn, .control-hud-btn, .drawer-nav-item, .journal-filter-chip, .tic-close-btn, .cctv-pip-btn'
       );
     };
 
@@ -337,7 +395,7 @@ class SoundFX {
         const target = isInteractive(e.target);
         if (target && target !== lastHoverEl) {
           lastHoverEl = target;
-          this.hover(0.38);
+          this.hover(0.32);
         } else if (!target) {
           lastHoverEl = null;
         }
