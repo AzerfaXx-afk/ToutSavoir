@@ -200,7 +200,7 @@ export function CountryDossierCard({
           className="dossier-btn-secondary"
           onClick={handleReset}
           onMouseEnter={() => sound.hover()}
-          title="Réinitialiser la vue de la caméra"
+          title="Afficher la vue globale du monde (le pays reste sélectionné)"
         >
           <Maximize2 size={12} />
           <span>VUE GLOBALE</span>
@@ -208,13 +208,13 @@ export function CountryDossierCard({
 
         <button
           type="button"
-          className="dossier-btn-primary"
-          onClick={handleExplore}
+          className="dossier-btn-primary dossier-btn-detach"
+          onClick={handleCompare}
           onMouseEnter={() => sound.hover()}
-          title="Explorer les flux et la télémétrie complète"
+          title="Détacher le pays et le glisser sur le globe pour comparer sa taille réelle"
         >
-          <ExternalLink size={12} />
-          <span>TÉLÉMÉTRIE EN DIRECT</span>
+          <Layers size={13} />
+          <span>DÉTACHER & COMPARER</span>
         </button>
       </div>
     </div>

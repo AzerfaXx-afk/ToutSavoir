@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import { sound } from '../utils/soundFX';
-import { X, Maximize2, MapPin } from 'lucide-react';
+import { X, Maximize2, MapPin, RotateCcw, RotateCw, LocateFixed, Layers } from 'lucide-react';
 import { TERRITORY_NAMES_FR, getCountryAreaKm2, formatAreaKm2 } from '../utils/countryData';
 import { realtimeStream } from '../utils/realtimeEvents';
 import {
@@ -83,6 +83,12 @@ export function TacticalMap2D({
 
   const [selectedTerritory, setSelectedTerritory] = useState(null);
   const [hoveredTerritory, setHoveredTerritory] = useState(null);
+  const [detachedCountry, setDetachedCountry] = useState(null);
+  const detachedCountryRef = useRef(null);
+  const detachedLayerGroupRef = useRef(null);
+  const isDraggingDetachedRef = useRef(false);
+  const dragOffsetRef = useRef({ lat: 0, lng: 0 });
+  const updateDetachedPolygonRef = useRef(null);
   const selectedLayersRef = useRef([]);
   const selectedGroupKeyRef = useRef(null);
   const countryGroupLayersMapRef = useRef(new Map());
@@ -251,6 +257,124 @@ export function TacticalMap2D({
     const transitsPane = map.createPane('transitsPane');
     transitsPane.style.zIndex = '650';
 
+    // Dedicated high z-index pane for the detached country comparison hologram
+    const detachedPane = map.createPane('detachedPane');
+    detachedPane.style.zIndex = '680';
+
+    const detachedLayerGroup = L.layerGroup().addTo(map);
+    detachedLayerGroupRef.current = detachedLayerGroup;
+
+    // True Size Web Mercator polygon transformation engine
+    const updateDetachedPolygon = (data) => {
+      if (!detachedLayerGroupRef.current) return;
+      detachedLayerGroupRef.current.clearLayers();
+
+      if (!data || !data.features || data.features.length === 0) return;
+
+      const origCenter = data.origCenter;
+      const currentCenter = data.currentCenter;
+      const rotation = data.rotation || 0;
+
+      // Web Mercator distortion compensation:
+      // In Mercator projection, real distance scales as 1 / cos(latitude).
+      // To preserve true physical ground area (km²) when dragged across latitudes:
+      const cosOrig = Math.cos((origCenter.lat * Math.PI) / 180);
+      const cosCur = Math.cos((currentCenter.lat * Math.PI) / 180);
+      const safeCosOrig = Math.max(0.08, cosOrig);
+      const rawScale = cosCur / safeCosOrig;
+      const trueScale = Math.max(0.12, Math.min(8.0, rawScale));
+
+      const rad = (rotation * Math.PI) / 180;
+      const cosR = Math.cos(rad);
+      const sinR = Math.sin(rad);
+
+      const transformPoint = (coords) => {
+        if (typeof coords[0] === 'number') {
+          const lng = coords[0];
+          const lat = coords[1];
+          const dLat = lat - origCenter.lat;
+          const dLng = lng - origCenter.lng;
+
+          // Scale by Mercator ratio to preserve real physical km
+          const sLat = dLat * trueScale;
+          const sLng = dLng * trueScale;
+
+          // Rotate
+          const rLat = sLat * cosR - sLng * sinR;
+          const rLng = sLat * sinR + sLng * cosR;
+
+          let fLat = currentCenter.lat + rLat;
+          let fLng = currentCenter.lng + rLng;
+
+          fLat = Math.max(-85, Math.min(85, fLat));
+          fLng = ((((fLng + 180) % 360) + 360) % 360) - 180;
+
+          return [fLng, fLat];
+        }
+        return coords.map(transformPoint);
+      };
+
+      const transformedGeoJson = {
+        type: 'FeatureCollection',
+        features: data.features.map((f) => ({
+          type: 'Feature',
+          properties: { ...f.properties },
+          geometry: {
+            type: f.geometry.type,
+            coordinates: transformPoint(f.geometry.coordinates),
+          },
+        })),
+      };
+
+      const detachedGeoLayer = L.geoJSON(transformedGeoJson, {
+        pane: 'detachedPane',
+        style: {
+          color: '#ffd700',
+          weight: 2.8,
+          opacity: 1,
+          fillColor: '#00f2fe',
+          fillOpacity: 0.42,
+          dashArray: '6, 6',
+          className: 'detached-country-polygon',
+        },
+        onEachFeature: (f, layer) => {
+          layer.bindTooltip(`
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#ffd700;">
+              ${data.name} <span style="color:#00f2fe;">(Détaché)</span>
+            </div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:2px;">
+              Glisser pour comparer • ${data.area || ''}
+            </div>
+          `, {
+            className: 'detached-country-tooltip',
+            sticky: true,
+            direction: 'top',
+            offset: [0, -10],
+          });
+
+          layer.on('mousedown', (e) => {
+            if (e.originalEvent && typeof e.originalEvent.button === 'number' && e.originalEvent.button !== 0) return;
+            L.DomEvent.stopPropagation(e);
+            isDraggingDetachedRef.current = true;
+            const curCenter = detachedCountryRef.current?.currentCenter || origCenter;
+            dragOffsetRef.current = {
+              lat: e.latlng.lat - curCenter.lat,
+              lng: e.latlng.lng - curCenter.lng,
+            };
+            if (mapContainerRef.current) {
+              mapContainerRef.current.classList.add('is-dragging-country');
+            }
+            document.body.classList.add('is-dragging-country');
+            sound.click();
+          });
+        },
+      });
+
+      detachedGeoLayer.addTo(detachedLayerGroupRef.current);
+    };
+
+    updateDetachedPolygonRef.current = updateDetachedPolygon;
+
     // Right-Click Drag to Pan implementation (clic droit maintenu pour déplacer)
     let isRightDragging = false;
     let lastRightPos = { x: 0, y: 0 };
@@ -271,6 +395,36 @@ export function TacticalMap2D({
     };
 
     const onPointerMove = (e) => {
+      if (isDraggingDetachedRef.current && detachedCountryRef.current) {
+        const latlng = map.mouseEventToLatLng(e);
+        if (latlng) {
+          const current = detachedCountryRef.current;
+          const newCenter = {
+            lat: Math.max(-80, Math.min(80, latlng.lat - dragOffsetRef.current.lat)),
+            lng: ((((latlng.lng - dragOffsetRef.current.lng + 180) % 360) + 360) % 360) - 180,
+          };
+
+          const cosOrig = Math.cos((current.origCenter.lat * Math.PI) / 180);
+          const cosCur = Math.cos((newCenter.lat * Math.PI) / 180);
+          const safeCosOrig = Math.max(0.08, cosOrig);
+          const rawScale = cosCur / safeCosOrig;
+          const trueScale = Math.max(0.12, Math.min(8.0, rawScale));
+
+          const updated = {
+            ...current,
+            currentCenter: newCenter,
+            scale: trueScale,
+          };
+          detachedCountryRef.current = updated;
+
+          if (updateDetachedPolygonRef.current) {
+            updateDetachedPolygonRef.current(updated);
+          }
+          setDetachedCountry({ ...updated });
+        }
+        return;
+      }
+
       if (isRightDragging || (e.buttons & 2)) {
         const dx = e.clientX - lastRightPos.x;
         const dy = e.clientY - lastRightPos.y;
@@ -281,6 +435,13 @@ export function TacticalMap2D({
     };
 
     const onPointerUp = (e) => {
+      if (isDraggingDetachedRef.current) {
+        isDraggingDetachedRef.current = false;
+        container.classList.remove('is-dragging-country');
+        document.body.classList.remove('is-dragging-country');
+        sound.tick();
+      }
+
       if (e.button === 2 || e.buttons === 0) {
         isRightDragging = false;
         container.classList.remove('is-grabbing');
@@ -338,7 +499,9 @@ export function TacticalMap2D({
 
     // Close selected card & unhighlight when clicking empty ocean or map background
     map.on('click', () => {
-      // Do not play click sound when clicking in the void / ocean
+      // Do not deselect if currently dragging or comparing a detached country
+      if (isDraggingDetachedRef.current) return;
+      if (detachedCountryRef.current) return;
       sound.clearCountryHover();
       if (selectedLayersRef.current.length > 0 && geoJsonLayerRef.current) {
         selectedLayersRef.current.forEach((l) => {
@@ -1971,6 +2134,7 @@ export function TacticalMap2D({
                 }
 
                 const primaryCenter = target.getBounds().getCenter();
+                const groupFeatures = groupLayers.map((l) => l._feature || l.feature).filter(Boolean);
 
                 setSelectedTerritory({
                   name: unifiedName,
@@ -1983,8 +2147,11 @@ export function TacticalMap2D({
                   areaKm2: unifiedAreaKm2,
                   centerLat: `${Math.abs(primaryCenter.lat).toFixed(2)}° ${primaryCenter.lat >= 0 ? 'N' : 'S'}`,
                   centerLng: `${Math.abs(primaryCenter.lng).toFixed(2)}° ${primaryCenter.lng >= 0 ? 'E' : 'W'}`,
+                  centerCoords: [primaryCenter.lat, primaryCenter.lng],
                   geopolitics,
                   feature,
+                  features: groupFeatures.length > 0 ? groupFeatures : [feature],
+                  groupKey: targetGroupKey,
                 });
               },
             });
@@ -2030,6 +2197,8 @@ export function TacticalMap2D({
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       document.body.classList.remove('is-grabbing');
+      document.body.classList.remove('is-dragging-country');
+      updateDetachedPolygonRef.current = null;
       map.remove();
       mapInstanceRef.current = null;
     };
@@ -2246,7 +2415,14 @@ export function TacticalMap2D({
     }
   }, [inspectedTarget]);
 
-  const handleResetView = () => {
+  // Vue Globale: Flies camera to global world view without deselecting the country
+  const handleGlobalView = useCallback(() => {
+    sound.woosh();
+    mapInstanceRef.current?.flyTo([20, 0], 2.6, { duration: 1.2 });
+  }, []);
+
+  // Close country dossier card and clear highlight
+  const handleCloseDossier = useCallback(() => {
     sound.click();
     sound.clearCountryHover();
     if (selectedLayersRef.current && selectedLayersRef.current.length > 0) {
@@ -2270,8 +2446,76 @@ export function TacticalMap2D({
     selectedGroupKeyRef.current = null;
     selectedLayerRef.current = null;
     setSelectedTerritory(null);
-    mapInstanceRef.current?.flyTo([20, 0], 2.6, { duration: 1.1 });
-  };
+  }, []);
+
+  const handleStartCompare = useCallback((territory) => {
+    if (!territory) return;
+    sound.woosh();
+
+    const features = territory.features || (territory.feature ? [territory.feature] : []);
+    if (features.length === 0) return;
+
+    const centerCoords = territory.centerCoords || [20, 0];
+    const origCenter = { lat: centerCoords[0], lng: centerCoords[1] };
+
+    const detachedData = {
+      name: territory.name,
+      area: territory.area,
+      iso2: territory.geopolitics?.iso2 || territory.feature?.properties?.ISO_A2 || '',
+      flagUrl: territory.geopolitics?.flagUrl || null,
+      origCenter: { ...origCenter },
+      currentCenter: { ...origCenter },
+      rotation: 0,
+      scale: 1,
+      features,
+    };
+
+    detachedCountryRef.current = detachedData;
+    setDetachedCountry(detachedData);
+
+    if (updateDetachedPolygonRef.current) {
+      updateDetachedPolygonRef.current(detachedData);
+    }
+  }, []);
+
+  const handleRotateDetached = useCallback((delta) => {
+    const current = detachedCountryRef.current;
+    if (!current) return;
+    const newRot = (current.rotation + delta) % 360;
+    const updated = { ...current, rotation: newRot };
+    detachedCountryRef.current = updated;
+    setDetachedCountry({ ...updated });
+    if (updateDetachedPolygonRef.current) {
+      updateDetachedPolygonRef.current(updated);
+    }
+    sound.woosh();
+  }, []);
+
+  const handleResetDetachedPosition = useCallback(() => {
+    const current = detachedCountryRef.current;
+    if (!current) return;
+    const updated = {
+      ...current,
+      currentCenter: { ...current.origCenter },
+      scale: 1,
+      rotation: 0,
+    };
+    detachedCountryRef.current = updated;
+    setDetachedCountry({ ...updated });
+    if (updateDetachedPolygonRef.current) {
+      updateDetachedPolygonRef.current(updated);
+    }
+    sound.woosh();
+  }, []);
+
+  const handleCloseDetached = useCallback(() => {
+    if (detachedLayerGroupRef.current) {
+      detachedLayerGroupRef.current.clearLayers();
+    }
+    detachedCountryRef.current = null;
+    setDetachedCountry(null);
+    sound.click();
+  }, []);
 
   return (
     <div className="tactical-map-viewport">
@@ -2282,8 +2526,9 @@ export function TacticalMap2D({
       {selectedTerritory && (
         <CountryDossierCard
           territory={selectedTerritory}
-          onClose={handleResetView}
-          onResetView={handleResetView}
+          onClose={handleCloseDossier}
+          onResetView={handleGlobalView}
+          onCompareSize={handleStartCompare}
           onOpenDrawer={(terr) => {
             if (onSelectCountry) {
               const code = terr.geopolitics?.iso2 || 'FR';
@@ -2292,6 +2537,79 @@ export function TacticalMap2D({
           }}
           isDrawerOpen={isDrawerOpen}
         />
+      )}
+
+      {/* Floating True Size Comparison HUD Bar */}
+      {detachedCountry && (
+        <div className="true-size-hud-bar">
+          <div className="tsh-badge">
+            <span className="tsh-pulse-dot" />
+            <span className="tsh-badge-text">TRUE SIZE // MERCATOR</span>
+          </div>
+
+          <div className="tsh-country-info">
+            {detachedCountry.flagUrl && (
+              <img src={detachedCountry.flagUrl} alt="" className="tsh-flag" />
+            )}
+            <div className="tsh-title-group">
+              <span className="tsh-name">{detachedCountry.name}</span>
+              {detachedCountry.iso2 && (
+                <span className="tsh-tag">{detachedCountry.iso2}</span>
+              )}
+            </div>
+            {detachedCountry.area && (
+              <>
+                <span className="tsh-stat-divider">•</span>
+                <span className="tsh-area">{detachedCountry.area}</span>
+              </>
+            )}
+            <span className="tsh-stat-divider">•</span>
+            <span className="tsh-scale">
+              Échelle : <strong>{(detachedCountry.scale || 1).toFixed(2)}x</strong>
+            </span>
+          </div>
+
+          <div className="tsh-actions">
+            <button
+              type="button"
+              className="tsh-btn"
+              onClick={() => handleRotateDetached(-15)}
+              title="Pivoter de -15 degrés"
+            >
+              <RotateCcw size={11} />
+              <span>-15°</span>
+            </button>
+            <button
+              type="button"
+              className="tsh-btn"
+              onClick={() => handleRotateDetached(15)}
+              title="Pivoter de +15 degrés"
+            >
+              <RotateCw size={11} />
+              <span>+15°</span>
+            </button>
+            <button
+              type="button"
+              className="tsh-btn"
+              onClick={handleResetDetachedPosition}
+              title="Recentrer sur la position d'origine"
+            >
+              <LocateFixed size={11} />
+              <span>Centrer</span>
+            </button>
+            <button
+              type="button"
+              className="tsh-btn tsh-btn-close"
+              onClick={handleCloseDetached}
+              title="Fermer la comparaison"
+            >
+              <X size={12} />
+              <span>Raccrocher</span>
+            </button>
+          </div>
+
+          <span className="tsh-help-hint">Glisser le pays pour comparer</span>
+        </div>
       )}
 
       {/* 2D Country Hover Tooltip (Matching 3D Orbit HUD style with SVG Flag & ISO Badge) */}
