@@ -338,7 +338,7 @@ export function TacticalMap2D({
 
     // Close selected card & unhighlight when clicking empty ocean or map background
     map.on('click', () => {
-      sound.click();
+      // Do not play click sound when clicking in the void / ocean
       if (selectedLayersRef.current.length > 0 && geoJsonLayerRef.current) {
         selectedLayersRef.current.forEach((l) => {
           geoJsonLayerRef.current.resetStyle(l);
@@ -1876,19 +1876,15 @@ export function TacticalMap2D({
                   }
                 });
 
-                // 3. Smooth Camera Trajectory & Framing
+                // 3. Smooth Camera Trajectory & Framing (Dynamic Zoom onto the selected country)
                 if (targetGroupKey === 'USA') {
-                  // Frames contiguous 48 states + Alaska + Hawaii perfectly without 180 meridian warp
-                  map.flyTo([48.0, -100.0], 3.2, { duration: 1.1 });
+                  map.flyTo([41.5, -98.5], 4.1, { duration: 1.1 });
                 } else if (targetGroupKey === 'RUS') {
-                  // Frames the entire Russian Federation from Baltic to Pacific
-                  map.flyTo([62.0, 95.0], 2.8, { duration: 1.1 });
+                  map.flyTo([61.0, 92.0], 3.2, { duration: 1.1 });
                 } else if (targetGroupKey === 'ATA') {
-                  // Frames Antarctica cleanly with room for the HUD
-                  map.flyTo([-74.0, 0.0], 2.6, { duration: 1.1 });
+                  map.flyTo([-74.0, 0.0], 2.8, { duration: 1.1 });
                 } else if (targetGroupKey === 'FRA') {
-                  // Frames mainland France + Corsica
-                  map.flyTo([46.6, 2.5], 5.4, { duration: 1.1 });
+                  map.flyTo([46.5, 1.2], 5.8, { duration: 1.1 });
                 } else {
                   let combinedBounds = null;
                   groupLayers.forEach((l) => {
@@ -1908,8 +1904,9 @@ export function TacticalMap2D({
                     const safeBounds = L.latLngBounds(L.latLng(south, west), L.latLng(north, east));
 
                     map.fitBounds(safeBounds, {
-                      padding: [80, 80],
-                      maxZoom: 6.2,
+                      paddingTopLeft: [60, 60],
+                      paddingBottomRight: [440, 60],
+                      maxZoom: 7.2,
                       animate: true,
                       duration: 1.1,
                     });

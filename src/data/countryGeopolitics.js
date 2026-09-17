@@ -830,6 +830,60 @@ export const ISO2_TO_IANA_TZ = {
   KE: 'Africa/Nairobi', ET: 'Africa/Addis_Ababa', PK: 'Asia/Karachi', BD: 'Asia/Dhaka', LK: 'Asia/Colombo',
 };
 
+
+// Verified national capitals across all sovereign states and territories
+export const WORLD_CAPITALS = {
+  // Europe
+  FR: 'Paris', DE: 'Berlin', GB: 'Londres', IT: 'Rome', ES: 'Madrid', UA: 'Kyiv', PL: 'Varsovie',
+  NL: 'Amsterdam', CH: 'Berne', SE: 'Stockholm', NO: 'Oslo', BE: 'Bruxelles', AT: 'Vienne',
+  PT: 'Lisbonne', GR: 'Athènes', DK: 'Copenhague', FI: 'Helsinki', IE: 'Dublin', CZ: 'Prague',
+  HU: 'Budapest', RO: 'Bucarest', BG: 'Sofia', HR: 'Zagreb', RS: 'Belgrade', SK: 'Bratislava',
+  SI: 'Ljubljana', LT: 'Vilnius', LV: 'Riga', EE: 'Tallinn', IS: 'Reykjavik', LU: 'Luxembourg',
+  MC: 'Monaco', AD: 'Andorre-la-Vieille', MT: 'La Valette', CY: 'Nicosie', AL: 'Tirana',
+  BA: 'Sarajevo', ME: 'Podgorica', MK: 'Skopje', MD: 'Chisinau', BY: 'Minsk', XK: 'Pristina',
+  SM: 'Saint-Marin', VA: 'Vatican', LI: 'Vaduz',
+
+  // Americas
+  US: 'Washington D.C.', CA: 'Ottawa', MX: 'Mexico', BR: 'Brasília', AR: 'Buenos Aires',
+  CL: 'Santiago', CO: 'Bogotá', PE: 'Lima', VE: 'Caracas', EC: 'Quito', BO: 'Sucre',
+  PY: 'Asuncion', UY: 'Montevideo', GY: 'Georgetown', SR: 'Paramaribo', PA: 'Panama',
+  CR: 'San José', NI: 'Managua', HN: 'Tegucigalpa', SV: 'San Salvador', GT: 'Guatemala',
+  BZ: 'Belmopan', CU: 'La Havane', DO: 'Saint-Domingue', HT: 'Port-au-Prince', JM: 'Kingston',
+  TT: 'Port-d\'Espagne', BS: 'Nassau', BB: 'Bridgetown', LC: 'Castries', GD: 'Saint-Georges',
+  VC: 'Kingstown', AG: 'Saint John\'s', KN: 'Basseterre', DM: 'Roseau',
+
+  // Asia & Middle East
+  CN: 'Pékin', JP: 'Tokyo', IN: 'New Delhi', KR: 'Séoul', KP: 'Pyongyang', TW: 'Taipei',
+  RU: 'Moscou', ID: 'Jakarta', PH: 'Manille', VN: 'Hanoï', TH: 'Bangkok', MY: 'Kuala Lumpur',
+  SG: 'Singapour', PK: 'Islamabad', BD: 'Dacca', MM: 'Naypyidaw', KH: 'Phnom Penh',
+  LA: 'Vientiane', NP: 'Katmandou', LK: 'Sri Jayawardenepura Kotte', BT: 'Thimphou',
+  MV: 'Malé', MN: 'Oulan-Bator', KZ: 'Astana', UZ: 'Tachkent', TM: 'Achgabat', KG: 'Bichkek',
+  TJ: 'Douchanbé', AF: 'Kaboul', IR: 'Téhéran', IQ: 'Bagdad', SA: 'Riyad', AE: 'Abou Dabi',
+  IL: 'Jérusalem', TR: 'Ankara', SY: 'Damas', JO: 'Amman', LB: 'Beyrouth', YE: 'Sanaa',
+  OM: 'Mascate', QA: 'Doha', KW: 'Koweït', BH: 'Manama', GE: 'Tbilissi', AM: 'Erevan',
+  AZ: 'Bakou', PS: 'Ramallah',
+
+  // Africa
+  EG: 'Le Caire', ZA: 'Pretoria', NG: 'Abuja', DZ: 'Alger', MA: 'Rabat', KE: 'Nairobi',
+  ET: 'Addis-Abeba', GH: 'Accra', SN: 'Dakar', CI: 'Yamoussoukro', CM: 'Yaoundé',
+  CD: 'Kinshasa', CG: 'Brazzaville', AO: 'Luanda', MZ: 'Maputo', MG: 'Antananarivo',
+  TN: 'Tunis', LY: 'Tripoli', SD: 'Khartoum', SS: 'Djouba', UG: 'Kampala', TZ: 'Dodoma',
+  RW: 'Kigali', BI: 'Gitega', ZM: 'Lusaka', ZW: 'Harare', BW: 'Gaborone', NA: 'Windhoek',
+  ML: 'Bamako', NE: 'Niamey', BF: 'Ouagadougou', TD: 'N\'Djamena', GN: 'Conakry',
+  SL: 'Freetown', LR: 'Monrovia', TG: 'Lomé', BJ: 'Porto-Novo', GA: 'Libreville',
+  GQ: 'Malabo', CF: 'Bangui', SO: 'Mogadiscio', ER: 'Asmara', DJ: 'Djibouti',
+  MR: 'Nouakchott', MU: 'Port-Louis', SC: 'Victoria', CV: 'Praia', ST: 'São Tomé',
+  KM: 'Moroni', SZ: 'Mbabane', LS: 'Maseru',
+
+  // Oceania
+  AU: 'Canberra', NZ: 'Wellington', PG: 'Port Moresby', FJ: 'Suva', SB: 'Honiara',
+  VU: 'Port-Vila', WS: 'Apia', TO: 'Nuku\'alofa', FM: 'Palikir', PW: 'Ngerulmud',
+  MH: 'Majuro', KI: 'Tarawa', TV: 'Funafuti', NR: 'Yaren',
+
+  // Polar
+  AQ: 'Pôle Sud (Bases scientifiques)',
+};
+
 // High-precision live capital time string using standard IANA timezones (e.g. "16:45:10 CEST (Paris)")
 export function getCapitalLocalTimeString(timeZoneOrOffset = 'UTC', label = '') {
   try {
@@ -940,7 +994,7 @@ export function resolveCountryGeopolitics(rawName, props = {}) {
   return {
     iso2,
     iso3,
-    capital: props.CAPITAL || (props.NAME_LONG ? `Capitale de ${props.NAME_LONG}` : 'Capitale administrative'),
+    capital: WORLD_CAPITALS[iso2] || WORLD_CAPITALS[iso3] || props.CAPITAL || (props.NAME_LONG ? props.NAME_LONG : 'Capitale administrative'),
     officialName: props.FORMAL_FR || props.FORMAL_EN || props.NAME_LONG || rawName,
     gdpNominalUsd: gdpFormatted,
     gdpRank: props.ECONOMY ? props.ECONOMY.replace(/^\d+\.\s*/, '') : 'Économie régionale',
@@ -951,7 +1005,7 @@ export function resolveCountryGeopolitics(rawName, props = {}) {
     callingCode: '--',
     utcOffset: 0,
     timeZone: ianaTz,
-    timeZoneName: `Heure (${props.CAPITAL || rawName})`,
+    timeZoneName: `Heure (${WORLD_CAPITALS[iso2] || WORLD_CAPITALS[iso3] || props.CAPITAL || rawName})`,
     regime: props.INCOME_GRP ? props.INCOME_GRP.replace(/^\d+\.\s*/, '') : 'État souverain',
     nuclearStatus: 'Non doté (TNP)',
     flagUrl: `https://flagcdn.com/${iso2Lower}.svg`,

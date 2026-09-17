@@ -145,7 +145,7 @@ export function MapLayerToggles({
   vesselLimit = 5000,
   onVesselLimitChange,
 }) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [liveFlightCount, setLiveFlightCount] = useState(flightRadarService.flights.length || 2280);
   const [liveVesselCount, setLiveVesselCount] = useState(marineTrafficService.vessels.length || 25910);
 
