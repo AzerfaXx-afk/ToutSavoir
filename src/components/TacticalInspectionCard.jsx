@@ -130,7 +130,7 @@ export function TacticalInspectionCard({
         <p className="tic-sub-name">
           {isCCTV && `${target.city}, ${target.country} — ${target.category}`}
           {isFlight && `${target.airline ? `${target.airline} • ` : ''}${target.aircraft || 'Avion Commercial'}${target.corridorType || target.flightPhase ? ` (${target.corridorType || target.flightPhase})` : ''}`}
-          {isVessel && `${target.flagEmoji || '⚓'} Pavillon : ${target.flag || 'International'} • ${target.type || 'Cargo / Fret'}`}
+          {isVessel && `Pavillon : ${target.flag || 'International'} • ${target.type || 'Cargo / Fret'}`}
           {isSatellite && `${target.country} • NORAD ${target.noradId} • ${target.orbitType || 'LEO'}`}
           {isNuclear && `${target.region}, ${target.country} • ${target.securityLevel}`}
           {isWeather && `${target.category} • Bassin : ${target.basin || 'Océanique'}`}
@@ -220,7 +220,7 @@ export function TacticalInspectionCard({
         <div className="tic-vessel-preview" style={{ background: 'rgba(236, 72, 153, 0.08)', borderColor: 'rgba(236, 72, 153, 0.3)' }}>
           <div className="tic-vessel-route">
             <span className="vessel-port from" style={{ color: '#f43f5e' }}>{target.fromCity} ({target.fromCountry})</span>
-            <span className="vessel-arrow" style={{ color: target.color || '#ec4899' }}>⚡➔</span>
+            <span className="vessel-arrow" style={{ color: target.color || '#ec4899' }}>➔</span>
             <span className="vessel-port to" style={{ color: '#38bdf8' }}>{target.toCity} ({target.toCountry})</span>
           </div>
           <div className="vessel-chokepoint-tag" style={{ color: target.color || '#ec4899', borderColor: 'rgba(236, 72, 153, 0.3)' }}>

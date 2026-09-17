@@ -1,0 +1,366 @@
+/* ==========================================================================
+   COUNTRY STRATEGIC DOSSIER CARD (AWWWARDS OSINT LUXURY GLASS)
+   ========================================================================== */
+.country-dossier-card {
+  position: fixed;
+  right: 24px;
+  bottom: 72px;
+  width: clamp(340px, 25vw, 420px);
+  background: rgba(6, 11, 20, 0.94);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(0, 242, 254, 0.35);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.9),
+    0 0 30px rgba(0, 242, 254, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  z-index: 110;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: dossierSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease, box-shadow 0.25s ease;
+  color: #e2e8f0;
+  user-select: none;
+}
+
+.country-dossier-card.drawer-is-open {
+  right: calc(clamp(380px, 34vw, 560px) + 24px);
+}
+
+@keyframes dossierSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* ── Top Header Bar ── */
+.dossier-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dossier-category-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #00f2fe;
+}
+
+.dossier-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00f2fe;
+  box-shadow: 0 0 8px #00f2fe;
+  animation: dotPulse 1.6s infinite ease-in-out;
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.8); }
+}
+
+.dossier-top-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dossier-clock-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+
+.dossier-close-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.dossier-close-btn:hover {
+  background: rgba(255, 51, 102, 0.2);
+  border-color: #ff3366;
+  color: #ff3366;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(255, 51, 102, 0.4);
+}
+
+/* ── Country Flag & Identity Section ── */
+.dossier-identity-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.dossier-flag-frame {
+  position: relative;
+  width: 64px;
+  height: 44px;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 242, 254, 0.45);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0, 242, 254, 0.2);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dossier-flag-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.dossier-flag-fallback {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 800;
+  color: #00f2fe;
+  letter-spacing: 1px;
+}
+
+.dossier-identity-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.dossier-country-name {
+  font-family: var(--font-display, sans-serif);
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+  margin: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-country-sub {
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-code-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.dossier-tag-pill {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(0, 242, 254, 0.1);
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  color: #00f2fe;
+  letter-spacing: 0.5px;
+}
+
+.dossier-tag-capital {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  color: #94a3b8;
+}
+
+/* ── Strategic Metrics Grid ── */
+.dossier-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.dossier-metric-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.dossier-metric-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.dossier-metric-value {
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: 0.2px;
+}
+
+.dossier-metric-value.cyan {
+  color: #00f2fe;
+  text-shadow: 0 0 8px rgba(0, 242, 254, 0.4);
+}
+
+.dossier-metric-value.emerald {
+  color: #00f5a0;
+  text-shadow: 0 0 8px rgba(0, 245, 160, 0.4);
+}
+
+.dossier-metric-value.amber {
+  color: #eab308;
+}
+
+.dossier-metric-sub {
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  color: #64748b;
+}
+
+/* ── Alliances and Blocs Badges ── */
+.dossier-alliances-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dossier-alliances-title {
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.dossier-alliances-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.dossier-alliance-chip {
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  letter-spacing: 0.4px;
+  transition: all 0.18s ease;
+}
+
+.dossier-alliance-chip:hover {
+  background: rgba(0, 242, 254, 0.15);
+  border-color: rgba(0, 242, 254, 0.5);
+  color: #ffffff;
+}
+
+/* ── Action Buttons Footer ── */
+.dossier-footer-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dossier-btn-secondary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #94a3b8;
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.dossier-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.dossier-btn-primary {
+  flex: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 10px;
+  background: rgba(0, 242, 254, 0.12);
+  border: 1px solid rgba(0, 242, 254, 0.4);
+  border-radius: 6px;
+  color: #00f2fe;
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+}
+
+.dossier-btn-primary:hover {
+  background: #00f2fe;
+  border-color: #00f2fe;
+  color: #030508;
+  box-shadow: 0 4px 18px rgba(0, 242, 254, 0.5);
+  transform: translateY(-1px);
+}
+
+.dossier-btn-primary:active,
+.dossier-btn-secondary:active {
+  transform: translateY(0) scale(0.98);
+}

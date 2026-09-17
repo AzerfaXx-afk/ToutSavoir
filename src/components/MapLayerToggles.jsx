@@ -169,9 +169,10 @@ export function MapLayerToggles({
     };
   }, []);
 
-  const activeCount = LAYER_CONFIGS.filter((l) => activeLayers.has(l.id)).length;
-  const totalCount = LAYER_CONFIGS.length;
-  const allActive = activeCount === totalCount;
+  const visibleConfigs = LAYER_CONFIGS.filter((l) => is3D || l.id !== 'satellites');
+  const activeCount = visibleConfigs.filter((l) => activeLayers.has(l.id)).length;
+  const totalCount = visibleConfigs.length;
+  const allActive = activeCount === totalCount && totalCount > 0;
 
   const handleToggleExpand = () => {
     sound.click(0.3);
@@ -188,9 +189,9 @@ export function MapLayerToggles({
 
   const handleLayerClick = (layer) => {
     sound.click(0.25);
-    if (layer.id === 'satellites' && !is3D && onSwitchTo3D) {
-      // Satellites exist exclusively in 3D outer space
-      onSwitchTo3D();
+    if (layer.id === 'satellites' && !is3D) {
+      if (onSwitchTo3D) onSwitchTo3D();
+      return;
     }
     if (onToggleLayer) onToggleLayer(layer.id);
   };
@@ -245,7 +246,7 @@ export function MapLayerToggles({
           {/* Grouped by categories */}
           {(() => {
             const groups = {};
-            LAYER_CONFIGS.forEach((layer) => {
+            visibleConfigs.forEach((layer) => {
               if (!groups[layer.category]) groups[layer.category] = [];
               groups[layer.category].push(layer);
             });

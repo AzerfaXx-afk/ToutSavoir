@@ -244,7 +244,7 @@ export function ChronoJournalTab({
             <span>ORDRE D'AFFICHAGE DU FIL :</span>
           </div>
           <span className="order-selector-status">
-            {sortOrder === 'recent' ? '⚡ DERNIÈRES MINUTES EN PREMIER' : '⏳ CHRONOLOGIE DEPUIS 00:00'}
+            {sortOrder === 'recent' ? 'DERNIÈRES MINUTES EN PREMIER' : 'CHRONOLOGIE DEPUIS 00:00'}
           </span>
         </div>
 

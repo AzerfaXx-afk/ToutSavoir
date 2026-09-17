@@ -1384,7 +1384,7 @@ export function LiveTelemetryDrawer({
                         </div>
 
                         <div className="fr24-airline-badge">
-                          <span>{v.flagEmoji || '⚓'}</span>
+                          <span className="vessel-ais-badge" style={{ fontFamily: 'monospace', fontSize: '9px', color: '#00f5a0', background: 'rgba(0,245,160,0.12)', padding: '1px 4px', borderRadius: '2px' }}>[{v.flag || 'AIS'}]</span>
                           <span className="fr24-airline-name">{v.flag || v.type || 'Marine'}</span>
                         </div>
                       </div>
@@ -2127,7 +2127,7 @@ export function LiveTelemetryDrawer({
                             {vec.fromCity} <span className="cyber-cc">({vec.fromCountry})</span>
                           </span>
                           <span className="cyber-corridor-arrow" style={{ color: vec.color || '#ec4899' }}>
-                            ⚡➔
+                            ➔
                           </span>
                           <span className="cyber-corridor-to">
                             {vec.toCity} <span className="cyber-cc">({vec.toCountry})</span>
@@ -2300,7 +2300,7 @@ export function LiveTelemetryDrawer({
                       },
                       {
                         id: 'megapoles',
-                        label: '🏙️ Villes & Capitales',
+                        label: 'Villes & Capitales',
                         count: CCTV_FEEDS.filter((c) => {
                           const k = (c.category || '').toLowerCase();
                           return k.includes('mégapole') || k.includes('capitale') || k.includes('ville');
@@ -2308,12 +2308,12 @@ export function LiveTelemetryDrawer({
                       },
                       {
                         id: 'aeroports',
-                        label: '✈️ Aéroports Internationaux',
+                        label: 'Aéroports Internationaux',
                         count: CCTV_FEEDS.filter((c) => (c.category || '').toLowerCase().includes('aéroport')).length,
                       },
                       {
                         id: 'maritime',
-                        label: '⚓ Maritime & Détroits',
+                        label: 'Maritime & Détroits',
                         count: CCTV_FEEDS.filter((c) => {
                           const k = (c.category || '').toLowerCase();
                           return k.includes('maritime') || k.includes('chokepoint') || k.includes('canal') || k.includes('détroit') || k.includes('port');
@@ -2321,12 +2321,12 @@ export function LiveTelemetryDrawer({
                       },
                       {
                         id: 'espace',
-                        label: '🚀 Espace & Orbite',
+                        label: 'Espace & Orbite',
                         count: CCTV_FEEDS.filter((c) => (c.category || '').toLowerCase().includes('espace')).length,
                       },
                       {
                         id: 'nature',
-                        label: '🌋 Nature & Volcans',
+                        label: 'Nature & Volcans',
                         count: CCTV_FEEDS.filter((c) => {
                           const k = (c.category || '').toLowerCase();
                           return k.includes('nature') || k.includes('volcan');

@@ -20,9 +20,9 @@ export default function App() {
   const [autoRotate, setAutoRotate] = useState(true);
   const [selectedYear, setSelectedYear] = useState(2026);
 
-  // Clean, lightweight tactical layers activated by default (Aviation & Maritime start OFF for zero-lag instant loading)
+  // Zero-clutter startup: All tactical layers start OFF by default for pure, high-performance vector map discovery
   const [activeLayers, setActiveLayers] = useState(
-    () => new Set(['cctv', 'conflicts'])
+    () => new Set()
   );
 
   // Flight traffic density limit (default: 500 for high-performance fluid 60 FPS)
@@ -57,13 +57,13 @@ export default function App() {
   const handleToggleAllLayers = useCallback((enableAll) => {
     sound.click(0.45);
     if (enableAll) {
-      setActiveLayers(
-        new Set(['aviation', 'maritime', 'cctv', 'satellites', 'cables', 'conflicts', 'telluric', 'cyber', 'weather', 'nuclear'])
-      );
+      const all = ['aviation', 'maritime', 'cctv', 'cables', 'conflicts', 'telluric', 'cyber', 'weather', 'nuclear'];
+      if (is3D) all.push('satellites');
+      setActiveLayers(new Set(all));
     } else {
       setActiveLayers(new Set());
     }
-  }, []);
+  }, [is3D]);
 
   // Global search spotlight modal state
   const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);

@@ -24,6 +24,8 @@ import { LIVE_FLIGHTS, LIVE_VESSELS, getLiveTransitPositions, interpolateGreatCi
 import { flightRadarService, getFlightradarPlaneSvg } from '../services/flightRadarService';
 import { marineTrafficService, getMarineTrafficVesselSvg } from '../services/marineTrafficService';
 import { TacticalInspectionCard } from './TacticalInspectionCard';
+import { CountryDossierCard } from './CountryDossierCard';
+import { resolveCountryGeopolitics } from '../data/countryGeopolitics';
 
 export function TacticalMap2D({
   activeLayer = 'satellite',
@@ -347,11 +349,10 @@ export function TacticalMap2D({
         <div class="fr24-popup-card">
           <div class="fr24-pc-head">
             <div class="fr24-pc-badge">
-              <span class="fr24-pc-icon">✈</span>
+              <span class="fr24-pc-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></span>
               <span class="fr24-pc-callsign">${fl.callsign || fl.flightNum || fl.icao}</span>
             </div>
             <div class="fr24-pc-airline">
-              <span>${fl.airlineFlag || '✈️'}</span>
               <span class="fr24-pc-airline-name">${fl.airline || 'Aviation'}</span>
             </div>
           </div>
@@ -729,7 +730,7 @@ export function TacticalMap2D({
       const spdKmhStr = ves.speedKmh ? `${ves.speedKmh} km/h` : '';
       const courseStr = `${ves.course || ves.heading || 0}° COG`;
       const typeColor = MARITIME_PALETTE[ves.category] || ves.color || '#22c55e';
-      const flagEmoji = ves.flagEmoji || '🏳️';
+      const flagCode = ves.flagCode || ves.flag || (ves.country ? ves.country.slice(0, 3).toUpperCase() : 'AIS');
       const dims = ves.lengthM && ves.beamM ? `${ves.lengthM}m × ${ves.beamM}m` : '--';
       const draught = ves.draughtM ? `${ves.draughtM}m` : '--';
       const status = ves.status || 'Faisant route au moteur';
@@ -753,7 +754,7 @@ export function TacticalMap2D({
         <div class="marinetraffic-popup-card">
           <div class="mt-card-header">
             <div class="mt-card-title-group">
-              <span class="mt-vessel-flag">${flagEmoji}</span>
+              <span class="mt-vessel-flag" style="font-family: monospace; font-size: 9px; color: #00f5a0; background: rgba(0,245,160,0.12); padding: 1px 4px; border-radius: 2px;">[${flagCode}]</span>
               <span class="mt-vessel-name">${ves.name}</span>
             </div>
             <span class="mt-vessel-type" style="color: ${typeColor}; border-color: ${typeColor}66; background: ${typeColor}15;">
@@ -1625,6 +1626,7 @@ export function TacticalMap2D({
             const areaFormatted = formatAreaKm2(areaKm2);
 
             const countryKey = props.ADM0_A3 || props.ISO_A3 || props.SOVEREIGNT || displayName;
+            const geopolitics = resolveCountryGeopolitics(rawName, props);
 
             layer.on({
               mouseover: (e) => {
@@ -1667,6 +1669,8 @@ export function TacticalMap2D({
                   continent,
                   pop: popFormatted,
                   area: areaFormatted,
+                  iso2: geopolitics.iso2,
+                  flagUrl: geopolitics.flagUrl,
                 });
               },
               mousemove: (e) => {
@@ -1759,13 +1763,17 @@ export function TacticalMap2D({
 
                 setSelectedTerritory({
                   name: displayName,
+                  rawName,
                   sovereign,
                   continent,
                   subregion,
                   pop: popFormatted,
                   area: areaFormatted,
+                  areaKm2,
                   centerLat: `${Math.abs(center.lat).toFixed(2)}° ${center.lat >= 0 ? 'N' : 'S'}`,
                   centerLng: `${Math.abs(center.lng).toFixed(2)}° ${center.lng >= 0 ? 'E' : 'W'}`,
+                  geopolitics,
+                  feature,
                 });
               },
             });
@@ -2048,76 +2056,23 @@ export function TacticalMap2D({
       {/* Real Map Canvas */}
       <div ref={mapContainerRef} className="leaflet-map-canvas" />
 
-      {/* Google Maps Style Inspector Card (On Click) */}
+      {/* Strategic Country Dossier Card (Awwwards OSINT Inspection) */}
       {selectedTerritory && (
-        <div className="territory-inspector-card">
-          <div className="inspector-header">
-            <div className="inspector-title-group">
-              <MapPin size={14} className="inspector-icon" />
-              <div className="inspector-titles">
-                <h3 className="inspector-main-name">{selectedTerritory.name}</h3>
-                <span className="inspector-sub-name">
-                  {selectedTerritory.sovereign !== selectedTerritory.name
-                    ? `Territoire rattaché : ${selectedTerritory.sovereign}`
-                    : 'État souverain'}
-                </span>
-              </div>
-            </div>
-            <button
-              className="inspector-close-btn"
-              onClick={handleResetView}
-              onMouseEnter={() => sound.hover()}
-              title="Désélectionner"
-            >
-              <X size={14} />
-            </button>
-          </div>
-
-          <div className="inspector-body">
-            <div className="inspector-metric-row">
-              <span className="metric-tag">SOUVERAINETÉ</span>
-              <span className="metric-val">{selectedTerritory.sovereign}</span>
-            </div>
-
-            <div className="inspector-metric-row">
-              <span className="metric-tag">RÉGION</span>
-              <span className="metric-val">{selectedTerritory.subregion || selectedTerritory.continent}</span>
-            </div>
-
-            <div className="inspector-metric-row">
-              <span className="metric-tag">POPULATION EST.</span>
-              <span className="metric-val text-cyan">{selectedTerritory.pop}</span>
-            </div>
-
-            {selectedTerritory.area && (
-              <div className="inspector-metric-row">
-                <span className="metric-tag">SUPERFICIE TOTALE</span>
-                <span className="metric-val text-cyan">{selectedTerritory.area}</span>
-              </div>
-            )}
-
-            <div className="inspector-metric-row">
-              <span className="metric-tag">CENTROÏDE GPS</span>
-              <span className="metric-val font-mono">
-                {selectedTerritory.centerLat} • {selectedTerritory.centerLng}
-              </span>
-            </div>
-          </div>
-
-          <div className="inspector-footer">
-            <button
-              className="inspector-reset-zoom-btn"
-              onClick={handleResetView}
-              onMouseEnter={() => sound.hover()}
-            >
-              <Maximize2 size={12} />
-              <span>VUE GLOBALE</span>
-            </button>
-          </div>
-        </div>
+        <CountryDossierCard
+          territory={selectedTerritory}
+          onClose={handleResetView}
+          onResetView={handleResetView}
+          onOpenDrawer={(terr) => {
+            if (onSelectCountry) {
+              const code = terr.geopolitics?.iso2 || 'FR';
+              onSelectCountry(code);
+            }
+          }}
+          isDrawerOpen={isDrawerOpen}
+        />
       )}
 
-      {/* 2D Country Hover Tooltip (Matching 3D Orbit HUD style, strictly single hover & no pointer blocking) */}
+      {/* 2D Country Hover Tooltip (Matching 3D Orbit HUD style with SVG Flag & ISO Badge) */}
       {hoveredTerritory && !selectedTerritory && !inspectedTarget && (
         <div
           className="orbit-country-hover-tooltip"
@@ -2130,7 +2085,29 @@ export function TacticalMap2D({
           }}
         >
           <div className="orbit-tooltip-inner">
-            <div className="orbit-tooltip-title">{hoveredTerritory.name}</div>
+            <div className="orbit-tooltip-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {hoveredTerritory.flagUrl && (
+                <img
+                  src={hoveredTerritory.flagUrl}
+                  alt=""
+                  style={{
+                    width: '18px',
+                    height: '12px',
+                    objectFit: 'cover',
+                    borderRadius: '2px',
+                    border: '0.5px solid rgba(0, 242, 254, 0.4)',
+                    boxShadow: '0 0 6px rgba(0, 242, 254, 0.2)',
+                  }}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              )}
+              <span>{hoveredTerritory.name}</span>
+              {hoveredTerritory.iso2 && (
+                <span style={{ fontSize: '9px', color: '#00f2fe', background: 'rgba(0,242,254,0.12)', padding: '1px 5px', borderRadius: '3px', fontWeight: 700 }}>
+                  {hoveredTerritory.iso2}
+                </span>
+              )}
+            </div>
             {hoveredTerritory.sovereign && (
               <div className="orbit-tooltip-sub">Rattaché : {hoveredTerritory.sovereign}</div>
             )}
