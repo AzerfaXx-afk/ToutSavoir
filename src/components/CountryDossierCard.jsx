@@ -23,25 +23,34 @@ export function CountryDossierCard({
   isDrawerOpen = false,
 }) {
   const [flagError, setFlagError] = useState(false);
+  const [useFallback, setUseFallback] = useState(false);
   const [localTime, setLocalTime] = useState('');
 
   const geo = territory?.geopolitics || {};
-  const utcOffset = geo.utcOffset ?? 0;
-  const timeZoneName = geo.timeZoneName || 'UTC';
+  const timeZone = geo.timeZone || 'UTC';
+  const capitalName = geo.capital || geo.timeZoneName || '';
 
-  // Live ticking capital clock
+  // Reset flag error and fallback whenever the territory changes
+  useEffect(() => {
+    setFlagError(false);
+    setUseFallback(false);
+  }, [territory?.name, geo.iso2, geo.flagUrl]);
+
+  // Live ticking capital clock using real IANA timezone
   useEffect(() => {
     const updateTime = () => {
-      setLocalTime(getCapitalLocalTimeString(utcOffset, timeZoneName));
+      setLocalTime(getCapitalLocalTimeString(timeZone, capitalName));
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, [utcOffset, timeZoneName]);
+  }, [timeZone, capitalName]);
 
   if (!territory) return null;
 
-  const flagSrc = !flagError && geo.flagUrl ? geo.flagUrl : null;
+  const flagSrc = !flagError
+    ? (useFallback ? (geo.flagFallback || geo.flagUrl) : (geo.flagUrl || geo.flagFallback))
+    : null;
 
   const handleClose = () => {
     sound.tick();
@@ -103,7 +112,13 @@ export function CountryDossierCard({
               src={flagSrc}
               alt={`Drapeau ${territory.name}`}
               className="dossier-flag-img"
-              onError={() => setFlagError(true)}
+              onError={() => {
+                if (!useFallback && geo.flagFallback && geo.flagFallback !== flagSrc) {
+                  setUseFallback(true);
+                } else {
+                  setFlagError(true);
+                }
+              }}
               loading="eager"
             />
           ) : (

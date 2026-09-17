@@ -247,6 +247,25 @@ body.is-grabbing *,
   pointer-events: auto !important;
 }
 
+/* Polar tactical styling: crisp laser contours with translucent ice fill */
+.country-path-selected.country-path-polar {
+  stroke: #ffffff !important;
+  stroke-width: 2.6px !important;
+  stroke-opacity: 1 !important;
+  fill: #0284c7 !important;
+  fill-opacity: 0.18 !important;
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 28px rgba(56, 189, 248, 0.8)) !important;
+}
+
+.country-path-elevated.country-path-polar {
+  stroke: #bae6fd !important;
+  stroke-width: 2.2px !important;
+  stroke-opacity: 1 !important;
+  fill: #0284c7 !important;
+  fill-opacity: 0.12 !important;
+  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8)) !important;
+}
+
 /* ==========================================================================
    TERRITORY / ISLAND INSPECTOR CARD (GOOGLE MAPS STYLE)
    ========================================================================== */

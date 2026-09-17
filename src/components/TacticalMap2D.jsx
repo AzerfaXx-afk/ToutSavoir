@@ -27,6 +27,30 @@ import { TacticalInspectionCard } from './TacticalInspectionCard';
 import { CountryDossierCard } from './CountryDossierCard';
 import { resolveCountryGeopolitics } from '../data/countryGeopolitics';
 
+
+const OVERSEAS_FRENCH_DEPS = new Set(['GUF', 'REU', 'GLP', 'MTQ', 'MYT']);
+
+function getFeatureCountryKey(feature) {
+  const props = feature?.properties || {};
+  const su = props.SU_A3 || '';
+  if (OVERSEAS_FRENCH_DEPS.has(su)) {
+    return su;
+  }
+  if (props.ADM0_A3 === 'FRA') {
+    return 'FRA';
+  }
+  if (props.ADM0_A3 === 'USA') {
+    return 'USA';
+  }
+  if (props.ADM0_A3 === 'RUS') {
+    return 'RUS';
+  }
+  if (props.ADM0_A3 === 'ATA' || (props.NAME && props.NAME.toLowerCase().includes('antarct'))) {
+    return 'ATA';
+  }
+  return props.ADM0_A3 || props.ISO_A3 || props.NAME || 'TER';
+}
+
 export function TacticalMap2D({
   activeLayer = 'satellite',
   activeLayers = new Set(),
@@ -59,6 +83,11 @@ export function TacticalMap2D({
 
   const [selectedTerritory, setSelectedTerritory] = useState(null);
   const [hoveredTerritory, setHoveredTerritory] = useState(null);
+  const selectedLayersRef = useRef([]);
+  const selectedGroupKeyRef = useRef(null);
+  const countryGroupLayersMapRef = useRef(new Map());
+  const hoveredGroupLayersRef = useRef([]);
+  const hoveredGroupKeyRef = useRef(null);
   const hoveredLayerRef = useRef(null);
   const hoveredCountryIdRef = useRef(null);
   const [internalInspectedTarget, setInternalInspectedTarget] = useState(null);
@@ -80,7 +109,15 @@ export function TacticalMap2D({
       // Exclusivity: Close country selection & unhighlight any country when inspecting a target
       setSelectedTerritory(null);
       setHoveredTerritory(null);
-      if (geoJsonLayerRef.current) {
+      if (selectedLayersRef.current.length > 0 && geoJsonLayerRef.current) {
+        selectedLayersRef.current.forEach((l) => {
+          geoJsonLayerRef.current.resetStyle(l);
+          if (l._path) {
+            l._path.classList.remove('country-path-selected', 'country-path-elevated');
+          }
+        });
+        selectedLayersRef.current = [];
+      } else if (geoJsonLayerRef.current) {
         geoJsonLayerRef.current.eachLayer((l) => {
           geoJsonLayerRef.current.resetStyle(l);
           if (l._path) {
@@ -89,8 +126,11 @@ export function TacticalMap2D({
           }
         });
       }
+      selectedGroupKeyRef.current = null;
       selectedLayerRef.current = null;
       hoveredLayerRef.current = null;
+      hoveredGroupLayersRef.current = [];
+      hoveredGroupKeyRef.current = null;
     }
     if (updateMarineTrafficVesselsRef.current) {
       updateMarineTrafficVesselsRef.current();
@@ -151,6 +191,36 @@ export function TacticalMap2D({
     fillOpacity: 0.52,
     dashArray: '',
     className: 'country-path-selected',
+  };
+
+  // Antarctica specific crystal-polar styling: razor-sharp laser contouring & translucent ice fill
+  const antarcticaDefaultStyle = {
+    fillColor: '#0284c7',
+    weight: 1.2,
+    opacity: 0.6,
+    color: 'rgba(165, 243, 252, 0.45)',
+    fillOpacity: 0.06,
+    dashArray: '3, 4',
+    className: 'country-path-base country-path-polar',
+  };
+
+  const antarcticaHoverStyle = {
+    weight: 2.2,
+    color: '#bae6fd',
+    opacity: 1,
+    fillColor: '#0284c7',
+    fillOpacity: 0.14,
+    className: 'country-path-elevated country-path-polar',
+  };
+
+  const antarcticaSelectedStyle = {
+    weight: 2.6,
+    color: '#ffffff',
+    opacity: 1,
+    fillColor: '#0284c7',
+    fillOpacity: 0.18,
+    dashArray: '',
+    className: 'country-path-selected country-path-polar',
   };
 
   useEffect(() => {
@@ -269,7 +339,15 @@ export function TacticalMap2D({
     // Close selected card & unhighlight when clicking empty ocean or map background
     map.on('click', () => {
       sound.click();
-      if (geoJsonLayerRef.current) {
+      if (selectedLayersRef.current.length > 0 && geoJsonLayerRef.current) {
+        selectedLayersRef.current.forEach((l) => {
+          geoJsonLayerRef.current.resetStyle(l);
+          if (l._path) {
+            l._path.classList.remove('country-path-selected', 'country-path-elevated');
+          }
+        });
+        selectedLayersRef.current = [];
+      } else if (geoJsonLayerRef.current) {
         geoJsonLayerRef.current.eachLayer((l) => {
           geoJsonLayerRef.current.resetStyle(l);
           if (l._path) {
@@ -278,13 +356,18 @@ export function TacticalMap2D({
           }
         });
       }
+      selectedGroupKeyRef.current = null;
       selectedLayerRef.current = null;
-      if (hoveredLayerRef.current && geoJsonLayerRef.current) {
-        geoJsonLayerRef.current.resetStyle(hoveredLayerRef.current);
-        if (hoveredLayerRef.current._path) {
-          hoveredLayerRef.current._path.classList.remove('country-path-elevated');
-        }
+      if (hoveredGroupLayersRef.current.length > 0 && geoJsonLayerRef.current) {
+        hoveredGroupLayersRef.current.forEach((l) => {
+          geoJsonLayerRef.current.resetStyle(l);
+          if (l._path) {
+            l._path.classList.remove('country-path-elevated');
+          }
+        });
+        hoveredGroupLayersRef.current = [];
       }
+      hoveredGroupKeyRef.current = null;
       hoveredLayerRef.current = null;
       hoveredCountryIdRef.current = null;
       setSelectedTerritory(null);
@@ -294,12 +377,18 @@ export function TacticalMap2D({
 
     // Reset hover highlight as soon as cursor leaves the map viewport
     const onMapMouseLeave = () => {
-      if (hoveredLayerRef.current && hoveredLayerRef.current !== selectedLayerRef.current && geoJsonLayerRef.current) {
-        geoJsonLayerRef.current.resetStyle(hoveredLayerRef.current);
-        if (hoveredLayerRef.current._path) {
-          hoveredLayerRef.current._path.classList.remove('country-path-elevated');
-        }
+      if (hoveredGroupLayersRef.current.length > 0 && geoJsonLayerRef.current) {
+        hoveredGroupLayersRef.current.forEach((l) => {
+          if (!selectedLayersRef.current.includes(l)) {
+            geoJsonLayerRef.current.resetStyle(l);
+            if (l._path) {
+              l._path.classList.remove('country-path-elevated');
+            }
+          }
+        });
+        hoveredGroupLayersRef.current = [];
       }
+      hoveredGroupKeyRef.current = null;
       hoveredLayerRef.current = null;
       hoveredCountryIdRef.current = null;
       setHoveredTerritory(null);
@@ -1610,8 +1699,17 @@ export function TacticalMap2D({
       .then((geoData) => {
         if (!mapInstanceRef.current) return;
 
+        // Reset map of country group layers
+        countryGroupLayersMapRef.current.clear();
+
         const geoLayer = L.geoJSON(geoData, {
-          style: () => defaultStyle,
+          style: (feature) => {
+            const p = feature?.properties || {};
+            if (p.ADM0_A3 === 'ATA' || (p.NAME && p.NAME.toLowerCase().includes('antarct'))) {
+              return antarcticaDefaultStyle;
+            }
+            return defaultStyle;
+          },
           onEachFeature: (feature, layer) => {
             const props = feature.properties || {};
             const rawName = props.NAME || props.SUBUNIT || props.ADMIN || 'Territoire';
@@ -1625,47 +1723,76 @@ export function TacticalMap2D({
             const areaKm2 = getCountryAreaKm2(feature);
             const areaFormatted = formatAreaKm2(areaKm2);
 
-            const countryKey = props.ADM0_A3 || props.ISO_A3 || props.SOVEREIGNT || displayName;
+            const groupKey = getFeatureCountryKey(feature);
+            layer._groupKey = groupKey;
+            layer._feature = feature;
+
+            if (!countryGroupLayersMapRef.current.has(groupKey)) {
+              countryGroupLayersMapRef.current.set(groupKey, []);
+            }
+            countryGroupLayersMapRef.current.get(groupKey).push(layer);
+
             const geopolitics = resolveCountryGeopolitics(rawName, props);
 
             layer.on({
               mouseover: (e) => {
                 const target = e.target;
-                if (target === selectedLayerRef.current) return;
+                const targetGroupKey = target._groupKey || groupKey;
+                if (selectedGroupKeyRef.current === targetGroupKey) return;
 
-                // Play hover sound strictly ONCE per country entry
-                if (hoveredCountryIdRef.current !== countryKey) {
-                  hoveredCountryIdRef.current = countryKey;
-                  sound.countryHover(countryKey, 0.35);
+                // Play hover sound strictly ONCE per country group entry
+                if (hoveredCountryIdRef.current !== targetGroupKey) {
+                  hoveredCountryIdRef.current = targetGroupKey;
+                  sound.countryHover(targetGroupKey, 0.35);
                 }
 
-                // Instantly reset any previously hovered country so only ONE polygon can ever be elevated
-                if (hoveredLayerRef.current && hoveredLayerRef.current !== target && hoveredLayerRef.current !== selectedLayerRef.current) {
-                  geoLayer.resetStyle(hoveredLayerRef.current);
-                  if (hoveredLayerRef.current._path) {
-                    hoveredLayerRef.current._path.classList.remove('country-path-elevated');
-                  }
+                // Reset previously hovered group layers if switching groups
+                if (hoveredGroupKeyRef.current && hoveredGroupKeyRef.current !== targetGroupKey) {
+                  const prevLayers = countryGroupLayersMapRef.current.get(hoveredGroupKeyRef.current) || [];
+                  prevLayers.forEach((l) => {
+                    if (selectedGroupKeyRef.current !== hoveredGroupKeyRef.current) {
+                      geoLayer.resetStyle(l);
+                      if (l._path) {
+                        l._path.classList.remove('country-path-elevated');
+                      }
+                    }
+                  });
                 }
 
-                if (hoveredLayerRef.current !== target) {
-                  hoveredLayerRef.current = target;
-                  target.setStyle(hoverStyle);
-                  target.bringToFront();
-                  if (selectedLayerRef.current) {
-                    selectedLayerRef.current.bringToFront();
+                hoveredGroupKeyRef.current = targetGroupKey;
+                const groupLayers = countryGroupLayersMapRef.current.get(targetGroupKey) || [target];
+                hoveredGroupLayersRef.current = groupLayers;
+
+                const isAntarctic = targetGroupKey === 'ATA';
+                const curHoverStyle = isAntarctic ? antarcticaHoverStyle : hoverStyle;
+
+                groupLayers.forEach((l) => {
+                  if (selectedGroupKeyRef.current !== targetGroupKey) {
+                    l.setStyle(curHoverStyle);
+                    l.bringToFront();
+                    if (l._path) {
+                      l._path.classList.add('country-path-elevated');
+                    }
                   }
-                  if (target._path) {
-                    target._path.classList.add('country-path-elevated');
-                  }
+                });
+
+                if (selectedLayersRef.current.length > 0) {
+                  selectedLayersRef.current.forEach((sl) => sl.bringToFront());
                 }
+
+                let hoverName = displayName;
+                if (targetGroupKey === 'USA') hoverName = 'États-Unis';
+                else if (targetGroupKey === 'RUS') hoverName = 'Russie';
+                else if (targetGroupKey === 'FRA') hoverName = 'France';
+                else if (targetGroupKey === 'ATA') hoverName = 'Antarctique';
 
                 const clientX = e.originalEvent?.clientX || 0;
                 const clientY = e.originalEvent?.clientY || 0;
                 setHoveredTerritory({
                   x: clientX,
                   y: clientY,
-                  name: displayName,
-                  sovereign: sovereign !== displayName ? sovereign : null,
+                  name: hoverName,
+                  sovereign: sovereign !== hoverName ? sovereign : null,
                   continent,
                   pop: popFormatted,
                   area: areaFormatted,
@@ -1682,16 +1809,26 @@ export function TacticalMap2D({
               },
               mouseout: (e) => {
                 const target = e.target;
-                if (target !== selectedLayerRef.current) {
-                  geoLayer.resetStyle(target);
-                  if (target._path) {
-                    target._path.classList.remove('country-path-elevated');
+                const targetGroupKey = target._groupKey || groupKey;
+                const related = e.originalEvent?.relatedTarget;
+                const groupLayers = countryGroupLayersMapRef.current.get(targetGroupKey) || [target];
+                const isStillInSameGroup = related && groupLayers.some((l) => l._path === related || (l._path && l._path.contains(related)));
+
+                if (!isStillInSameGroup) {
+                  if (targetGroupKey !== selectedGroupKeyRef.current) {
+                    groupLayers.forEach((l) => {
+                      geoLayer.resetStyle(l);
+                      if (l._path) {
+                        l._path.classList.remove('country-path-elevated');
+                      }
+                    });
+                  }
+                  if (hoveredGroupKeyRef.current === targetGroupKey) {
+                    hoveredGroupKeyRef.current = null;
+                    hoveredGroupLayersRef.current = [];
                   }
                 }
-                if (hoveredLayerRef.current === target) {
-                  hoveredLayerRef.current = null;
-                }
-                const related = e.originalEvent?.relatedTarget;
+
                 if (!related || !related.closest || !related.closest('.leaflet-interactive')) {
                   hoveredCountryIdRef.current = null;
                   setHoveredTerritory(null);
@@ -1703,75 +1840,128 @@ export function TacticalMap2D({
                 L.DomEvent.stopPropagation(e);
                 sound.click();
                 setHoveredTerritory(null);
-                hoveredLayerRef.current = null;
+                hoveredGroupKeyRef.current = null;
+                hoveredGroupLayersRef.current = [];
 
-                // Close any conflict or ballistic inspection card to guarantee ONE single active selection
                 setInspectedTarget(null);
 
                 const target = e.target;
+                const targetGroupKey = target._groupKey || groupKey;
 
-                // 1. Reset ALL other layers to ensure strictly ONE country is ever highlighted
+                // 1. Reset ALL layers across the map to guarantee zero ghost hover styles
                 geoLayer.eachLayer((l) => {
-                  if (l !== target) {
-                    geoLayer.resetStyle(l);
-                    if (l._path) {
-                      l._path.classList.remove('country-path-selected');
-                      l._path.classList.remove('country-path-elevated');
-                    }
+                  geoLayer.resetStyle(l);
+                  if (l._path) {
+                    l._path.classList.remove('country-path-selected');
+                    l._path.classList.remove('country-path-elevated');
+                  }
+                });
+                selectedLayersRef.current = [];
+
+                // 2. Select all layers in this country group
+                const groupLayers = countryGroupLayersMapRef.current.get(targetGroupKey) || [target];
+                selectedLayersRef.current = groupLayers;
+                selectedGroupKeyRef.current = targetGroupKey;
+                selectedLayerRef.current = target;
+
+                const isAntarctic = targetGroupKey === 'ATA';
+                const curSelectedStyle = isAntarctic ? antarcticaSelectedStyle : selectedStyle;
+
+                groupLayers.forEach((l) => {
+                  l.setStyle(curSelectedStyle);
+                  l.bringToFront();
+                  if (l._path) {
+                    l._path.classList.add('country-path-selected');
+                    l._path.classList.remove('country-path-elevated');
                   }
                 });
 
-                // 2. Apply persistent glowing selected style to target
-                selectedLayerRef.current = target;
-                target.setStyle(selectedStyle);
-                target.bringToFront();
-                if (target._path) {
-                  target._path.classList.add('country-path-selected');
-                  target._path.classList.remove('country-path-elevated');
-                }
-
-                const bounds = target.getBounds();
-                const center = bounds.getCenter();
-
-                // 3. Antarctica & Extreme Polar Latitudes Camera Protection
-                // Antarctica spans -180 to 180 and down to -90, which crashes Mercator fitBounds and throws map off-screen.
-                const isAntarctica =
-                  rawName.toLowerCase().includes('antarct') ||
-                  displayName.toLowerCase().includes('antarct') ||
-                  bounds.getSouth() < -62;
-
-                if (isAntarctica) {
-                  // Beautiful, stable, safe camera view over Antarctica that never overflows the screen:
-                  map.flyTo([-72, 0], 2.8, {
-                    duration: 1.1,
-                  });
+                // 3. Smooth Camera Trajectory & Framing
+                if (targetGroupKey === 'USA') {
+                  // Frames contiguous 48 states + Alaska + Hawaii perfectly without 180 meridian warp
+                  map.flyTo([48.0, -100.0], 3.2, { duration: 1.1 });
+                } else if (targetGroupKey === 'RUS') {
+                  // Frames the entire Russian Federation from Baltic to Pacific
+                  map.flyTo([62.0, 95.0], 2.8, { duration: 1.1 });
+                } else if (targetGroupKey === 'ATA') {
+                  // Frames Antarctica cleanly with room for the HUD
+                  map.flyTo([-74.0, 0.0], 2.6, { duration: 1.1 });
+                } else if (targetGroupKey === 'FRA') {
+                  // Frames mainland France + Corsica
+                  map.flyTo([46.6, 2.5], 5.4, { duration: 1.1 });
                 } else {
-                  // Clamp bounds between safe Mercator latitudes [-74, 76] to avoid screen overflow
-                  const south = Math.max(-74, bounds.getSouth());
-                  const north = Math.min(76, bounds.getNorth());
-                  const west = bounds.getWest();
-                  const east = bounds.getEast();
-                  const safeBounds = L.latLngBounds(L.latLng(south, west), L.latLng(north, east));
-
-                  map.fitBounds(safeBounds, {
-                    padding: [80, 80],
-                    maxZoom: 6.2,
-                    animate: true,
-                    duration: 1.1,
+                  let combinedBounds = null;
+                  groupLayers.forEach((l) => {
+                    const b = l.getBounds();
+                    if (!combinedBounds) {
+                      combinedBounds = L.latLngBounds(b.getSouthWest(), b.getNorthEast());
+                    } else {
+                      combinedBounds.extend(b);
+                    }
                   });
+
+                  if (combinedBounds && combinedBounds.isValid()) {
+                    const south = Math.max(-74, combinedBounds.getSouth());
+                    const north = Math.min(76, combinedBounds.getNorth());
+                    const west = combinedBounds.getWest();
+                    const east = combinedBounds.getEast();
+                    const safeBounds = L.latLngBounds(L.latLng(south, west), L.latLng(north, east));
+
+                    map.fitBounds(safeBounds, {
+                      padding: [80, 80],
+                      maxZoom: 6.2,
+                      animate: true,
+                      duration: 1.1,
+                    });
+                  }
                 }
+
+                // 4. Set Selected Territory with Unified Metrics
+                let unifiedName = displayName;
+                let unifiedSovereign = sovereign;
+                let unifiedPop = popFormatted;
+                let unifiedArea = areaFormatted;
+                let unifiedAreaKm2 = areaKm2;
+
+                if (targetGroupKey === 'USA') {
+                  unifiedName = 'États-Unis';
+                  unifiedSovereign = 'United States of America';
+                  unifiedPop = '335 893 238';
+                  unifiedArea = '9 833 517 km²';
+                  unifiedAreaKm2 = 9833517;
+                } else if (targetGroupKey === 'RUS') {
+                  unifiedName = 'Russie';
+                  unifiedSovereign = 'Russia';
+                  unifiedPop = '144 200 000';
+                  unifiedArea = '17 098 242 km²';
+                  unifiedAreaKm2 = 17098242;
+                } else if (targetGroupKey === 'FRA') {
+                  unifiedName = 'France';
+                  unifiedSovereign = 'France';
+                  unifiedPop = '68 042 591';
+                  unifiedArea = '643 801 km²';
+                  unifiedAreaKm2 = 643801;
+                } else if (targetGroupKey === 'ATA') {
+                  unifiedName = 'Antarctique';
+                  unifiedSovereign = 'Continent Antarctique';
+                  unifiedPop = '~1 100 à 4 500';
+                  unifiedArea = '14 200 000 km²';
+                  unifiedAreaKm2 = 14200000;
+                }
+
+                const primaryCenter = target.getBounds().getCenter();
 
                 setSelectedTerritory({
-                  name: displayName,
+                  name: unifiedName,
                   rawName,
-                  sovereign,
+                  sovereign: unifiedSovereign,
                   continent,
                   subregion,
-                  pop: popFormatted,
-                  area: areaFormatted,
-                  areaKm2,
-                  centerLat: `${Math.abs(center.lat).toFixed(2)}° ${center.lat >= 0 ? 'N' : 'S'}`,
-                  centerLng: `${Math.abs(center.lng).toFixed(2)}° ${center.lng >= 0 ? 'E' : 'W'}`,
+                  pop: unifiedPop,
+                  area: unifiedArea,
+                  areaKm2: unifiedAreaKm2,
+                  centerLat: `${Math.abs(primaryCenter.lat).toFixed(2)}° ${primaryCenter.lat >= 0 ? 'N' : 'S'}`,
+                  centerLng: `${Math.abs(primaryCenter.lng).toFixed(2)}° ${primaryCenter.lng >= 0 ? 'E' : 'W'}`,
                   geopolitics,
                   feature,
                 });
@@ -2037,7 +2227,16 @@ export function TacticalMap2D({
 
   const handleResetView = () => {
     sound.click();
-    if (geoJsonLayerRef.current) {
+    if (selectedLayersRef.current && selectedLayersRef.current.length > 0) {
+      selectedLayersRef.current.forEach((l) => {
+        geoJsonLayerRef.current?.resetStyle(l);
+        if (l._path) {
+          l._path.classList.remove('country-path-selected');
+          l._path.classList.remove('country-path-elevated');
+        }
+      });
+      selectedLayersRef.current = [];
+    } else if (geoJsonLayerRef.current) {
       geoJsonLayerRef.current.eachLayer((l) => {
         geoJsonLayerRef.current.resetStyle(l);
         if (l._path) {
@@ -2046,6 +2245,7 @@ export function TacticalMap2D({
         }
       });
     }
+    selectedGroupKeyRef.current = null;
     selectedLayerRef.current = null;
     setSelectedTerritory(null);
     mapInstanceRef.current?.flyTo([20, 0], 2.6, { duration: 1.1 });

@@ -16,6 +16,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Euro (EUR €)',
     callingCode: '+33',
     utcOffset: 1,
+    timeZone: 'Europe/Paris',
     timeZoneName: 'CET (Paris)',
     regime: 'République semi-présidentielle',
     nuclearStatus: 'Puissance nucléaire dotée (P5)',
@@ -33,6 +34,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Euro (EUR €)',
     callingCode: '+49',
     utcOffset: 1,
+    timeZone: 'Europe/Berlin',
     timeZoneName: 'CET (Berlin)',
     regime: 'République fédérale parlementaire',
     nuclearStatus: 'Partage nucléaire OTAN',
@@ -50,6 +52,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Livre Sterling (GBP £)',
     callingCode: '+44',
     utcOffset: 0,
+    timeZone: 'Europe/London',
     timeZoneName: 'GMT (Londres)',
     regime: 'Monarchie constitutionnelle parlementaire',
     nuclearStatus: 'Puissance nucléaire dotée (P5)',
@@ -67,6 +70,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Euro (EUR €)',
     callingCode: '+39',
     utcOffset: 1,
+    timeZone: 'Europe/Rome',
     timeZoneName: 'CET (Rome)',
     regime: 'République parlementaire',
     nuclearStatus: 'Partage nucléaire OTAN',
@@ -84,6 +88,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Euro (EUR €)',
     callingCode: '+34',
     utcOffset: 1,
+    timeZone: 'Europe/Madrid',
     timeZoneName: 'CET (Madrid)',
     regime: 'Monarchie constitutionnelle',
     nuclearStatus: 'Non doté (Parapluie OTAN)',
@@ -101,6 +106,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Hryvnia (UAH ₴)',
     callingCode: '+380',
     utcOffset: 2,
+    timeZone: 'Europe/Kyiv',
     timeZoneName: 'EET (Kyiv)',
     regime: 'République semi-présidentielle',
     nuclearStatus: 'Non doté',
@@ -118,6 +124,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Złoty (PLN zł)',
     callingCode: '+48',
     utcOffset: 1,
+    timeZone: 'Europe/Warsaw',
     timeZoneName: 'CET (Varsovie)',
     regime: 'République parlementaire',
     nuclearStatus: 'Non doté (Parapluie OTAN)',
@@ -135,6 +142,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Rouble (RUB ₽)',
     callingCode: '+7',
     utcOffset: 3,
+    timeZone: 'Europe/Moscow',
     timeZoneName: 'MSK (Moscou)',
     regime: 'Régime semi-présidentiel fédéral',
     nuclearStatus: 'Superpuissance nucléaire (5 580 ogives)',
@@ -152,6 +160,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Euro (EUR €)',
     callingCode: '+31',
     utcOffset: 1,
+    timeZone: 'Europe/Amsterdam',
     timeZoneName: 'CET (Amsterdam)',
     regime: 'Monarchie constitutionnelle',
     nuclearStatus: 'Partage nucléaire OTAN',
@@ -169,6 +178,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Franc suisse (CHF)',
     callingCode: '+41',
     utcOffset: 1,
+    timeZone: 'Europe/Zurich',
     timeZoneName: 'CET (Berne)',
     regime: 'Démocratie directe confédérale',
     nuclearStatus: 'Non doté',
@@ -186,6 +196,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Couronne suédoise (SEK)',
     callingCode: '+46',
     utcOffset: 1,
+    timeZone: 'Europe/Stockholm',
     timeZoneName: 'CET (Stockholm)',
     regime: 'Monarchie constitutionnelle',
     nuclearStatus: 'Parapluie OTAN',
@@ -203,6 +214,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Couronne norvégienne (NOK)',
     callingCode: '+47',
     utcOffset: 1,
+    timeZone: 'Europe/Oslo',
     timeZoneName: 'CET (Oslo)',
     regime: 'Monarchie constitutionnelle',
     nuclearStatus: 'Parapluie OTAN',
@@ -220,6 +232,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Euro (EUR €)',
     callingCode: '+32',
     utcOffset: 1,
+    timeZone: 'Europe/Brussels',
     timeZoneName: 'CET (Bruxelles)',
     regime: 'Monarchie constitutionnelle fédérale',
     nuclearStatus: 'Partage nucléaire OTAN',
@@ -239,6 +252,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Dollar américain (USD $)',
     callingCode: '+1',
     utcOffset: -5,
+    timeZone: 'America/New_York',
     timeZoneName: 'EST (Washington)',
     regime: 'République constitutionnelle fédérale',
     nuclearStatus: 'Superpuissance nucléaire (5 044 ogives)',
@@ -256,6 +270,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Dollar canadien (CAD $)',
     callingCode: '+1',
     utcOffset: -5,
+    timeZone: 'America/Toronto',
     timeZoneName: 'EST (Ottawa)',
     regime: 'Monarchie constitutionnelle fédérale',
     nuclearStatus: 'Non doté (Parapluie OTAN/US)',
@@ -273,6 +288,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Peso mexicain (MXN $)',
     callingCode: '+52',
     utcOffset: -6,
+    timeZone: 'America/Mexico_City',
     timeZoneName: 'CST (Mexico)',
     regime: 'République fédérale présidentielle',
     nuclearStatus: 'Traité de Tlatelolco (Zone exempte)',
@@ -292,6 +308,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Yuan Renminbi (CNY ¥)',
     callingCode: '+86',
     utcOffset: 8,
+    timeZone: 'Asia/Shanghai',
     timeZoneName: 'CST (Pékin)',
     regime: 'République populaire unipartite',
     nuclearStatus: 'Puissance nucléaire dotée (500 ogives)',
@@ -309,6 +326,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Yen japonais (JPY ¥)',
     callingCode: '+81',
     utcOffset: 9,
+    timeZone: 'Asia/Tokyo',
     timeZoneName: 'JST (Tokyo)',
     regime: 'Monarchie constitutionnelle parlementaire',
     nuclearStatus: 'Trois principes non-nucléaires',
@@ -326,6 +344,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Roupie indienne (INR ₹)',
     callingCode: '+91',
     utcOffset: 5.5,
+    timeZone: 'Asia/Kolkata',
     timeZoneName: 'IST (New Delhi)',
     regime: 'République fédérale parlementaire',
     nuclearStatus: 'Puissance nucléaire déclarée (~170 ogives)',
@@ -343,6 +362,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Won sud-coréen (KRW ₩)',
     callingCode: '+82',
     utcOffset: 9,
+    timeZone: 'Asia/Seoul',
     timeZoneName: 'KST (Séoul)',
     regime: 'République présidentielle',
     nuclearStatus: 'Parapluie nucléaire US',
@@ -360,6 +380,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Won nord-coréen (KPW ₩)',
     callingCode: '+850',
     utcOffset: 9,
+    timeZone: 'Asia/Pyongyang',
     timeZoneName: 'KST (Pyongyang)',
     regime: 'État à parti unique idéologie Juche',
     nuclearStatus: 'Puissance nucléaire autodéclarée (~50 ogives)',
@@ -377,6 +398,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Nouveau dollar de Taïwan (TWD NT$)',
     callingCode: '+886',
     utcOffset: 8,
+    timeZone: 'Asia/Taipei',
     timeZoneName: 'CST (Taipei)',
     regime: 'Démocratie semi-présidentielle',
     nuclearStatus: 'Non doté (Protection technologique)',
@@ -394,6 +416,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Dollar australien (AUD $)',
     callingCode: '+61',
     utcOffset: 10,
+    timeZone: 'Australia/Sydney',
     timeZoneName: 'AEST (Canberra)',
     regime: 'Démocratie parlementaire fédérale',
     nuclearStatus: 'Sous-marins d\'attaque AUKUS (Propulsion nucléaire)',
@@ -413,6 +436,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Shekel israélien (ILS ₪)',
     callingCode: '+972',
     utcOffset: 2,
+    timeZone: 'Asia/Jerusalem',
     timeZoneName: 'IST (Jérusalem)',
     regime: 'République parlementaire',
     nuclearStatus: 'Ambigüité stratégique (~90 ogives estimées)',
@@ -430,6 +454,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Riyal saoudien (SAR ﷼)',
     callingCode: '+966',
     utcOffset: 3,
+    timeZone: 'Asia/Riyadh',
     timeZoneName: 'AST (Riyad)',
     regime: 'Monarchie absolue islamique',
     nuclearStatus: 'Non doté (Programme civil)',
@@ -447,6 +472,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Rial iranien (IRR ﷼)',
     callingCode: '+98',
     utcOffset: 3.5,
+    timeZone: 'Asia/Tehran',
     timeZoneName: 'IRST (Téhéran)',
     regime: 'République théocratique islamique',
     nuclearStatus: 'Enrichissement d\'uranium à 60% (Seuil nucléaire)',
@@ -464,6 +490,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Livre turque (TRY ₺)',
     callingCode: '+90',
     utcOffset: 3,
+    timeZone: 'Europe/Istanbul',
     timeZoneName: 'TRT (Ankara)',
     regime: 'République présidentielle',
     nuclearStatus: 'Partage nucléaire OTAN (Base d\'Incirlik)',
@@ -481,6 +508,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Livre égyptienne (EGP £)',
     callingCode: '+20',
     utcOffset: 2,
+    timeZone: 'Africa/Cairo',
     timeZoneName: 'EET (Le Caire)',
     regime: 'République présidentielle',
     nuclearStatus: 'Centrale d\'El-Dabaa (Nucléaire civil)',
@@ -500,6 +528,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Real brésilien (BRL R$)',
     callingCode: '+55',
     utcOffset: -3,
+    timeZone: 'America/Sao_Paulo',
     timeZoneName: 'BRT (Brasília)',
     regime: 'République fédérale présidentielle',
     nuclearStatus: 'Programme sous-marin à propulsion nucléaire',
@@ -517,6 +546,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Peso argentin (ARS $)',
     callingCode: '+54',
     utcOffset: -3,
+    timeZone: 'America/Argentina/Buenos_Aires',
     timeZoneName: 'ART (Buenos Aires)',
     regime: 'République fédérale présidentielle',
     nuclearStatus: 'Technologie réacteurs civils exportée',
@@ -536,6 +566,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Rand sud-africain (ZAR R)',
     callingCode: '+27',
     utcOffset: 2,
+    timeZone: 'Africa/Johannesburg',
     timeZoneName: 'SAST (Pretoria)',
     regime: 'République parlementaire',
     nuclearStatus: 'Seul État ayant démantelé son arsenal atomique',
@@ -553,6 +584,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Dinar algérien (DZD د.ج)',
     callingCode: '+213',
     utcOffset: 1,
+    timeZone: 'Africa/Algiers',
     timeZoneName: 'CET (Alger)',
     regime: 'République semi-présidentielle',
     nuclearStatus: 'Non doté (Centres de recherche civils)',
@@ -570,6 +602,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Dirham marocain (MAD د.م.)',
     callingCode: '+212',
     utcOffset: 1,
+    timeZone: 'Africa/Casablanca',
     timeZoneName: 'WEST (Rabat)',
     regime: 'Monarchie constitutionnelle démocratique',
     nuclearStatus: 'Non doté',
@@ -589,6 +622,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Couronne danoise (DKK)',
     callingCode: '+299',
     utcOffset: -2,
+    timeZone: 'America/Nuuk',
     timeZoneName: 'WGT (Nuuk)',
     regime: 'Gouvernement autonome parlementaire',
     nuclearStatus: 'Base spatiale d\'alerte précoce Thulé',
@@ -606,9 +640,28 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Euro (EUR €)',
     callingCode: '+594',
     utcOffset: -3,
+    timeZone: 'America/Cayenne',
     timeZoneName: 'GFT (Cayenne)',
     regime: 'Collectivité territoriale française',
     nuclearStatus: 'Centre spatial de Kourou (Ariane 6)',
+  },
+    'Antarctica': {
+    iso2: 'AQ',
+    iso3: 'ATA',
+    capital: 'Pôle Sud (Bases McMurdo, Dumont d\'Urville, Concordia)',
+    officialName: 'Continent Antarctique (Traité sur l\'Antarctique)',
+    gdpNominalUsd: '0 $ (Recherche scientifique)',
+    gdpRank: 'Réserve naturelle internationale',
+    militaryPersonnel: '0 (Démilitarisé par traité)',
+    militaryBudget: '0 $ (Zone de paix et de science)',
+    alliances: ['Traité de Washington (1959)', 'SCAR', 'RCTA (56 États)'],
+    currency: 'Aucune (Zone internationale)',
+    callingCode: '+672',
+    utcOffset: 0,
+    timeZone: 'UTC',
+    timeZoneName: 'UTC (Pôle Sud Amundsen-Scott)',
+    regime: 'Territoire international sous statut consultatif',
+    nuclearStatus: 'Dénucléarisé (Art. V du Traité)',
   },
   'Reunion': {
     iso2: 'RE',
@@ -623,6 +676,7 @@ export const COUNTRY_GEOPOLITICS_DB = {
     currency: 'Euro (EUR €)',
     callingCode: '+262',
     utcOffset: 4,
+    timeZone: 'Indian/Reunion',
     timeZoneName: 'RET (Saint-Denis)',
     regime: 'Département et région d\'outre-mer',
     nuclearStatus: 'Station de surveillance sous-marine hydroacoustique',
@@ -631,6 +685,15 @@ export const COUNTRY_GEOPOLITICS_DB = {
 
 // Map of common alternate country names or subunit names to standard keys
 export const COUNTRY_KEY_ALIASES = {
+  'Antarctica': 'Antarctica',
+  'Antarctique': 'Antarctica',
+  'Peter I I.': 'Antarctica',
+  'S. Orkney Is.': 'Antarctica',
+  'Alaska': 'United States',
+  'Hawaii': 'United States',
+  'Kaliningrad': 'Russia',
+  'Crimea': 'Russia',
+
   'USA': 'United States',
   'United States of America': 'United States',
   'États-Unis': 'United States',
@@ -678,42 +741,184 @@ export const COUNTRY_KEY_ALIASES = {
   'Taiwan, Province of China': 'Taiwan',
 };
 
-// Get real-time capital time string formatted e.g. "14:45:10 CET"
-export function getCapitalLocalTimeString(utcOffset = 0, timeZoneLabel = 'UTC') {
-  const now = new Date();
-  const utcHours = now.getUTCHours();
-  const utcMinutes = now.getUTCMinutes();
-  const utcSeconds = now.getUTCSeconds();
+// Direct ADM0 Sovereign code mapping to geopolitical DB keys
+export const ADM0_TO_COUNTRY_KEY = {
+  USA: 'United States',
+  RUS: 'Russia',
+  FRA: 'France',
+  ATA: 'Antarctica',
+  CHN: 'China',
+  GBR: 'United Kingdom',
+  DEU: 'Germany',
+  JPN: 'Japan',
+  ITA: 'Italy',
+  ESP: 'Spain',
+  CAN: 'Canada',
+  AUS: 'Australia',
+  BRA: 'Brazil',
+  IND: 'India',
+  UKR: 'Ukraine',
+  POL: 'Poland',
+  NLD: 'Netherlands',
+  CHE: 'Switzerland',
+  SWE: 'Sweden',
+  NOR: 'Norway',
+  BEL: 'Belgium',
+  MEX: 'Mexico',
+  KOR: 'South Korea',
+  PRK: 'North Korea',
+  TWN: 'Taiwan',
+  ISR: 'Israel',
+  SAU: 'Saudi Arabia',
+  IRN: 'Iran',
+  TUR: 'Turkey',
+  EGY: 'Egypt',
+  ARG: 'Argentina',
+  ZAF: 'South Africa',
+  DZA: 'Algeria',
+  MAR: 'Morocco',
+  GRL: 'Greenland',
+  GUF: 'French Guiana',
+  REU: 'Reunion',
+};
 
-  const totalMinutes = Math.floor(utcHours * 60 + utcMinutes + utcOffset * 60);
-  const normalizedMinutes = ((totalMinutes % 1440) + 1440) % 1440;
+// Complete ISO 3166-1 alpha-3 to alpha-2 dictionary covering all 241 entities on Earth
+export const ISO3_TO_ISO2 = {
+  ABW: 'AW', AFG: 'AF', AGO: 'AO', AIA: 'AI', ALA: 'AX', ALD: 'AX', ALB: 'AL', AND: 'AD', ARE: 'AE', ARG: 'AR',
+  ARM: 'AM', ASM: 'AS', ATA: 'AQ', ATC: 'AU', ATF: 'TF', ATG: 'AG', AUS: 'AU', AUT: 'AT', AZE: 'AZ', BDI: 'BI',
+  BEL: 'BE', BEN: 'BJ', BES: 'BQ', BFA: 'BF', BGD: 'BD', BGR: 'BG', BHR: 'BH', BHS: 'BS', BIH: 'BA', BLM: 'BL',
+  BLR: 'BY', BLZ: 'BZ', BMU: 'BM', BOL: 'BO', BRA: 'BR', BRB: 'BB', BRN: 'BN', BTN: 'BT', BVT: 'BV', BWA: 'BW',
+  CAF: 'CF', CAN: 'CA', CCK: 'CC', CHE: 'CH', CHL: 'CL', CHN: 'CN', CIV: 'CI', CMR: 'CM', COD: 'CD', COG: 'CG',
+  COK: 'CK', COL: 'CO', COM: 'KM', CPV: 'CV', CRI: 'CR', CUB: 'CU', CUW: 'CW', CXR: 'CX', CYM: 'KY', CYP: 'CY',
+  CYN: 'CY', CZE: 'CZ', DEU: 'DE', DJI: 'DJ', DMA: 'DM', DNK: 'DK', DOM: 'DO', DZA: 'DZ', ECU: 'EC', EGY: 'EG',
+  ERI: 'ER', ESH: 'EH', ESP: 'ES', EST: 'EE', ETH: 'ET', FIN: 'FI', FJI: 'FJ', FLK: 'FK', FRA: 'FR', FRO: 'FO',
+  FSM: 'FM', GAB: 'GA', GBR: 'GB', GEO: 'GE', GGY: 'GG', GHA: 'GH', GIB: 'GI', GIN: 'GN', GLP: 'GP', GMB: 'GM',
+  GNB: 'GW', GNQ: 'GQ', GRC: 'GR', GRD: 'GD', GRL: 'GL', GTM: 'GT', GUF: 'GF', GUM: 'GU', GUY: 'GY', HKG: 'HK',
+  HMD: 'HM', HND: 'HN', HRV: 'HR', HTI: 'HT', HUN: 'HU', IDN: 'ID', IMN: 'IM', IND: 'IN', IOT: 'IO', IOA: 'IO',
+  IRL: 'IE', IRN: 'IR', IRQ: 'IQ', ISL: 'IS', ISR: 'IL', ITA: 'IT', JAM: 'JM', JEY: 'JE', JOR: 'JO', JPN: 'JP',
+  KAS: 'IN', KAZ: 'KZ', KEN: 'KE', KGZ: 'KG', KHM: 'KH', KIR: 'KI', KNA: 'KN', KOR: 'KR', KWT: 'KW', LAO: 'LA',
+  LBN: 'LB', LBR: 'LR', LBY: 'LY', LCA: 'LC', LIE: 'LI', LKA: 'LK', LSO: 'LS', LTU: 'LT', LUX: 'LU', LVA: 'LV',
+  MAC: 'MO', MAF: 'MF', MAR: 'MA', MCO: 'MC', MDA: 'MD', MDG: 'MG', MDV: 'MV', MEX: 'MX', MHL: 'MH', MKD: 'MK',
+  MLI: 'ML', MLT: 'MT', MMR: 'MM', MNE: 'ME', MNG: 'MN', MNP: 'MP', MOZ: 'MZ', MRT: 'MR', MSR: 'MS', MTQ: 'MQ',
+  MUS: 'MU', MWI: 'MW', MYS: 'MY', MYT: 'YT', NAM: 'NA', NCL: 'NC', NER: 'NE', NFK: 'NF', NGA: 'NG', NIC: 'NI',
+  NIU: 'NU', NLD: 'NL', NOR: 'NO', NPL: 'NP', NRU: 'NR', NZL: 'NZ', OMN: 'OM', PAK: 'PK', PAN: 'PA', PCN: 'PN',
+  PER: 'PE', PHL: 'PH', PLW: 'PW', PNG: 'PG', POL: 'PL', PRI: 'PR', PRK: 'KP', PRT: 'PT', PRY: 'PY', PSE: 'PS',
+  PSX: 'PS', PYF: 'PF', QAT: 'QA', REU: 'RE', ROU: 'RO', RUS: 'RU', RWA: 'RW', SAH: 'EH', SAU: 'SA', SDN: 'SD',
+  SDS: 'SS', SEN: 'SN', SGP: 'SG', SGS: 'GS', SHN: 'SH', SJM: 'SJ', SLB: 'SB', SLE: 'SL', SLV: 'SV', SMR: 'SM',
+  SOL: 'SO', SOM: 'SO', SPM: 'PM', SRB: 'RS', SSD: 'SS', STP: 'ST', SUR: 'SR', SVK: 'SK', SVN: 'SI', SWE: 'SE',
+  SWZ: 'SZ', SXM: 'SX', SYC: 'SC', SYR: 'SY', TCA: 'TC', TCD: 'TD', TGO: 'TG', THA: 'TH', TJK: 'TJ', TKL: 'TK',
+  TKM: 'TM', TLS: 'TL', TON: 'TO', TTO: 'TT', TUN: 'TN', TUR: 'TR', TUV: 'TV', TWN: 'TW', TZA: 'TZ', UGA: 'UG',
+  UKR: 'UA', UMI: 'UM', URY: 'UY', USA: 'US', UZB: 'UZ', VAT: 'VA', VCT: 'VC', VEN: 'VE', VGB: 'VG', VIR: 'VI',
+  VNM: 'VN', VUT: 'VU', WEB: 'PS', WLF: 'WF', WSM: 'WS', YEM: 'YE', ZAF: 'ZA', ZMB: 'ZM', ZWE: 'ZW', KOS: 'XK',
+};
 
-  const h = String(Math.floor(normalizedMinutes / 60)).padStart(2, '0');
-  const m = String(normalizedMinutes % 60).padStart(2, '0');
-  const s = String(utcSeconds).padStart(2, '0');
+// Primary national capital IANA timezones
+export const ISO2_TO_IANA_TZ = {
+  FR: 'Europe/Paris', US: 'America/New_York', RU: 'Europe/Moscow', GB: 'Europe/London', DE: 'Europe/Berlin',
+  IT: 'Europe/Rome', ES: 'Europe/Madrid', UA: 'Europe/Kyiv', PL: 'Europe/Warsaw', NL: 'Europe/Amsterdam',
+  CH: 'Europe/Zurich', SE: 'Europe/Stockholm', NO: 'Europe/Oslo', BE: 'Europe/Brussels', CA: 'America/Toronto',
+  MX: 'America/Mexico_City', CN: 'Asia/Shanghai', JP: 'Asia/Tokyo', IN: 'Asia/Kolkata', KR: 'Asia/Seoul',
+  KP: 'Asia/Pyongyang', TW: 'Asia/Taipei', AU: 'Australia/Sydney', IL: 'Asia/Jerusalem', SA: 'Asia/Riyadh',
+  IR: 'Asia/Tehran', TR: 'Europe/Istanbul', EG: 'Africa/Cairo', BR: 'America/Sao_Paulo', AR: 'America/Argentina/Buenos_Aires',
+  ZA: 'Africa/Johannesburg', DZ: 'Africa/Algiers', MA: 'Africa/Casablanca', GL: 'America/Nuuk', GF: 'America/Cayenne',
+  RE: 'Indian/Reunion', AQ: 'UTC', AT: 'Europe/Vienna', PT: 'Europe/Lisbon', GR: 'Europe/Athens',
+  DK: 'Europe/Copenhagen', FI: 'Europe/Helsinki', IE: 'Europe/Dublin', CZ: 'Europe/Prague', HU: 'Europe/Budapest',
+  RO: 'Europe/Bucharest', BG: 'Europe/Sofia', HR: 'Europe/Zagreb', RS: 'Europe/Belgrade', SK: 'Europe/Bratislava',
+  NZ: 'Pacific/Auckland', SG: 'Asia/Singapore', MY: 'Asia/Kuala_Lumpur', TH: 'Asia/Bangkok', VN: 'Asia/Ho_Chi_Minh',
+  ID: 'Asia/Jakarta', PH: 'Asia/Manila', CL: 'America/Santiago', CO: 'America/Bogota', PE: 'America/Lima',
+  AE: 'Asia/Dubai', QA: 'Asia/Qatar', KW: 'Asia/Kuwait', TN: 'Africa/Tunis', NG: 'Africa/Lagos',
+  KE: 'Africa/Nairobi', ET: 'Africa/Addis_Ababa', PK: 'Asia/Karachi', BD: 'Asia/Dhaka', LK: 'Asia/Colombo',
+};
 
-  return `${h}:${m}:${s} ${timeZoneLabel}`;
+// High-precision live capital time string using standard IANA timezones (e.g. "16:45:10 CEST (Paris)")
+export function getCapitalLocalTimeString(timeZoneOrOffset = 'UTC', label = '') {
+  try {
+    const now = new Date();
+    let ianaTz = 'UTC';
+
+    if (typeof timeZoneOrOffset === 'string' && (timeZoneOrOffset.includes('/') || timeZoneOrOffset === 'UTC')) {
+      ianaTz = timeZoneOrOffset;
+    } else if (typeof timeZoneOrOffset === 'number') {
+      // Fallback calculation for custom numeric offset
+      const utcHours = now.getUTCHours();
+      const utcMinutes = now.getUTCMinutes();
+      const utcSeconds = now.getUTCSeconds();
+      const totalMinutes = Math.floor(utcHours * 60 + utcMinutes + timeZoneOrOffset * 60);
+      const normalizedMinutes = ((totalMinutes % 1440) + 1440) % 1440;
+      const h = String(Math.floor(normalizedMinutes / 60)).padStart(2, '0');
+      const m = String(normalizedMinutes % 60).padStart(2, '0');
+      const s = String(utcSeconds).padStart(2, '0');
+      return `${h}:${m}:${s} ${label || 'UTC'}`.trim();
+    }
+
+    const timePart = new Intl.DateTimeFormat('fr-FR', {
+      timeZone: ianaTz,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).format(now);
+
+    const tzPart = new Intl.DateTimeFormat('en-US', {
+      timeZone: ianaTz,
+      timeZoneName: 'short',
+    }).formatToParts(now).find(p => p.type === 'timeZoneName')?.value || 'UTC';
+
+    return `${timePart} ${tzPart}${label ? ' (' + label + ')' : ''}`.trim();
+  } catch (e) {
+    const now = new Date();
+    const h = String(now.getUTCHours()).padStart(2, '0');
+    const m = String(now.getUTCMinutes()).padStart(2, '0');
+    const s = String(now.getUTCSeconds()).padStart(2, '0');
+    return `${h}:${m}:${s} UTC${label ? ' (' + label + ')' : ''}`.trim();
+  }
 }
 
 // Universal resolution helper for any feature in the Subunits GeoJSON
 export function resolveCountryGeopolitics(rawName, props = {}) {
-  const standardKey = COUNTRY_KEY_ALIASES[rawName] || rawName;
+  // 1. Direct name alias check
+  let standardKey = COUNTRY_KEY_ALIASES[rawName] || rawName;
+
+  // 2. Subunit sovereign check (e.g. Alaska/Hawaii -> United States, Kaliningrad/Crimea -> Russia, Corsica -> France)
+  if (!COUNTRY_GEOPOLITICS_DB[standardKey]) {
+    const adm0 = props.ADM0_A3 || props.SU_A3;
+    if (adm0 && ADM0_TO_COUNTRY_KEY[adm0]) {
+      standardKey = ADM0_TO_COUNTRY_KEY[adm0];
+    } else if (props.SOVEREIGNT && COUNTRY_KEY_ALIASES[props.SOVEREIGNT]) {
+      standardKey = COUNTRY_KEY_ALIASES[props.SOVEREIGNT];
+    } else if (props.SOVEREIGNT && COUNTRY_GEOPOLITICS_DB[props.SOVEREIGNT]) {
+      standardKey = props.SOVEREIGNT;
+    }
+  }
+
   const match = COUNTRY_GEOPOLITICS_DB[standardKey];
 
   if (match) {
-    const iso2 = match.iso2.toLowerCase();
+    const iso2Lower = match.iso2.toLowerCase();
     return {
       ...match,
-      flagUrl: `https://flagcdn.com/${iso2}.svg`,
-      flagFallback: `https://flagcdn.com/w160/${iso2}.png`,
+      flagUrl: `https://flagcdn.com/${iso2Lower}.svg`,
+      flagFallback: `https://flagcdn.com/w160/${iso2Lower}.png`,
       isDirectMatch: true,
     };
   }
 
-  // Smart fallback using GeoJSON properties for any other nation or subunit on Earth
-  const rawIso2 = (props.ISO_A2 && props.ISO_A2 !== '-99' ? props.ISO_A2 : props.POSTAL || props.WB_A2 || '').toUpperCase();
-  const iso2 = (rawIso2 && rawIso2.length === 2 && rawIso2 !== '-9') ? rawIso2 : (props.ADM0_A3 ? props.ADM0_A3.slice(0, 2) : 'un');
-  const iso3 = props.ISO_A3 && props.ISO_A3 !== '-99' ? props.ISO_A3 : props.ADM0_A3 || '---';
+  // 3. Robust ISO2 resolution using complete ISO3_TO_ISO2 dictionary (0 missing flags!)
+  const adm0 = props.ADM0_A3 || '';
+  const iso3Raw = props.ISO_A3 && props.ISO_A3 !== '-99' ? props.ISO_A3 : adm0;
+  const suA3 = props.SU_A3 || '';
+
+  let resolvedIso2 = ISO3_TO_ISO2[adm0] || ISO3_TO_ISO2[iso3Raw] || ISO3_TO_ISO2[suA3] || '';
+
+  if (!resolvedIso2) {
+    const rawIso2 = (props.ISO_A2 && props.ISO_A2 !== '-99' ? props.ISO_A2 : props.WB_A2 || '').toUpperCase();
+    if (rawIso2 && rawIso2.length === 2 && rawIso2 !== '-9') {
+      resolvedIso2 = rawIso2;
+    }
+  }
+
+  const iso2 = (resolvedIso2 && resolvedIso2.length === 2) ? resolvedIso2.toUpperCase() : 'UN';
+  const iso3 = iso3Raw || '---';
 
   const gdpMd = props.GDP_MD_EST;
   let gdpFormatted = 'Non répertorié';
@@ -729,6 +934,8 @@ export function resolveCountryGeopolitics(rawName, props = {}) {
 
   const continent = props.CONTINENT || 'Terre';
   const subregion = props.SUBREGION || props.REGION_UN || continent;
+  const ianaTz = ISO2_TO_IANA_TZ[iso2] || 'UTC';
+  const iso2Lower = iso2.toLowerCase();
 
   return {
     iso2,
@@ -743,11 +950,12 @@ export function resolveCountryGeopolitics(rawName, props = {}) {
     currency: 'Devise locale',
     callingCode: '--',
     utcOffset: 0,
-    timeZoneName: 'Heure locale',
+    timeZone: ianaTz,
+    timeZoneName: `Heure (${props.CAPITAL || rawName})`,
     regime: props.INCOME_GRP ? props.INCOME_GRP.replace(/^\d+\.\s*/, '') : 'État souverain',
     nuclearStatus: 'Non doté (TNP)',
-    flagUrl: iso2 && iso2.length === 2 ? `https://flagcdn.com/${iso2.toLowerCase()}.svg` : null,
-    flagFallback: iso2 && iso2.length === 2 ? `https://flagcdn.com/w160/${iso2.toLowerCase()}.png` : null,
+    flagUrl: `https://flagcdn.com/${iso2Lower}.svg`,
+    flagFallback: `https://flagcdn.com/w160/${iso2Lower}.png`,
     isDirectMatch: false,
   };
 }
