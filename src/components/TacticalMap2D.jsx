@@ -264,6 +264,23 @@ export function TacticalMap2D({
     const detachedLayerGroup = L.layerGroup().addTo(map);
     detachedLayerGroupRef.current = detachedLayerGroup;
 
+    // Dedicated Animation Frame & Throttle for Butter-Smooth 60/120 FPS Detached Country Dragging
+    let animFrameDetachedId = null;
+    let pendingDetachedData = null;
+
+    const scheduleDetachedUpdate = (data) => {
+      pendingDetachedData = data;
+      if (!animFrameDetachedId) {
+        animFrameDetachedId = requestAnimationFrame(() => {
+          animFrameDetachedId = null;
+          if (pendingDetachedData && updateDetachedPolygonRef.current) {
+            updateDetachedPolygonRef.current(pendingDetachedData);
+            pendingDetachedData = null;
+          }
+        });
+      }
+    };
+
     // True Size Web Mercator polygon transformation engine (authentic conformal geodesic)
     const updateDetachedPolygon = (data) => {
       if (!detachedLayerGroupRef.current) return;
@@ -274,31 +291,45 @@ export function TacticalMap2D({
       const origCenter = data.origCenter;
       const currentCenter = data.currentCenter;
 
+      // Safe clamp latitude to prevent polar singularities and coordinate explosion near map edges
+      const safeLat = Math.max(-75, Math.min(75, currentCenter.lat));
+      const safeOrigLat = Math.max(-75, Math.min(75, origCenter.lat));
+
       // Authentic True Size Map Mercator compensation:
       // Real ground distances: 1 deg lat = 111.32 km everywhere; 1 deg lng = 111.32 * cos(lat) km.
       // Web Mercator stretches pixel scale by 1 / cos(lat).
       // To preserve true physical ground kilometers on the target latitude:
-      const cosOrig = Math.cos((origCenter.lat * Math.PI) / 180);
-      const cosCur = Math.max(0.08, Math.cos((currentCenter.lat * Math.PI) / 180));
-      const trueSizeRatio = Math.max(0.1, Math.min(10.0, cosOrig / cosCur));
+      const cosOrig = Math.cos((safeOrigLat * Math.PI) / 180);
+      const safeCosCur = Math.max(0.22, Math.cos((safeLat * Math.PI) / 180));
+      const trueSizeRatio = Math.max(0.20, Math.min(3.5, cosOrig / safeCosCur));
+
+      // Normalize current center longitude to [-180, 180]
+      let cLng = ((((currentCenter.lng + 180) % 360) + 360) % 360) - 180;
 
       const transformPoint = (coords) => {
         if (typeof coords[0] === 'number') {
           const lng = coords[0];
           const lat = coords[1];
           const dLat = lat - origCenter.lat;
-          const dLng = lng - origCenter.lng;
+
+          // Compute shortest-path angular difference around the spherical globe [-180, 180]
+          let dLng = lng - origCenter.lng;
+          while (dLng > 180) dLng -= 360;
+          while (dLng < -180) dLng += 360;
 
           // dLat in degrees is preserved; Web Mercator projection automatically scales pixel height.
           // dLng in degrees is scaled by cos(origLat)/cos(curLat) so physical ground width in km remains constant.
           const newDLat = dLat;
           const newDLng = dLng * trueSizeRatio;
 
-          let fLat = currentCenter.lat + newDLat;
-          let fLng = currentCenter.lng + newDLng;
+          let fLat = safeLat + newDLat;
+          // Strictly clamp latitude to safe Web Mercator projection limits
+          fLat = Math.max(-83, Math.min(83, fLat));
 
-          fLat = Math.max(-85, Math.min(85, fLat));
-          fLng = ((((fLng + 180) % 360) + 360) % 360) - 180;
+          // In Leaflet, keep longitude continuous relative to cLng.
+          // DO NOT apply individual vertex modulo '% 360', which creates 360-degree streaks
+          // across the screen between adjacent vertices on either side of the antimeridian.
+          let fLng = cLng + newDLng;
 
           return [fLng, fLat];
         }
@@ -346,9 +377,12 @@ export function TacticalMap2D({
           const startDrag = (latlng) => {
             isDraggingDetachedRef.current = true;
             const curCenter = detachedCountryRef.current?.currentCenter || origCenter;
+            let offsetLng = latlng.lng - curCenter.lng;
+            while (offsetLng > 180) offsetLng -= 360;
+            while (offsetLng < -180) offsetLng += 360;
             dragOffsetRef.current = {
               lat: latlng.lat - curCenter.lat,
-              lng: latlng.lng - curCenter.lng,
+              lng: offsetLng,
             };
             if (mapContainerRef.current) {
               mapContainerRef.current.classList.add('is-dragging-country');
@@ -400,18 +434,30 @@ export function TacticalMap2D({
     };
 
     const onPointerMove = (e) => {
-      if (isDraggingDetachedRef.current && detachedCountryRef.current) {
-        const latlng = map.mouseEventToLatLng(e);
-        if (latlng) {
+      if (isDraggingDetachedRef.current && detachedCountryRef.current && map) {
+        // Clamp mouse position within viewport boundaries so dragging off-screen doesn't cause glitches
+        const clientX = Math.max(10, Math.min(window.innerWidth - 10, e.clientX));
+        const clientY = Math.max(10, Math.min(window.innerHeight - 10, e.clientY));
+
+        // Use containerPointToLatLng to guarantee valid on-map projection
+        const containerPt = map.mouseEventToContainerPoint({ clientX, clientY });
+        const latlng = map.containerPointToLatLng(containerPt);
+
+        if (latlng && !isNaN(latlng.lat) && !isNaN(latlng.lng)) {
           const current = detachedCountryRef.current;
+          const targetLat = Math.max(-75, Math.min(75, latlng.lat - (dragOffsetRef.current?.lat || 0)));
+          const diffLng = latlng.lng - (dragOffsetRef.current?.lng || 0);
+          const targetLng = ((((diffLng + 180) % 360) + 360) % 360) - 180;
+
           const newCenter = {
-            lat: Math.max(-80, Math.min(80, latlng.lat - dragOffsetRef.current.lat)),
-            lng: ((((latlng.lng - dragOffsetRef.current.lng + 180) % 360) + 360) % 360) - 180,
+            lat: targetLat,
+            lng: targetLng,
           };
 
-          const cosOrig = Math.cos((current.origCenter.lat * Math.PI) / 180);
-          const cosCur = Math.max(0.08, Math.cos((newCenter.lat * Math.PI) / 180));
-          const trueSizeRatio = Math.max(0.1, Math.min(10.0, cosOrig / cosCur));
+          const safeOrigLat = Math.max(-75, Math.min(75, current.origCenter.lat));
+          const cosOrig = Math.cos((safeOrigLat * Math.PI) / 180);
+          const safeCosCur = Math.max(0.22, Math.cos((newCenter.lat * Math.PI) / 180));
+          const trueSizeRatio = Math.max(0.20, Math.min(3.5, cosOrig / safeCosCur));
 
           const updated = {
             ...current,
@@ -420,9 +466,7 @@ export function TacticalMap2D({
           };
           detachedCountryRef.current = updated;
 
-          if (updateDetachedPolygonRef.current) {
-            updateDetachedPolygonRef.current(updated);
-          }
+          scheduleDetachedUpdate(updated);
           setDetachedCountry({ ...updated });
         }
         return;
@@ -452,22 +496,45 @@ export function TacticalMap2D({
       }
     };
 
+    const onWindowBlur = () => {
+      if (isDraggingDetachedRef.current) {
+        isDraggingDetachedRef.current = false;
+        container.classList.remove('is-dragging-country');
+        document.body.classList.remove('is-dragging-country');
+      }
+      if (isRightDragging) {
+        isRightDragging = false;
+        container.classList.remove('is-grabbing');
+        document.body.classList.remove('is-grabbing');
+      }
+    };
+
     // Mobile & Touchscreen Drag Support for True Size
     const onWindowTouchMove = (e) => {
       if (!isDraggingDetachedRef.current || !mapInstanceRef.current || !detachedCountryRef.current) return;
       if (e.touches && e.touches.length > 0) {
         if (e.cancelable) e.preventDefault();
-        const latlng = mapInstanceRef.current.mouseEventToLatLng(e.touches[0]);
-        if (latlng) {
+        const touch = e.touches[0];
+        const clientX = Math.max(10, Math.min(window.innerWidth - 10, touch.clientX));
+        const clientY = Math.max(10, Math.min(window.innerHeight - 10, touch.clientY));
+        const containerPt = mapInstanceRef.current.mouseEventToContainerPoint({ clientX, clientY });
+        const latlng = mapInstanceRef.current.containerPointToLatLng(containerPt);
+
+        if (latlng && !isNaN(latlng.lat) && !isNaN(latlng.lng)) {
           const current = detachedCountryRef.current;
+          const targetLat = Math.max(-75, Math.min(75, latlng.lat - (dragOffsetRef.current?.lat || 0)));
+          const diffLng = latlng.lng - (dragOffsetRef.current?.lng || 0);
+          const targetLng = ((((diffLng + 180) % 360) + 360) % 360) - 180;
+
           const newCenter = {
-            lat: Math.max(-80, Math.min(80, latlng.lat - dragOffsetRef.current.lat)),
-            lng: ((((latlng.lng - dragOffsetRef.current.lng + 180) % 360) + 360) % 360) - 180,
+            lat: targetLat,
+            lng: targetLng,
           };
 
-          const cosOrig = Math.cos((current.origCenter.lat * Math.PI) / 180);
-          const cosCur = Math.max(0.08, Math.cos((newCenter.lat * Math.PI) / 180));
-          const trueSizeRatio = Math.max(0.1, Math.min(10.0, cosOrig / cosCur));
+          const safeOrigLat = Math.max(-75, Math.min(75, current.origCenter.lat));
+          const cosOrig = Math.cos((safeOrigLat * Math.PI) / 180);
+          const safeCosCur = Math.max(0.22, Math.cos((newCenter.lat * Math.PI) / 180));
+          const trueSizeRatio = Math.max(0.20, Math.min(3.5, cosOrig / safeCosCur));
 
           const updated = {
             ...current,
@@ -476,9 +543,7 @@ export function TacticalMap2D({
           };
           detachedCountryRef.current = updated;
 
-          if (updateDetachedPolygonRef.current) {
-            updateDetachedPolygonRef.current(updated);
-          }
+          scheduleDetachedUpdate(updated);
           setDetachedCountry({ ...updated });
         }
       }
@@ -496,6 +561,9 @@ export function TacticalMap2D({
     window.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('mouseup', onPointerUp);
+    window.addEventListener('blur', onWindowBlur);
+    document.addEventListener('mouseleave', onWindowBlur);
     window.addEventListener('touchmove', onWindowTouchMove, { passive: false });
     window.addEventListener('touchend', onWindowTouchEnd);
     window.addEventListener('touchcancel', onWindowTouchEnd);
@@ -2183,6 +2251,12 @@ export function TacticalMap2D({
                 const primaryCenter = target.getBounds().getCenter();
                 const groupFeatures = groupLayers.map((l) => l._feature || l.feature).filter(Boolean);
 
+                const clickedSubunitFeature = target._feature || target.feature || feature;
+                const subunitAreaKm2 = getCountryAreaKm2(clickedSubunitFeature);
+                const subunitAreaFormatted = formatAreaKm2(subunitAreaKm2);
+                const subunitRawName = clickedSubunitFeature?.properties?.NAME || clickedSubunitFeature?.properties?.SUBUNIT || rawName;
+                const subunitDisplayName = TERRITORY_NAMES_FR[subunitRawName] || subunitRawName;
+
                 setSelectedTerritory({
                   name: unifiedName,
                   rawName,
@@ -2196,7 +2270,11 @@ export function TacticalMap2D({
                   centerLng: `${Math.abs(primaryCenter.lng).toFixed(2)}° ${primaryCenter.lng >= 0 ? 'E' : 'W'}`,
                   centerCoords: [primaryCenter.lat, primaryCenter.lng],
                   geopolitics,
-                  feature,
+                  feature: clickedSubunitFeature,
+                  primaryFeature: clickedSubunitFeature,
+                  primaryName: subunitDisplayName,
+                  primaryArea: subunitAreaFormatted,
+                  primaryCenterCoords: [primaryCenter.lat, primaryCenter.lng],
                   features: groupFeatures.length > 0 ? groupFeatures : [feature],
                   groupKey: targetGroupKey,
                 });
@@ -2235,6 +2313,9 @@ export function TacticalMap2D({
       if (animFrameMaritimeId) {
         cancelAnimationFrame(animFrameMaritimeId);
       }
+      if (animFrameDetachedId) {
+        cancelAnimationFrame(animFrameDetachedId);
+      }
       map.off('mousemove', onMapMouseMove);
       map.off('click', onMapClick);
       map.off('moveend', onMapMoveEnd);
@@ -2243,6 +2324,9 @@ export function TacticalMap2D({
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('mouseup', onPointerUp);
+      window.removeEventListener('blur', onWindowBlur);
+      document.removeEventListener('mouseleave', onWindowBlur);
       window.removeEventListener('touchmove', onWindowTouchMove);
       window.removeEventListener('touchend', onWindowTouchEnd);
       window.removeEventListener('touchcancel', onWindowTouchEnd);
@@ -2502,22 +2586,100 @@ export function TacticalMap2D({
     if (!territory) return;
     sound.woosh();
 
-    const features = territory.features || (territory.feature ? [territory.feature] : []);
-    if (features.length === 0) return;
+    let targetFeatures = [];
+    let compareName = territory.name;
+    let compareArea = territory.area;
+    let centerCoords = territory.centerCoords || [20, 0];
 
-    const centerCoords = territory.centerCoords || [20, 0];
+    const clicked = territory.primaryFeature || territory.feature;
+    const suA3 = clicked?.properties?.SU_A3 || '';
+    const adm0 = clicked?.properties?.ADM0_A3 || territory.groupKey || '';
+
+    if (adm0 === 'FRA') {
+      if (suA3 === 'FXC') {
+        // Corsica clicked directly
+        targetFeatures = [clicked];
+        compareName = 'Corse';
+        compareArea = '8 680 km²';
+        centerCoords = territory.primaryCenterCoords || [42.0, 9.1];
+      } else if (suA3 === 'FXX' || !suA3) {
+        // Mainland France strictly without Corsica or DOM-TOM
+        const fxx = (territory.features || []).find((f) => f.properties?.SU_A3 === 'FXX') || clicked;
+        targetFeatures = [fxx];
+        compareName = 'France';
+        compareArea = '543 940 km²';
+        centerCoords = territory.primaryCenterCoords || [46.6, 2.5];
+      } else {
+        targetFeatures = [clicked];
+        compareName = territory.primaryName || territory.name;
+        compareArea = territory.primaryArea || territory.area;
+        centerCoords = territory.primaryCenterCoords || territory.centerCoords || [20, 0];
+      }
+    } else if (adm0 === 'USA') {
+      if (suA3 === 'USK') {
+        // Alaska clicked directly
+        targetFeatures = [clicked];
+        compareName = 'Alaska';
+        compareArea = '1 717 856 km²';
+        centerCoords = territory.primaryCenterCoords || [64.0, -152.0];
+      } else if (suA3 === 'USH') {
+        // Hawaii clicked directly
+        targetFeatures = [clicked];
+        compareName = 'Hawaï';
+        compareArea = '28 311 km²';
+        centerCoords = territory.primaryCenterCoords || [20.8, -156.3];
+      } else if (suA3 === 'USB' || !suA3) {
+        // Contiguous Mainland USA strictly without Alaska or Hawaii
+        const usb = (territory.features || []).find((f) => f.properties?.SU_A3 === 'USB') || clicked;
+        targetFeatures = [usb];
+        compareName = 'États-Unis';
+        compareArea = '8 080 464 km²';
+        centerCoords = territory.primaryCenterCoords || [39.8, -98.6];
+      } else {
+        targetFeatures = [clicked];
+        compareName = territory.primaryName || territory.name;
+        compareArea = territory.primaryArea || territory.area;
+        centerCoords = territory.primaryCenterCoords || territory.centerCoords || [20, 0];
+      }
+    } else if (adm0 === 'RUS') {
+      if (suA3 === 'RUK') {
+        // Kaliningrad exclave clicked directly
+        targetFeatures = [clicked];
+        compareName = 'Kaliningrad';
+        compareArea = '15 100 km²';
+        centerCoords = territory.primaryCenterCoords || [54.7, 20.5];
+      } else {
+        // Contiguous Russia (European RUE + Asian RUA without Kaliningrad RUK)
+        const rusFeatures = (territory.features || []).filter(
+          (f) => f.properties?.SU_A3 === 'RUE' || f.properties?.SU_A3 === 'RUA'
+        );
+        targetFeatures = rusFeatures.length > 0 ? rusFeatures : [clicked];
+        compareName = 'Russie';
+        compareArea = '17 075 400 km²';
+        centerCoords = [61.0, 92.0];
+      }
+    } else {
+      // Default: detach the clicked subunit or feature
+      targetFeatures = clicked ? [clicked] : (territory.features || []);
+      compareName = territory.primaryName || territory.name;
+      compareArea = territory.primaryArea || territory.area;
+      centerCoords = territory.primaryCenterCoords || territory.centerCoords || [20, 0];
+    }
+
+    if (targetFeatures.length === 0) return;
+
     const origCenter = { lat: centerCoords[0], lng: centerCoords[1] };
 
     const detachedData = {
-      name: territory.name,
-      area: territory.area,
-      iso2: territory.geopolitics?.iso2 || territory.feature?.properties?.ISO_A2 || '',
+      name: compareName,
+      area: compareArea,
+      iso2: territory.geopolitics?.iso2 || clicked?.properties?.ISO_A2 || '',
       flagUrl: territory.geopolitics?.flagUrl || null,
       origCenter: { ...origCenter },
       currentCenter: { ...origCenter },
       rotation: 0,
       scale: 1,
-      features,
+      features: targetFeatures,
     };
 
     detachedCountryRef.current = detachedData;
