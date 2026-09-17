@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import { sound } from '../utils/soundFX';
-import { X, Maximize2, MapPin, RotateCcw, RotateCw, LocateFixed, Layers } from 'lucide-react';
+import { X, Maximize2, MapPin, Layers } from 'lucide-react';
 import { TERRITORY_NAMES_FR, getCountryAreaKm2, formatAreaKm2 } from '../utils/countryData';
 import { realtimeStream } from '../utils/realtimeEvents';
 import {
@@ -264,7 +264,7 @@ export function TacticalMap2D({
     const detachedLayerGroup = L.layerGroup().addTo(map);
     detachedLayerGroupRef.current = detachedLayerGroup;
 
-    // True Size Web Mercator polygon transformation engine
+    // True Size Web Mercator polygon transformation engine (authentic conformal geodesic)
     const updateDetachedPolygon = (data) => {
       if (!detachedLayerGroupRef.current) return;
       detachedLayerGroupRef.current.clearLayers();
@@ -273,20 +273,14 @@ export function TacticalMap2D({
 
       const origCenter = data.origCenter;
       const currentCenter = data.currentCenter;
-      const rotation = data.rotation || 0;
 
-      // Web Mercator distortion compensation:
-      // In Mercator projection, real distance scales as 1 / cos(latitude).
-      // To preserve true physical ground area (km²) when dragged across latitudes:
+      // Authentic True Size Map Mercator compensation:
+      // Real ground distances: 1 deg lat = 111.32 km everywhere; 1 deg lng = 111.32 * cos(lat) km.
+      // Web Mercator stretches pixel scale by 1 / cos(lat).
+      // To preserve true physical ground kilometers on the target latitude:
       const cosOrig = Math.cos((origCenter.lat * Math.PI) / 180);
-      const cosCur = Math.cos((currentCenter.lat * Math.PI) / 180);
-      const safeCosOrig = Math.max(0.08, cosOrig);
-      const rawScale = cosCur / safeCosOrig;
-      const trueScale = Math.max(0.12, Math.min(8.0, rawScale));
-
-      const rad = (rotation * Math.PI) / 180;
-      const cosR = Math.cos(rad);
-      const sinR = Math.sin(rad);
+      const cosCur = Math.max(0.08, Math.cos((currentCenter.lat * Math.PI) / 180));
+      const trueSizeRatio = Math.max(0.1, Math.min(10.0, cosOrig / cosCur));
 
       const transformPoint = (coords) => {
         if (typeof coords[0] === 'number') {
@@ -295,16 +289,13 @@ export function TacticalMap2D({
           const dLat = lat - origCenter.lat;
           const dLng = lng - origCenter.lng;
 
-          // Scale by Mercator ratio to preserve real physical km
-          const sLat = dLat * trueScale;
-          const sLng = dLng * trueScale;
+          // dLat in degrees is preserved; Web Mercator projection automatically scales pixel height.
+          // dLng in degrees is scaled by cos(origLat)/cos(curLat) so physical ground width in km remains constant.
+          const newDLat = dLat;
+          const newDLng = dLng * trueSizeRatio;
 
-          // Rotate
-          const rLat = sLat * cosR - sLng * sinR;
-          const rLng = sLat * sinR + sLng * cosR;
-
-          let fLat = currentCenter.lat + rLat;
-          let fLng = currentCenter.lng + rLng;
+          let fLat = currentCenter.lat + newDLat;
+          let fLng = currentCenter.lng + newDLng;
 
           fLat = Math.max(-85, Math.min(85, fLat));
           fLng = ((((fLng + 180) % 360) + 360) % 360) - 180;
@@ -333,7 +324,7 @@ export function TacticalMap2D({
           weight: 2.8,
           opacity: 1,
           fillColor: '#00f2fe',
-          fillOpacity: 0.42,
+          fillOpacity: 0.45,
           dashArray: '6, 6',
           className: 'detached-country-polygon',
         },
@@ -352,20 +343,34 @@ export function TacticalMap2D({
             offset: [0, -10],
           });
 
-          layer.on('mousedown', (e) => {
-            if (e.originalEvent && typeof e.originalEvent.button === 'number' && e.originalEvent.button !== 0) return;
-            L.DomEvent.stopPropagation(e);
+          const startDrag = (latlng) => {
             isDraggingDetachedRef.current = true;
             const curCenter = detachedCountryRef.current?.currentCenter || origCenter;
             dragOffsetRef.current = {
-              lat: e.latlng.lat - curCenter.lat,
-              lng: e.latlng.lng - curCenter.lng,
+              lat: latlng.lat - curCenter.lat,
+              lng: latlng.lng - curCenter.lng,
             };
             if (mapContainerRef.current) {
               mapContainerRef.current.classList.add('is-dragging-country');
             }
             document.body.classList.add('is-dragging-country');
             sound.click();
+          };
+
+          layer.on('mousedown', (e) => {
+            if (e.originalEvent && typeof e.originalEvent.button === 'number' && e.originalEvent.button !== 0) return;
+            L.DomEvent.stopPropagation(e);
+            startDrag(e.latlng);
+          });
+
+          layer.on('touchstart', (e) => {
+            if (e.originalEvent) {
+              L.DomEvent.stopPropagation(e);
+              if (e.originalEvent.touches && e.originalEvent.touches.length > 0) {
+                const latlng = map.mouseEventToLatLng(e.originalEvent.touches[0]);
+                if (latlng) startDrag(latlng);
+              }
+            }
           });
         },
       });
@@ -405,15 +410,13 @@ export function TacticalMap2D({
           };
 
           const cosOrig = Math.cos((current.origCenter.lat * Math.PI) / 180);
-          const cosCur = Math.cos((newCenter.lat * Math.PI) / 180);
-          const safeCosOrig = Math.max(0.08, cosOrig);
-          const rawScale = cosCur / safeCosOrig;
-          const trueScale = Math.max(0.12, Math.min(8.0, rawScale));
+          const cosCur = Math.max(0.08, Math.cos((newCenter.lat * Math.PI) / 180));
+          const trueSizeRatio = Math.max(0.1, Math.min(10.0, cosOrig / cosCur));
 
           const updated = {
             ...current,
             currentCenter: newCenter,
-            scale: trueScale,
+            scale: trueSizeRatio,
           };
           detachedCountryRef.current = updated;
 
@@ -449,9 +452,53 @@ export function TacticalMap2D({
       }
     };
 
+    // Mobile & Touchscreen Drag Support for True Size
+    const onWindowTouchMove = (e) => {
+      if (!isDraggingDetachedRef.current || !mapInstanceRef.current || !detachedCountryRef.current) return;
+      if (e.touches && e.touches.length > 0) {
+        if (e.cancelable) e.preventDefault();
+        const latlng = mapInstanceRef.current.mouseEventToLatLng(e.touches[0]);
+        if (latlng) {
+          const current = detachedCountryRef.current;
+          const newCenter = {
+            lat: Math.max(-80, Math.min(80, latlng.lat - dragOffsetRef.current.lat)),
+            lng: ((((latlng.lng - dragOffsetRef.current.lng + 180) % 360) + 360) % 360) - 180,
+          };
+
+          const cosOrig = Math.cos((current.origCenter.lat * Math.PI) / 180);
+          const cosCur = Math.max(0.08, Math.cos((newCenter.lat * Math.PI) / 180));
+          const trueSizeRatio = Math.max(0.1, Math.min(10.0, cosOrig / cosCur));
+
+          const updated = {
+            ...current,
+            currentCenter: newCenter,
+            scale: trueSizeRatio,
+          };
+          detachedCountryRef.current = updated;
+
+          if (updateDetachedPolygonRef.current) {
+            updateDetachedPolygonRef.current(updated);
+          }
+          setDetachedCountry({ ...updated });
+        }
+      }
+    };
+
+    const onWindowTouchEnd = () => {
+      if (isDraggingDetachedRef.current) {
+        isDraggingDetachedRef.current = false;
+        container.classList.remove('is-dragging-country');
+        document.body.classList.remove('is-dragging-country');
+        sound.tick();
+      }
+    };
+
     window.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('touchmove', onWindowTouchMove, { passive: false });
+    window.addEventListener('touchend', onWindowTouchEnd);
+    window.addEventListener('touchcancel', onWindowTouchEnd);
 
     // 1. ESRI World Imagery (Satellite HD - Default)
     const satelliteLayer = L.tileLayer(
@@ -2196,6 +2243,9 @@ export function TacticalMap2D({
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('touchmove', onWindowTouchMove);
+      window.removeEventListener('touchend', onWindowTouchEnd);
+      window.removeEventListener('touchcancel', onWindowTouchEnd);
       document.body.classList.remove('is-grabbing');
       document.body.classList.remove('is-dragging-country');
       updateDetachedPolygonRef.current = null;
@@ -2478,36 +2528,6 @@ export function TacticalMap2D({
     }
   }, []);
 
-  const handleRotateDetached = useCallback((delta) => {
-    const current = detachedCountryRef.current;
-    if (!current) return;
-    const newRot = (current.rotation + delta) % 360;
-    const updated = { ...current, rotation: newRot };
-    detachedCountryRef.current = updated;
-    setDetachedCountry({ ...updated });
-    if (updateDetachedPolygonRef.current) {
-      updateDetachedPolygonRef.current(updated);
-    }
-    sound.woosh();
-  }, []);
-
-  const handleResetDetachedPosition = useCallback(() => {
-    const current = detachedCountryRef.current;
-    if (!current) return;
-    const updated = {
-      ...current,
-      currentCenter: { ...current.origCenter },
-      scale: 1,
-      rotation: 0,
-    };
-    detachedCountryRef.current = updated;
-    setDetachedCountry({ ...updated });
-    if (updateDetachedPolygonRef.current) {
-      updateDetachedPolygonRef.current(updated);
-    }
-    sound.woosh();
-  }, []);
-
   const handleCloseDetached = useCallback(() => {
     if (detachedLayerGroupRef.current) {
       detachedLayerGroupRef.current.clearLayers();
@@ -2544,7 +2564,7 @@ export function TacticalMap2D({
         <div className="true-size-hud-bar">
           <div className="tsh-badge">
             <span className="tsh-pulse-dot" />
-            <span className="tsh-badge-text">TRUE SIZE // MERCATOR</span>
+            <span className="tsh-badge-text">TRUE SIZE</span>
           </div>
 
           <div className="tsh-country-info">
@@ -2569,46 +2589,15 @@ export function TacticalMap2D({
             </span>
           </div>
 
-          <div className="tsh-actions">
-            <button
-              type="button"
-              className="tsh-btn"
-              onClick={() => handleRotateDetached(-15)}
-              title="Pivoter de -15 degrés"
-            >
-              <RotateCcw size={11} />
-              <span>-15°</span>
-            </button>
-            <button
-              type="button"
-              className="tsh-btn"
-              onClick={() => handleRotateDetached(15)}
-              title="Pivoter de +15 degrés"
-            >
-              <RotateCw size={11} />
-              <span>+15°</span>
-            </button>
-            <button
-              type="button"
-              className="tsh-btn"
-              onClick={handleResetDetachedPosition}
-              title="Recentrer sur la position d'origine"
-            >
-              <LocateFixed size={11} />
-              <span>Centrer</span>
-            </button>
-            <button
-              type="button"
-              className="tsh-btn tsh-btn-close"
-              onClick={handleCloseDetached}
-              title="Fermer la comparaison"
-            >
-              <X size={12} />
-              <span>Raccrocher</span>
-            </button>
-          </div>
-
-          <span className="tsh-help-hint">Glisser le pays pour comparer</span>
+          <button
+            type="button"
+            className="tsh-btn-close"
+            onClick={handleCloseDetached}
+            title="Raccrocher le pays et terminer la comparaison"
+          >
+            <X size={13} />
+            <span>Raccrocher</span>
+          </button>
         </div>
       )}
 

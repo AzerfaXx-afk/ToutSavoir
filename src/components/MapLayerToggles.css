@@ -550,4 +550,14 @@
   box-shadow: 0 0 8px rgba(0, 245, 160, 0.25);
 }
 
+@media (max-width: 768px) {
+  .map-layer-toggles-hud {
+    bottom: 16px;
+    left: 12px;
+    width: auto;
+    max-width: calc(100vw - 24px);
+    border-radius: 12px;
+  }
+}
+
 
