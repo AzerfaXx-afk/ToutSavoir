@@ -17,6 +17,9 @@ import {
   RotateCcw,
   Navigation,
   ExternalLink,
+  Volume2,
+  Volume1,
+  VolumeX,
 } from 'lucide-react';
 import { sound } from '../utils/soundFX';
 import { CCTV_FEEDS, LIVE_NEWS_CHANNELS } from '../data/osirisStreams';
@@ -35,7 +38,12 @@ export function CCTVLiveMonitor({
   const [reloadKey, setReloadKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Audio Control (Webcams & Live World TV Channels)
+  const [isMuted, setIsMuted] = useState(true);
+  const [volume, setVolume] = useState(0.85);
+
   const videoRef = useRef(null);
+  const iframeRef = useRef(null);
   const hlsRef = useRef(null);
 
   // Vision Mode: 'optical' (Direct Optique HD), 'thermal' (FLIR), 'night' (NVG), 'snapshot' (Photo HD)
@@ -86,10 +94,37 @@ export function CCTVLiveMonitor({
     camera?.embedUrl ||
     camera?.type === 'yt' ||
     camera?.stream_type === 'iframe' ||
-    (camera?.stream_url && (camera.stream_url.includes('youtube') || camera.stream_url.includes('embed') || camera.stream_url.includes('ipcamlive')))
+    (camera?.stream_url && (camera.stream_url.includes('youtube') || camera.stream_url.includes('embed') || camera.stream_url.includes('ipcamlive') || camera.stream_url.includes('skaping')))
   );
-  const iframeSrc = camera?.embedUrl || camera?.stream_url;
   const streamVideoUrl = camera?.stream_url || camera?.feedUrl;
+
+  const computedIframeSrc = useMemo(() => {
+    const raw = camera?.embedUrl || camera?.stream_url;
+    if (!raw) return '';
+    if (raw.includes('youtube.com') || raw.includes('youtu.be')) {
+      try {
+        const url = new URL(raw);
+        url.searchParams.set('enablejsapi', '1');
+        url.searchParams.set('autoplay', '1');
+        url.searchParams.set('mute', isMuted ? '1' : '0');
+        url.searchParams.set('controls', '1');
+        url.searchParams.set('modestbranding', '1');
+        url.searchParams.set('rel', '0');
+        return url.toString();
+      } catch (e) {
+        return raw;
+      }
+    }
+    return raw;
+  }, [camera?.embedUrl, camera?.stream_url, isMuted]);
+
+  // Sync HTML5 video element volume and mute
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+      videoRef.current.volume = volume;
+    }
+  }, [isMuted, volume]);
 
   // HLS Engine Integration (Osiris / Broadcast Standards)
   useEffect(() => {
@@ -240,6 +275,71 @@ export function CCTVLiveMonitor({
     setPanOffset({ x: 0, y: 0 });
   };
 
+  // Audio Control Handlers
+  const toggleMute = () => {
+    sound.click(0.3);
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
+
+    if (videoRef.current) {
+      videoRef.current.muted = newMuted;
+      videoRef.current.volume = volume;
+    }
+
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({
+          event: 'command',
+          func: newMuted ? 'mute' : 'unMute',
+          args: [],
+        }),
+        '*'
+      );
+      if (!newMuted) {
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({
+            event: 'command',
+            func: 'setVolume',
+            args: [Math.round(volume * 100)],
+          }),
+          '*'
+        );
+      }
+    }
+  };
+
+  const handleVolumeChange = (e) => {
+    const newVol = parseFloat(e.target.value);
+    setVolume(newVol);
+    if (newVol > 0 && isMuted) {
+      setIsMuted(false);
+    } else if (newVol === 0 && !isMuted) {
+      setIsMuted(true);
+    }
+
+    if (videoRef.current) {
+      videoRef.current.volume = newVol;
+      videoRef.current.muted = newVol === 0;
+    }
+
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({
+          event: 'command',
+          func: 'setVolume',
+          args: [Math.round(newVol * 100)],
+        }),
+        '*'
+      );
+      if (newVol > 0 && isMuted) {
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func: 'unMute', args: [] }),
+          '*'
+        );
+      }
+    }
+  };
+
   return (
     <div
       className={`cctv-monitor-pip ${isFullscreen ? 'is-fullscreen' : ''}`}
@@ -269,6 +369,32 @@ export function CCTVLiveMonitor({
         </div>
 
         <div className="cctv-header-actions">
+          {/* Audio Mute/Unmute & Volume Widget */}
+          <div
+            className="cctv-audio-group"
+            title={isMuted ? "Activer le flux audio en direct (Unmute)" : "Couper le flux audio (Mute)"}
+          >
+            <button
+              type="button"
+              className={`cctv-icon-btn cctv-audio-btn ${isMuted ? 'is-muted' : 'is-unmuted'}`}
+              onClick={toggleMute}
+              title={isMuted ? "Activer le son" : "Couper le son"}
+            >
+              {isMuted ? <VolumeX size={13} /> : volume > 0.5 ? <Volume2 size={13} /> : <Volume1 size={13} />}
+              <span className="cctv-audio-status-text">{isMuted ? 'MUTE' : `${Math.round(volume * 100)}%`}</span>
+            </button>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={isMuted ? 0 : volume}
+              onChange={handleVolumeChange}
+              className="cctv-volume-slider"
+              title={`Volume audio : ${Math.round(volume * 100)}%`}
+            />
+          </div>
+
           <button
             type="button"
             className="cctv-icon-btn is-locate"
@@ -417,7 +543,7 @@ export function CCTVLiveMonitor({
                 key={`hls-${camera.id}-${reloadKey}`}
                 className="cctv-video-element"
                 autoPlay
-                muted
+                muted={isMuted}
                 playsInline
                 loop
               />
@@ -425,11 +551,12 @@ export function CCTVLiveMonitor({
           ) : isMp4 ? (
             <div className="cctv-stream-container">
               <video
+                ref={videoRef}
                 key={`mp4-${camera.id}-${reloadKey}`}
                 src={streamVideoUrl}
                 className="cctv-video-element"
                 autoPlay
-                muted
+                muted={isMuted}
                 playsInline
                 loop
               />
@@ -437,9 +564,10 @@ export function CCTVLiveMonitor({
           ) : isIframe ? (
             <div className="cctv-stream-container">
               <iframe
-                key={`iframe-${camera.id}-${reloadKey}`}
+                ref={iframeRef}
+                key={`iframe-${camera.id}-${reloadKey}-${isMuted ? 'muted' : 'unmuted'}`}
                 className="cctv-iframe"
-                src={iframeSrc}
+                src={computedIframeSrc}
                 title={camera.name}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
@@ -492,6 +620,26 @@ export function CCTVLiveMonitor({
           <span className="time-main">{timecode}</span>
           <span className="time-ms">.{msTime}</span>
           <span className="time-zulu"> ZULU</span>
+        </div>
+
+        {/* Badge Audio HUD (Direct / Mute) */}
+        <div className={`cctv-audio-hud-badge ${!isMuted ? 'is-live-audio' : 'is-muted-audio'}`}>
+          {!isMuted ? (
+            <>
+              <div className="cctv-eq-bars">
+                <span className="cctv-eq-bar" />
+                <span className="cctv-eq-bar" />
+                <span className="cctv-eq-bar" />
+                <span className="cctv-eq-bar" />
+              </div>
+              <span>SON DIRECT // {Math.round(volume * 100)}%</span>
+            </>
+          ) : (
+            <>
+              <VolumeX size={10} />
+              <span>AUDIO COUPÉ</span>
+            </>
+          )}
         </div>
 
         {/* Télémétrie Capteur Gauche / Droite */}
