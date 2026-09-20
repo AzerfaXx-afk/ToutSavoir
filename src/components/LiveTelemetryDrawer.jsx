@@ -376,17 +376,21 @@ export function LiveTelemetryDrawer({
     }
   }, [selectedYear]);
 
-  /* ── Metrics Ticker (ticking live or exact date snapshot) ──────── */
+  /* ── Metrics Ticker (continuous live ticking, calibrated to active year) ──────── */
   useEffect(() => {
     const tick = () => {
-      setMetrics(computeWorldometerMetrics(yearMultiplier, customDate));
+      let targetDate = new Date();
+      if (customDate) {
+        targetDate = new Date(customDate);
+      } else if (selectedYear && selectedYear !== 2026) {
+        targetDate = new Date(new Date().setFullYear(selectedYear));
+      }
+      setMetrics(computeWorldometerMetrics(yearMultiplier, targetDate));
     };
     tick();
-    if (isLive) {
-      const id = setInterval(tick, 500);
-      return () => clearInterval(id);
-    }
-  }, [yearMultiplier, customDate, isLive]);
+    const id = setInterval(tick, 500);
+    return () => clearInterval(id);
+  }, [yearMultiplier, customDate, selectedYear]);
 
   /* ── USGS Live Earthquakes Stream (NEIC 24h Feed) ──────────────── */
   useEffect(() => {
@@ -977,17 +981,6 @@ export function LiveTelemetryDrawer({
               <span className="drawer-date-text">{localDate}</span>
             </div>
 
-            {/* Futuristic Temporal Simulation Badge when year is modified */}
-            {selectedYear !== 2026 && (
-              <div className={`drawer-year-mode-badge ${selectedYear > 2026 ? 'is-future' : 'is-past'}`}>
-                <span className="dymb-pulse" />
-                <span>
-                  {selectedYear > 2026
-                    ? `SIMULATION PRÉDICTIVE TÉLÉMÉTRIE // AN ${selectedYear}`
-                    : `ARCHIVE HISTORIQUE // AN ${selectedYear}`}
-                </span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -1047,9 +1040,9 @@ export function LiveTelemetryDrawer({
                         ? METRIC_DEFINITIONS.length
                         : METRIC_DEFINITIONS.filter((m) => m.cat === cat.id).length
                       : cat.type === 'aviation'
-                      ? (liveFlights.length || projectedTotalFlights)
+                      ? projectedTotalFlights
                       : cat.type === 'maritime'
-                      ? (liveVessels.length || projectedTotalVessels)
+                      ? projectedTotalVessels
                       : cat.type === 'telluric'
                       ? liveEarthquakes.length
                       : cat.type === 'infrastructure'
@@ -1242,7 +1235,9 @@ export function LiveTelemetryDrawer({
                   <Plane size={13} style={{ color: '#ffd700' }} />
                   <span>
                     {selectedYear > 2026
-                      ? `FLOTTE AÉRIENNE COMMERCIALE & PROSPECTIVE ${selectedYear}`
+                      ? `FLOTTE AÉRIENNE COMMERCIALE (${selectedYear})`
+                      : selectedYear < 2026
+                      ? `FLOTTE AÉRIENNE HISTORIQUE (${selectedYear})`
                       : 'FLOTTE COMMERCIALE EN VOL DIRECT'}
                   </span>
                   <span className="fr24-list-count">
@@ -1365,7 +1360,7 @@ export function LiveTelemetryDrawer({
                     <span className="fr24-ping-dot green" />
                     <span className="fr24-radar-source">
                       {selectedYear > 2026
-                        ? `MARINETRAFFIC AIS // FLOTTE PROSPECTIVE ${selectedYear}`
+                        ? `MARINETRAFFIC AIS // FLOTTE MONDIALE ${selectedYear}`
                         : selectedYear < 2026
                         ? `MARINETRAFFIC AIS // ARCHIVES ${selectedYear}`
                         : 'MARINETRAFFIC AIS // VDL SATELLITE'}
@@ -1373,7 +1368,7 @@ export function LiveTelemetryDrawer({
                   </div>
                   <span className="fr24-tracked-badge green">
                     <Anchor size={11} style={{ marginRight: 4 }} />
-                    {selectedYear !== 2026 ? `AIS PROSPECTIF ${selectedYear}` : 'DIRECT AIS MONDIAL'}
+                    {selectedYear !== 2026 ? `FLOTTE AIS (${selectedYear})` : 'DIRECT AIS MONDIAL'}
                   </span>
                 </div>
 
