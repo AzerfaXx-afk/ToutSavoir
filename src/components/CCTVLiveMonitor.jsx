@@ -264,7 +264,7 @@ export function CCTVLiveMonitor({
           <span>
             {camera?.category?.includes('Info')
               ? `INFO 24/7 EN DIRECT // CANAL ${currentIndex + 1}/${allStreams.length}`
-              : `FLUX EN DIRECT // CAM ${currentIndex >= 0 ? currentIndex + 1 : 1}/${CCTV_FEEDS.length}`}
+              : `FLUX EN DIRECT // CAM ${currentIndex >= 0 ? currentIndex + 1 : 1}/${allStreams.length}`}
           </span>
         </div>
 
@@ -495,19 +495,34 @@ export function CCTVLiveMonitor({
         </div>
 
         {/* Télémétrie Capteur Gauche / Droite */}
-        <div className="cctv-coords-badge">
-          {camera.category?.includes('Espace')
-            ? 'ORBITE LEO // 418 KM ALT'
-            : `${Math.abs(camera.lat).toFixed(4)}° ${camera.lat >= 0 ? 'N' : 'S'}, ${Math.abs(camera.lng).toFixed(4)}° ${camera.lng >= 0 ? 'E' : 'O'}`}
-        </div>
+        {(() => {
+          const isOrbitalFeed = Boolean(camera.isOrbital || camera.id === 'cctv-iss-hdev' || camera.city?.includes('Orbite'));
+          return (
+            <>
+              <div className="cctv-coords-badge">
+                {isOrbitalFeed
+                  ? 'ORBITE LEO // 418 KM ALT'
+                  : `${Math.abs(camera.lat || 0).toFixed(4)}° ${(camera.lat || 0) >= 0 ? 'N' : 'S'}, ${Math.abs(camera.lng || 0).toFixed(4)}° ${(camera.lng || 0) >= 0 ? 'E' : 'O'}`}
+              </div>
 
-        <div className="cctv-stream-stats-badge">
-          <span>{camera.fps || 30}.0 FPS</span>
-          <span className="stat-sep">•</span>
-          <span>{camera.resolution || '1080p HD'}</span>
-          <span className="stat-sep">•</span>
-          <span className="stat-codec">{camera.category?.includes('Espace') ? 'NASA H.265' : 'H.265 HD'}</span>
-        </div>
+              <div className="cctv-stream-stats-badge">
+                <span>{camera.fps || 30}.0 FPS</span>
+                <span className="stat-sep">•</span>
+                <span>{camera.resolution || '1080p HD'}</span>
+                <span className="stat-sep">•</span>
+                <span className="stat-codec">{isOrbitalFeed ? 'NASA H.265' : (camera.codec || 'H.264 HD')}</span>
+              </div>
+            </>
+          );
+        })()}
+
+        {/* Badge Source Fournisseur Vérifié */}
+        {camera.provider && (
+          <div className="cctv-provider-badge">
+            <span className="cctv-provider-dot" />
+            <span>{camera.provider.split('/')[0].trim().toUpperCase()}</span>
+          </div>
+        )}
 
         {/* Boussole d'Azimut & Inclinaison */}
         <div className="cctv-telemetry-angles">
@@ -599,7 +614,14 @@ export function CCTVLiveMonitor({
           <span className="cctv-title" title={camera.name}>
             {camera.name}
           </span>
-          <span className="cctv-category-badge">{camera.category}</span>
+          <div className="cctv-badges-wrap">
+            {camera.provider && (
+              <span className="cctv-provider-pill" title="Diffuseur certifié">
+                {camera.provider.split('/')[0].trim()}
+              </span>
+            )}
+            <span className="cctv-category-badge">{camera.category}</span>
+          </div>
         </div>
 
         <span className="cctv-location">
@@ -620,7 +642,7 @@ export function CCTVLiveMonitor({
               onClick={() => sound.click(0.25)}
             >
               <ExternalLink size={10} />
-              <span>SOURCE OFFICIELLE / RADAR TEMPS RÉEL</span>
+              <span>OUVRIR LE FLUX DIRECT ({camera.provider ? camera.provider.split('/')[0].trim().toUpperCase() : 'SOURCE VÉRIFIÉE'})</span>
             </a>
           </div>
         )}

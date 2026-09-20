@@ -524,11 +524,11 @@ export function LiveTelemetryDrawer({
       if (cctvFilter === 'all') return true;
       const cat = (c.category || '').toLowerCase();
       if (cctvFilter === 'traffic') return cat.includes('trafic') || cat.includes('autoroute') || cat.includes('dot') || c.isLiveSnapshot;
-      if (cctvFilter === 'megapoles') return cat.includes('mégapole') || cat.includes('capitale') || cat.includes('ville');
-      if (cctvFilter === 'maritime') return cat.includes('maritime') || cat.includes('chokepoint') || cat.includes('canal') || cat.includes('détroit') || cat.includes('port');
+      if (cctvFilter === 'megapoles') return cat.includes('mégapole') || cat.includes('capitale') || cat.includes('ville') || cat.includes('monument') || cat.includes('patrimoine');
+      if (cctvFilter === 'maritime') return cat.includes('maritime') || cat.includes('chokepoint') || cat.includes('canal') || cat.includes('détroit') || cat.includes('port') || cat.includes('littoral') || cat.includes('plage');
       if (cctvFilter === 'aeroports') return cat.includes('aéroport') || cat.includes('piste');
-      if (cctvFilter === 'nature') return cat.includes('nature') || cat.includes('volcan') || cat.includes('monument') || cat.includes('site');
-      if (cctvFilter === 'espace') return cat.includes('espace') || cat.includes('orbite');
+      if (cctvFilter === 'nature') return cat.includes('nature') || cat.includes('volcan') || cat.includes('montagne');
+      if (cctvFilter === 'espace') return cat.includes('espace') || cat.includes('orbite') || cat.includes('ciel');
       return true;
     });
   }, [searchQuery, cctvFilter]);
@@ -2406,7 +2406,7 @@ export function LiveTelemetryDrawer({
                         label: 'Villes & Capitales',
                         count: CCTV_FEEDS.filter((c) => {
                           const k = (c.category || '').toLowerCase();
-                          return k.includes('mégapole') || k.includes('capitale') || k.includes('ville');
+                          return k.includes('mégapole') || k.includes('capitale') || k.includes('ville') || k.includes('monument') || k.includes('patrimoine');
                         }).length,
                       },
                       {
@@ -2416,23 +2416,26 @@ export function LiveTelemetryDrawer({
                       },
                       {
                         id: 'maritime',
-                        label: 'Maritime & Détroits',
+                        label: 'Maritime & Littoral',
                         count: CCTV_FEEDS.filter((c) => {
                           const k = (c.category || '').toLowerCase();
-                          return k.includes('maritime') || k.includes('chokepoint') || k.includes('canal') || k.includes('détroit') || k.includes('port');
+                          return k.includes('maritime') || k.includes('chokepoint') || k.includes('canal') || k.includes('détroit') || k.includes('port') || k.includes('littoral') || k.includes('plage');
                         }).length,
                       },
                       {
                         id: 'espace',
-                        label: 'Espace & Orbite',
-                        count: CCTV_FEEDS.filter((c) => (c.category || '').toLowerCase().includes('espace')).length,
+                        label: 'Espace & Ciel',
+                        count: CCTV_FEEDS.filter((c) => {
+                          const k = (c.category || '').toLowerCase();
+                          return k.includes('espace') || k.includes('orbite') || k.includes('ciel');
+                        }).length,
                       },
                       {
                         id: 'nature',
-                        label: 'Nature & Volcans',
+                        label: 'Nature & Montagne',
                         count: CCTV_FEEDS.filter((c) => {
                           const k = (c.category || '').toLowerCase();
-                          return k.includes('nature') || k.includes('volcan');
+                          return k.includes('nature') || k.includes('volcan') || k.includes('montagne');
                         }).length,
                       },
                     ].map((item) => (
