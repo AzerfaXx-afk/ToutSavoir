@@ -1,4 +1,4 @@
-import REAL_FLIGHTS_SNAPSHOT from '../data/realFlightsSnapshot.json';
+// Asynchronous dynamic loading of Flightradar24 snapshot for rapid app startup
 
 // Dictionnaire étendu des compagnies aériennes mondiales (IATA / ICAO)
 export const AIRLINE_NAMES = {
@@ -355,19 +355,32 @@ class FlightRadarService {
     this._lastViewportFetch = 0;
     this._lastViewportBounds = null;
 
-    // Direct initialization from the authentic real Flightradar24 worldwide dataset (7,892 real flights)
-    if (Array.isArray(REAL_FLIGHTS_SNAPSHOT) && REAL_FLIGHTS_SNAPSHOT.length > 0) {
-      for (let i = 0; i < REAL_FLIGHTS_SNAPSHOT.length; i++) {
-        const item = REAL_FLIGHTS_SNAPSHOT[i];
-        if (item && item.id && Array.isArray(item.raw)) {
-          const plane = this.parsePlaneRecord(item.id, item.raw);
-          this.flightsMap.set(plane.id, plane);
-        }
-      }
-    }
+    this.flights = [];
+    this.totalGlobalFlights = 18450;
 
-    this.flights = Array.from(this.flightsMap.values());
-    this.totalGlobalFlights = Math.max(18450, this.flights.length);
+    // Load dataset asynchronously
+    this.loadSnapshot();
+  }
+
+  async loadSnapshot() {
+    try {
+      const mod = await import('../data/realFlightsSnapshot.json');
+      const data = mod.default || mod;
+      if (Array.isArray(data) && data.length > 0) {
+        for (let i = 0; i < data.length; i++) {
+          const item = data[i];
+          if (item && item.id && Array.isArray(item.raw)) {
+            const plane = this.parsePlaneRecord(item.id, item.raw);
+            this.flightsMap.set(plane.id, plane);
+          }
+        }
+        this.flights = Array.from(this.flightsMap.values());
+        this.totalGlobalFlights = Math.max(18450, this.flights.length);
+        this.notify();
+      }
+    } catch (err) {
+      console.warn('Asynchronous flight snapshot load:', err);
+    }
   }
 
   setFlightLimit(limit) {

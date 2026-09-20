@@ -1,0 +1,6 @@
+# Ignore non-production and scratch files during Vercel builds
+scratch/
+scripts/
+*.md
+.vscode/
+.idea/

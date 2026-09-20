@@ -333,12 +333,18 @@ export function LiveTelemetryDrawer({
     }
   }, []);
 
-  /* ── Live Clock & Date Display Engine (100% Direct Temps Réel) ─── */
+  /* ── Live Clock & Date Display Engine (100% Direct Temps Réel ou Prédiction Temporelle) ─── */
   useEffect(() => {
     const update = () => {
-      const now = new Date();
+      let targetDate = new Date();
+      if (customDate) {
+        targetDate = new Date(customDate);
+      } else if (selectedYear && selectedYear !== 2026) {
+        targetDate = new Date(new Date().setFullYear(selectedYear));
+      }
+
       setLocalTime(
-        now.toLocaleTimeString('fr-FR', {
+        targetDate.toLocaleTimeString('fr-FR', {
           hour: '2-digit',
           minute: '2-digit',
           second: '2-digit',
@@ -346,7 +352,7 @@ export function LiveTelemetryDrawer({
         })
       );
       setLocalDate(
-        now
+        targetDate
           .toLocaleDateString('fr-FR', {
             weekday: 'long',
             day: 'numeric',
@@ -360,7 +366,7 @@ export function LiveTelemetryDrawer({
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [customDate, selectedYear]);
 
   // Sync customDate back to live mode whenever parent resets year to 2026
   useEffect(() => {
@@ -578,6 +584,50 @@ export function LiveTelemetryDrawer({
     });
   }, [liveFlights, searchQuery, flightFilter]);
 
+  /* ── Scaled Predictive Telemetry Totals (for 2030 and other years) ── */
+  const projectedTotalFlights = useMemo(() => {
+    if (selectedYear === 2026) return totalGlobalFlights;
+    const diff = selectedYear - 2026;
+    const factor = Math.pow(1.032, diff);
+    return Math.round(totalGlobalFlights * factor);
+  }, [totalGlobalFlights, selectedYear]);
+
+  const projectedTotalVessels = useMemo(() => {
+    if (selectedYear === 2026) return totalGlobalVessels;
+    const diff = selectedYear - 2026;
+    const factor = Math.pow(1.025, diff);
+    return Math.round(totalGlobalVessels * factor);
+  }, [totalGlobalVessels, selectedYear]);
+
+  /* ── Futuristic enriched flights in predictive simulation ─── */
+  const displayFlights = useMemo(() => {
+    if (selectedYear <= 2026) return filteredFlights;
+
+    const futureTags = [
+      { badge: 'SAF 100%', tech: 'Bio-Kérosène Zéro-Fossile', color: '#00f5a0' },
+      { badge: 'IA PILOT-4', tech: 'Navigation Autonome IA', color: '#00f2fe' },
+      { badge: 'CRYOGÉNIQUE', tech: 'Hydrogène Liquide Vert', color: '#38bdf8' },
+      { badge: 'SUPERSONIQUE', tech: 'Mach 1.7 Civil Boom', color: '#f59e0b' },
+      { badge: 'ÉCO-CORRIDOR', tech: 'Trajectoire Optimale IA', color: '#10b981' },
+    ];
+
+    return filteredFlights.map((fl, idx) => {
+      const tag = futureTags[idx % futureTags.length];
+      let aircraftModel = fl.aircraftCode || fl.aircraft || 'Avion';
+      if (selectedYear >= 2030) {
+        if (aircraftModel.includes('359') || aircraftModel.includes('A350')) aircraftModel = 'A350neo-H2';
+        else if (aircraftModel.includes('77') || aircraftModel.includes('B77')) aircraftModel = 'B777-9X eco';
+        else if (aircraftModel.includes('320') || aircraftModel.includes('A320')) aircraftModel = 'A321XLR-SAF';
+        else if (idx % 7 === 0) aircraftModel = 'Boom Overture';
+      }
+      return {
+        ...fl,
+        aircraftCode: aircraftModel,
+        futureTag: tag,
+      };
+    });
+  }, [filteredFlights, selectedYear]);
+
   const filteredVessels = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return liveVessels.filter((v) => {
@@ -682,14 +732,21 @@ export function LiveTelemetryDrawer({
     };
   }, [selectedCountry]);
 
-  /* ── Temporal Handlers ─────────────────────────────────────────── */
+  const effectiveDate = useMemo(() => {
+    if (customDate) return new Date(customDate);
+    if (selectedYear && selectedYear !== 2026) {
+      return new Date(new Date().setFullYear(selectedYear));
+    }
+    return new Date();
+  }, [customDate, selectedYear]);
+
   const currentIsoDate = useMemo(() => {
-    const d = customDate || new Date();
+    const d = effectiveDate;
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
-  }, [customDate]);
+  }, [effectiveDate]);
 
   const currentIsoTime = useMemo(() => {
     const d = customDate || new Date();
@@ -919,6 +976,18 @@ export function LiveTelemetryDrawer({
               <Calendar size={11} className="chrono-calendar-icon" />
               <span className="drawer-date-text">{localDate}</span>
             </div>
+
+            {/* Futuristic Temporal Simulation Badge when year is modified */}
+            {selectedYear !== 2026 && (
+              <div className={`drawer-year-mode-badge ${selectedYear > 2026 ? 'is-future' : 'is-past'}`}>
+                <span className="dymb-pulse" />
+                <span>
+                  {selectedYear > 2026
+                    ? `SIMULATION PRÉDICTIVE TÉLÉMÉTRIE // AN ${selectedYear}`
+                    : `ARCHIVE HISTORIQUE // AN ${selectedYear}`}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -951,7 +1020,7 @@ export function LiveTelemetryDrawer({
         {drawerMode === 'journal' ? (
           <div className="drawer-scroll-area is-journal-dedicated">
             <ChronoJournalTab
-              selectedDate={customDate || new Date()}
+              selectedDate={effectiveDate}
               metrics={metrics}
               onSelectLocation={onSelectLocation}
             />
@@ -978,9 +1047,9 @@ export function LiveTelemetryDrawer({
                         ? METRIC_DEFINITIONS.length
                         : METRIC_DEFINITIONS.filter((m) => m.cat === cat.id).length
                       : cat.type === 'aviation'
-                      ? (liveFlights.length || totalGlobalFlights)
+                      ? (liveFlights.length || projectedTotalFlights)
                       : cat.type === 'maritime'
-                      ? (liveVessels.length || totalGlobalVessels)
+                      ? (liveVessels.length || projectedTotalVessels)
                       : cat.type === 'telluric'
                       ? liveEarthquakes.length
                       : cat.type === 'infrastructure'
@@ -1104,22 +1173,34 @@ export function LiveTelemetryDrawer({
                   <div className="fr24-radar-indicator">
                     <span className="fr24-pulse-ring" />
                     <span className="fr24-pulse-dot" />
-                    <span className="fr24-source-title">FLIGHTRADAR24 // RADAR ADS-B EN DIRECT</span>
+                    <span className="fr24-source-title">
+                      {selectedYear > 2026
+                        ? `FLIGHTRADAR24 // SIMULATION PROSPECTIVE ${selectedYear}`
+                        : selectedYear < 2026
+                        ? `FLIGHTRADAR24 // ARCHIVE ${selectedYear}`
+                        : 'FLIGHTRADAR24 // RADAR ADS-B EN DIRECT'}
+                    </span>
                   </div>
-                  <span className="fr24-live-pill">● DIRECT 1X VITESSE RÉELLE</span>
+                  <span className={`fr24-live-pill ${selectedYear !== 2026 ? 'is-future' : ''}`}>
+                    {selectedYear !== 2026 ? `● SIMULATION ${selectedYear}` : '● DIRECT 1X VITESSE RÉELLE'}
+                  </span>
                 </div>
 
                 <div className="fr24-stats-row">
                   <div className="fr24-stat-box">
-                    <span className="fr24-stat-label">VOLS CAPTÉS EN TEMPS RÉEL</span>
+                    <span className="fr24-stat-label">
+                      {selectedYear > 2026 ? `VOLS PROJETÉS EN SIMULATION` : 'VOLS CAPTÉS EN TEMPS RÉEL'}
+                    </span>
                     <span className="fr24-stat-value gold">
                       {liveFlights.length > 0 ? liveFlights.length.toLocaleString('fr-FR') : 'Connexion...'}
                     </span>
                   </div>
                   <div className="fr24-stat-box align-right">
-                    <span className="fr24-stat-label">TRAFIC MONDIAL ESTIMÉ</span>
+                    <span className="fr24-stat-label">
+                      {selectedYear > 2026 ? `TRAFIC MONDIAL PROJETÉ (${selectedYear})` : 'TRAFIC MONDIAL ESTIMÉ'}
+                    </span>
                     <span className="fr24-stat-value">
-                      ~{totalGlobalFlights.toLocaleString('fr-FR')} vols
+                      ~{projectedTotalFlights.toLocaleString('fr-FR')} vols
                     </span>
                   </div>
                 </div>
@@ -1159,22 +1240,26 @@ export function LiveTelemetryDrawer({
               <div className="fr24-list-header">
                 <div className="fr24-list-title">
                   <Plane size={13} style={{ color: '#ffd700' }} />
-                  <span>FLOTTE COMMERCIALE EN VOL DIRECT</span>
+                  <span>
+                    {selectedYear > 2026
+                      ? `FLOTTE AÉRIENNE COMMERCIALE & PROSPECTIVE ${selectedYear}`
+                      : 'FLOTTE COMMERCIALE EN VOL DIRECT'}
+                  </span>
                   <span className="fr24-list-count">
-                    {filteredFlights.length} affichés
+                    {displayFlights.length} affichés
                   </span>
                 </div>
                 <span className="fr24-list-note">CLIQUEZ POUR TÉLÉMÉTRIE & TRAJECTOIRE</span>
               </div>
 
               {/* Flights Grid / Cards */}
-              {filteredFlights.length === 0 ? (
+              {displayFlights.length === 0 ? (
                 <div className="empty-state">
                   Aucun vol ne correspond aux critères de recherche actuels.
                 </div>
               ) : (
                 <div className="fr24-flights-grid">
-                  {filteredFlights.slice(0, 120).map((fl, idx) => (
+                  {displayFlights.slice(0, 120).map((fl, idx) => (
                     <div
                       key={fl.id || idx}
                       className="fr24-flight-card is-clickable"
@@ -1200,6 +1285,15 @@ export function LiveTelemetryDrawer({
                         </div>
 
                         <div className="fr24-airline-badge">
+                          {fl.futureTag && (
+                            <span
+                              className="fr24-future-pill"
+                              style={{ borderColor: fl.futureTag.color, color: fl.futureTag.color }}
+                              title={fl.futureTag.tech}
+                            >
+                              {fl.futureTag.badge}
+                            </span>
+                          )}
                           <span>{fl.airlineFlag || '✈️'}</span>
                           <span className="fr24-airline-name">{fl.airline}</span>
                         </div>
@@ -1269,27 +1363,41 @@ export function LiveTelemetryDrawer({
                 <div className="fr24-radar-top">
                   <div className="fr24-radar-live-indicator">
                     <span className="fr24-ping-dot green" />
-                    <span className="fr24-radar-source">MARINETRAFFIC AIS // VDL SATELLITE</span>
+                    <span className="fr24-radar-source">
+                      {selectedYear > 2026
+                        ? `MARINETRAFFIC AIS // FLOTTE PROSPECTIVE ${selectedYear}`
+                        : selectedYear < 2026
+                        ? `MARINETRAFFIC AIS // ARCHIVES ${selectedYear}`
+                        : 'MARINETRAFFIC AIS // VDL SATELLITE'}
+                    </span>
                   </div>
                   <span className="fr24-tracked-badge green">
                     <Anchor size={11} style={{ marginRight: 4 }} />
-                    DIRECT AIS MONDIAL
+                    {selectedYear !== 2026 ? `AIS PROSPECTIF ${selectedYear}` : 'DIRECT AIS MONDIAL'}
                   </span>
                 </div>
 
                 <div className="fr24-big-counter-row">
                   <div className="fr24-counter-stat">
-                    <span className="fr24-stat-label">NAVIRES DÉTECTÉS EN TEMPS RÉEL</span>
+                    <span className="fr24-stat-label">
+                      {selectedYear > 2026
+                        ? `FLOTTE MONDIALE EN NAVIGATION (${selectedYear})`
+                        : selectedYear < 2026
+                        ? `NAVIRES ARCHIVÉS (${selectedYear})`
+                        : 'NAVIRES DÉTECTÉS EN TEMPS RÉEL'}
+                    </span>
                     <div className="fr24-num-group">
                       <span className="fr24-stat-big green">
-                        {totalGlobalVessels.toLocaleString('fr-FR')}
+                        {projectedTotalVessels.toLocaleString('fr-FR')}
                       </span>
                       <span className="fr24-stat-unit">navires mondiaux</span>
                     </div>
                   </div>
                   <div className="fr24-counter-stat align-right">
                     <span className="fr24-stat-label">CORRIDORS SOUS VEILLE</span>
-                    <span className="fr24-sub-stat">6 DÉTROITS CRITIQUES</span>
+                    <span className="fr24-sub-stat">
+                      {selectedYear >= 2030 ? '8 DÉTROITS & ROUTES ARCTIQUES' : '6 DÉTROITS CRITIQUES'}
+                    </span>
                   </div>
                 </div>
 

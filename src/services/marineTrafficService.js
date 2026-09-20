@@ -1,4 +1,4 @@
-import REAL_VESSELS_SNAPSHOT from '../data/realVesselsSnapshot.json';
+// Asynchronous dynamic loading of high-volume marine snapshot for ultra-fast startup
 
 // ===================================================================
 // AIS Ship Type → MarineTraffic Category Mapping (ITU-R M.1371-5)
@@ -379,21 +379,34 @@ class MarineTrafficService {
     this.isMetadataFetching = false;
     this.lastMetadataFetch = 0;
 
-    // Direct initialization from authentic worldwide MarineTraffic dataset (25,900+ ships)
-    if (Array.isArray(REAL_VESSELS_SNAPSHOT) && REAL_VESSELS_SNAPSHOT.length > 0) {
-      for (let i = 0; i < REAL_VESSELS_SNAPSHOT.length; i++) {
-        const item = REAL_VESSELS_SNAPSHOT[i];
-        if (item && item.id) {
-          this.vesselsMap.set(item.id, {
-            ...item,
-            lastUpdate: Date.now(),
-          });
-        }
-      }
-    }
+    this.vessels = [];
+    this.totalGlobalVessels = 25910;
 
-    this.vessels = Array.from(this.vesselsMap.values());
-    this.totalGlobalVessels = Math.max(25910, this.vessels.length);
+    // Load dataset asynchronously without blocking UI render
+    this.loadSnapshot();
+  }
+
+  async loadSnapshot() {
+    try {
+      const mod = await import('../data/realVesselsSnapshot.json');
+      const data = mod.default || mod;
+      if (Array.isArray(data) && data.length > 0) {
+        for (let i = 0; i < data.length; i++) {
+          const item = data[i];
+          if (item && item.id) {
+            this.vesselsMap.set(item.id, {
+              ...item,
+              lastUpdate: Date.now(),
+            });
+          }
+        }
+        this.vessels = Array.from(this.vesselsMap.values());
+        this.totalGlobalVessels = Math.max(25910, this.vessels.length);
+        this.notify();
+      }
+    } catch (err) {
+      console.warn('Asynchronous vessel snapshot load:', err);
+    }
   }
 
   setVesselLimit(limit) {

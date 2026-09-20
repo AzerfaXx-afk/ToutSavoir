@@ -10,7 +10,7 @@ import { TacticalShortcutsModal } from './components/TacticalShortcutsModal';
 import { MapLayerToggles } from './components/MapLayerToggles';
 import { flightRadarService } from './services/flightRadarService';
 import { marineTrafficService } from './services/marineTrafficService';
-import { Play, Pause, VolumeX, Maximize2, Minimize2, HelpCircle, RotateCcw } from 'lucide-react';
+import { Play, Pause, VolumeX, Maximize2, Minimize2, HelpCircle } from 'lucide-react';
 import { sound } from './utils/soundFX';
 import './App.css';
 
@@ -392,28 +392,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Sleek Minimalist Awwwards Floating Reset Message when date/year is modified */}
-      {selectedYear !== 2026 && (
-        <div className="awwwards-date-pill-wrapper">
-          <button
-            type="button"
-            className="awwwards-date-reset-pill"
-            onClick={() => {
-              sound.click();
-              setSelectedYear(2026);
-            }}
-            onMouseEnter={() => sound.hover(0.35)}
-            title="Revenir à la date du jour (2026)"
-            aria-label="Revenir à la date du jour"
-          >
-            <span className="adr-dot" />
-            <span className="adr-badge">Archive {selectedYear}</span>
-            <span className="adr-divider">·</span>
-            <span className="adr-action">Revenir au direct (2026)</span>
-            <RotateCcw size={12} className="adr-icon" />
-          </button>
-        </div>
-      )}
 
       {/* Responsive Right-Side Unified Intelligence Drawer */}
       <LiveTelemetryDrawer

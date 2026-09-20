@@ -2283,7 +2283,7 @@ export function TacticalMap2D({
           },
         });
 
-        if (!mapInstanceRef.current || !mapInstanceRef.current._panes) return;
+        if (!mapInstanceRef.current || !mapInstanceRef.current._panes?.overlayPane) return;
         geoLayer.addTo(map);
         geoJsonLayerRef.current = geoLayer;
       })
@@ -2708,6 +2708,7 @@ export function TacticalMap2D({
       {selectedTerritory && (
         <CountryDossierCard
           territory={selectedTerritory}
+          selectedYear={selectedYear}
           onClose={handleCloseDossier}
           onResetView={handleGlobalView}
           onCompareSize={handleStartCompare}

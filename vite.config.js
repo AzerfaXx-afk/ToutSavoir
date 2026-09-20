@@ -4,6 +4,17 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  build: {
+    chunkSizeWarningLimit: 3000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('three')) return 'vendor-three';
+          if (id.includes('leaflet')) return 'vendor-leaflet';
+        },
+      },
+    },
+  },
   server: {
     port: 5174,
     proxy: {
