@@ -594,7 +594,7 @@ export function CCTVLiveMonitor({
           ) : isSkyline ? (
             <div className="cctv-live-dot-wrap is-skyline-feed">
               <img
-                key={`skyline-${camera.id}-${snapshotTimestamp}`}
+                key={`skyline-${camera.id}`}
                 src={currentMediaUrl}
                 alt={camera.name}
                 className="cctv-optical-media"
@@ -676,7 +676,7 @@ export function CCTVLiveMonitor({
           ) : camera.isLiveSnapshot ? (
             <div className="cctv-live-dot-wrap">
               <img
-                key={`dot-${camera.id}-${snapshotTimestamp}`}
+                key={`dot-${camera.id}`}
                 src={currentMediaUrl}
                 alt={camera.name}
                 className="cctv-optical-media"
