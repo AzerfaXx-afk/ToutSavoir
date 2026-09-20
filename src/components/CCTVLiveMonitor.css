@@ -1170,4 +1170,130 @@
   100% { transform: scaleY(1); }
 }
 
+/* ─── SkylineWebcams Direct Optical Feed & Badge ─── */
+.cctv-dot-live-indicator.is-skyline-badge {
+  background: rgba(4, 9, 18, 0.92);
+  border: 1px solid rgba(0, 245, 160, 0.6);
+  box-shadow: 0 0 14px rgba(0, 245, 160, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 16px);
+}
+
+.cctv-skyline-badge-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 245, 160, 0.15);
+  border: 1px solid rgba(0, 245, 160, 0.4);
+  color: #00f5a0;
+  text-decoration: none;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  margin-left: 4px;
+  pointer-events: auto;
+}
+
+.cctv-skyline-badge-link:hover {
+  background: #00f5a0;
+  color: #020710;
+  box-shadow: 0 0 10px rgba(0, 245, 160, 0.5);
+}
+
+/* ─── Graceful Video Fallback Overlay ─── */
+.cctv-media-fallback-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.cctv-fallback-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(6, 11, 20, 0.4) 0%, rgba(6, 11, 20, 0.85) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 12px;
+  gap: 8px;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 8;
+  pointer-events: auto;
+}
+
+.cctv-fallback-hud {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fallback-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00f2fe;
+  box-shadow: 0 0 8px #00f2fe;
+}
+
+.fallback-title {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #00f2fe;
+  text-shadow: 0 0 8px rgba(0, 242, 254, 0.4);
+}
+
+.cctv-fallback-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cctv-fallback-retry-btn,
+.cctv-fallback-ext-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.cctv-fallback-retry-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.cctv-fallback-retry-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.cctv-fallback-ext-btn {
+  background: rgba(0, 242, 254, 0.15);
+  border: 1px solid rgba(0, 242, 254, 0.4);
+  color: #00f2fe;
+}
+
+.cctv-fallback-ext-btn:hover {
+  background: #00f2fe;
+  color: #020710;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+}
+
+
 

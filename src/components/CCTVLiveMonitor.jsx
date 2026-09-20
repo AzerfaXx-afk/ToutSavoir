@@ -66,13 +66,28 @@ export function CCTVLiveMonitor({
     return () => clearInterval(interval);
   }, [camera?.id, camera?.isLiveSnapshot, camera?.refreshInterval]);
 
+  const [mediaError, setMediaError] = useState(false);
+
+  useEffect(() => {
+    setMediaError(false);
+  }, [camera?.id, reloadKey]);
+
+  const isSkyline = Boolean(
+    camera?.type === 'skyline' ||
+    camera?.skylineId ||
+    camera?.provider?.toLowerCase().includes('skylinewebcams')
+  );
+
   const currentMediaUrl = useMemo(() => {
     if (!camera) return '';
+    if (isSkyline && camera.skylineId) {
+      return `https://cdn.skylinewebcams.com/live${camera.skylineId}.jpg?_t=${snapshotTimestamp}`;
+    }
     if (camera.isLiveSnapshot && camera.feedUrl) {
       return `${camera.feedUrl}?_t=${snapshotTimestamp}`;
     }
     return camera.thumbnail || camera.feedUrl || '';
-  }, [camera, snapshotTimestamp]);
+  }, [camera, snapshotTimestamp, isSkyline]);
 
   const isHls = Boolean(
     camera?.type === 'hls' ||
@@ -91,10 +106,15 @@ export function CCTVLiveMonitor({
     camera?.stream_type === 'mjpeg'
   );
   const isIframe = Boolean(
-    camera?.embedUrl ||
-    camera?.type === 'yt' ||
-    camera?.stream_type === 'iframe' ||
-    (camera?.stream_url && (camera.stream_url.includes('youtube') || camera.stream_url.includes('embed') || camera.stream_url.includes('ipcamlive') || camera.stream_url.includes('skaping')))
+    !isSkyline &&
+    !camera?.isLiveSnapshot &&
+    (
+      camera?.type === 'yt' ||
+      camera?.type === 'iframe' ||
+      camera?.stream_type === 'iframe' ||
+      (camera?.embedUrl && !camera.embedUrl.includes('skylinewebcams.com')) ||
+      (camera?.stream_url && (camera.stream_url.includes('youtube') || camera.stream_url.includes('embed') || camera.stream_url.includes('ipcamlive') || camera.stream_url.includes('skaping')))
+    )
   );
   const streamVideoUrl = camera?.stream_url || camera?.feedUrl;
 
@@ -536,7 +556,73 @@ export function CCTVLiveMonitor({
             transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          {isHls ? (
+          {mediaError ? (
+            <div className="cctv-media-fallback-wrap">
+              <img
+                src={camera.thumbnail || currentMediaUrl}
+                alt={camera.name}
+                className="cctv-optical-media"
+              />
+              <div className="cctv-fallback-overlay">
+                <div className="cctv-fallback-hud">
+                  <span className="fallback-status-dot" />
+                  <span className="fallback-title">SIGNAL FLUX SECONDORISE // CAPTEUR OPTIQUE DIRECT</span>
+                </div>
+                <div className="cctv-fallback-controls">
+                  <button
+                    type="button"
+                    className="cctv-fallback-retry-btn"
+                    onClick={handleReload}
+                  >
+                    <RefreshCw size={11} />
+                    <span>RÉINITIALISER SIGNAL</span>
+                  </button>
+                  {camera.externalUrl && (
+                    <a
+                      href={camera.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="cctv-fallback-ext-btn"
+                    >
+                      <ExternalLink size={11} />
+                      <span>SOURCE HD DIRECTE</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : isSkyline ? (
+            <div className="cctv-live-dot-wrap is-skyline-feed">
+              <img
+                key={`skyline-${camera.id}-${snapshotTimestamp}`}
+                src={currentMediaUrl}
+                alt={camera.name}
+                className="cctv-optical-media"
+                loading="eager"
+                onError={(e) => {
+                  if (camera.thumbnail && e.currentTarget.src !== camera.thumbnail) {
+                    e.currentTarget.src = camera.thumbnail;
+                  }
+                }}
+              />
+              <div className="cctv-dot-live-indicator is-skyline-badge">
+                <span className="dot-pulse" />
+                <span>DIRECT SKYLINEWEBCAMS // CAPTEUR LIVE HD (2.5s)</span>
+                {camera.externalUrl && (
+                  <a
+                    href={camera.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="cctv-skyline-badge-link"
+                    onClick={(e) => e.stopPropagation()}
+                    title="Ouvrir sur le site officiel SkylineWebcams"
+                  >
+                    OUVRIR SUR SKYLINEWEBCAMS HD ↗
+                  </a>
+                )}
+              </div>
+            </div>
+          ) : isHls ? (
             <div className="cctv-stream-container">
               <video
                 ref={videoRef}
@@ -546,6 +632,7 @@ export function CCTVLiveMonitor({
                 muted={isMuted}
                 playsInline
                 loop
+                onError={() => setMediaError(true)}
               />
             </div>
           ) : isMp4 ? (
@@ -559,6 +646,7 @@ export function CCTVLiveMonitor({
                 muted={isMuted}
                 playsInline
                 loop
+                onError={() => setMediaError(true)}
               />
             </div>
           ) : isIframe ? (
@@ -572,6 +660,7 @@ export function CCTVLiveMonitor({
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
                 loading="eager"
+                onError={() => setMediaError(true)}
               />
             </div>
           ) : isMjpeg ? (
@@ -581,6 +670,7 @@ export function CCTVLiveMonitor({
                 src={streamVideoUrl}
                 alt={camera.name}
                 className="cctv-optical-media"
+                onError={() => setMediaError(true)}
               />
             </div>
           ) : camera.isLiveSnapshot ? (
@@ -591,10 +681,15 @@ export function CCTVLiveMonitor({
                 alt={camera.name}
                 className="cctv-optical-media"
                 loading="eager"
+                onError={() => {
+                  if (camera.thumbnail && currentMediaUrl !== camera.thumbnail) {
+                    setMediaError(true);
+                  }
+                }}
               />
               <div className="cctv-dot-live-indicator">
                 <span className="dot-pulse" />
-                <span>DIRECT CAPTEUR DOT // AUTO-RAFRAÎCHISSEMENT 2S</span>
+                <span>DIRECT CAPTEUR OPTIQUE // AUTO-ACTUALISÉ 2.5S</span>
               </div>
             </div>
           ) : (

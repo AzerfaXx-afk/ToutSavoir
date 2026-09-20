@@ -58,14 +58,26 @@ export function MasterLiveTheater({
     setFpsVal(feed?.fps || (isTv ? 50 : 60));
   }, [feed?.id, isTv]);
 
-  // DOT Auto-refresh
+  const [mediaError, setMediaError] = useState(false);
+
   useEffect(() => {
-    if (!feed?.isLiveSnapshot) return;
+    setMediaError(false);
+  }, [feed?.id]);
+
+  const isSkyline = Boolean(
+    feed?.type === 'skyline' ||
+    feed?.skylineId ||
+    feed?.provider?.toLowerCase().includes('skylinewebcams')
+  );
+
+  // DOT / Skyline Auto-refresh
+  useEffect(() => {
+    if (!feed?.isLiveSnapshot && !isSkyline) return;
     const interval = setInterval(() => {
       setSnapshotTimestamp(Date.now());
-    }, feed.refreshInterval || 3000);
+    }, feed?.refreshInterval || 2500);
     return () => clearInterval(interval);
-  }, [feed?.id, feed?.isLiveSnapshot, feed?.refreshInterval]);
+  }, [feed?.id, feed?.isLiveSnapshot, feed?.refreshInterval, isSkyline]);
 
   const isHls = Boolean(
     feed?.type === 'hls' ||
@@ -116,9 +128,9 @@ export function MasterLiveTheater({
 
   // Extract YouTube ID or format embedUrl
   const iframeSrc = useMemo(() => {
-    if (!feed) return '';
+    if (!feed || isSkyline || feed.isLiveSnapshot) return '';
     const base = feed.embedUrl || feed.stream_url || '';
-    if (!base) return '';
+    if (!base || base.includes('skylinewebcams.com')) return '';
 
     // Append autoplay & mute param properly
     try {
@@ -136,7 +148,7 @@ export function MasterLiveTheater({
       const glue = base.includes('?') ? '&' : '?';
       return `${base}${glue}autoplay=1&mute=${isMuted ? 1 : 0}&playsinline=1&controls=1&modestbranding=1&rel=0`;
     }
-  }, [feed, isMuted]);
+  }, [feed, isMuted, isSkyline]);
 
   if (!feed) return null;
 
@@ -148,7 +160,7 @@ export function MasterLiveTheater({
           <div className="theater-live-pill">
             <span className="theater-live-dot" />
             <span className="theater-live-text">
-              {feed.isLiveSnapshot ? 'DOT LIVE 5S' : isTv ? 'TÉLÉVISION DIRECTE' : 'DIRECT FLUX MAÎTRE'}
+              {isSkyline ? 'SKYLINEWEBCAMS HD (2.5s)' : feed.isLiveSnapshot ? 'DOT LIVE 5S' : isTv ? 'TÉLÉVISION DIRECTE' : 'DIRECT FLUX MAÎTRE'}
             </span>
           </div>
           <span className="theater-res-badge">{feed.resolution || '1080p HD'}</span>
@@ -228,7 +240,18 @@ export function MasterLiveTheater({
 
       {/* Main Video Screen Viewport */}
       <div className={`master-theater-viewport vision-${visionMode}`}>
-        {isHls ? (
+        {mediaError ? (
+          <div className="theater-fallback-wrap">
+            <img
+              src={feed.thumbnail || feed.feedUrl}
+              alt={feed.name}
+              className="master-theater-snapshot-element"
+            />
+            <div className="theater-fallback-overlay">
+              <span className="theater-fallback-pill">SIGNAL FLUX RECONFIGURÉ // CAPTEUR DIRECT OPTIQUE ACTIF</span>
+            </div>
+          </div>
+        ) : isHls ? (
           <video
             ref={videoRef}
             className="master-theater-video-element"
@@ -236,12 +259,22 @@ export function MasterLiveTheater({
             playsInline
             muted={isMuted}
             loop
+            onError={() => setMediaError(true)}
           />
-        ) : feed.isLiveSnapshot && feed.feedUrl ? (
+        ) : isSkyline || (feed.isLiveSnapshot && feed.feedUrl) ? (
           <img
-            src={`${feed.feedUrl}?_t=${snapshotTimestamp}`}
+            src={
+              isSkyline && feed.skylineId
+                ? `https://cdn.skylinewebcams.com/live${feed.skylineId}.jpg?_t=${snapshotTimestamp}`
+                : `${feed.feedUrl}?_t=${snapshotTimestamp}`
+            }
             alt={feed.name}
             className="master-theater-snapshot-element"
+            onError={(e) => {
+              if (feed.thumbnail && e.currentTarget.src !== feed.thumbnail) {
+                e.currentTarget.src = feed.thumbnail;
+              }
+            }}
           />
         ) : iframeSrc ? (
           <iframe
@@ -251,6 +284,7 @@ export function MasterLiveTheater({
             className="master-theater-iframe-element"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
+            onError={() => setMediaError(true)}
           />
         ) : (
           <img
