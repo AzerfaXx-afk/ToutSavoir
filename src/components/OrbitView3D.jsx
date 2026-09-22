@@ -27,8 +27,8 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { flightRadarService } from '../services/flightRadarService';
 import { marineTrafficService } from '../services/marineTrafficService';
 import { TacticalInspectionCard } from './TacticalInspectionCard';
-import { CountryDossierCard } from './CountryDossierCard';
 import { resolveCountryGeopolitics } from '../data/countryGeopolitics';
+import { resolveTemporalCountry } from '../data/chronosTemporalEngine';
 
 // Fast point-in-polygon ray-casting algorithm
 function pointInPolygon(point, poly) {
@@ -533,8 +533,9 @@ export function OrbitView3D({
     const rawName = props.NAME || props.SUBUNIT || props.ADMIN || 'Territoire';
     const displayName = TERRITORY_NAMES_FR[rawName] || props.NAME_FR || rawName;
     const sovereign = props.SOVEREIGNT || props.SOV_A3 || displayName;
-    const continent = props.CONTINENT || 'International';
-    const geopolitics = resolveCountryGeopolitics(rawName, props);
+    const baseGeo = resolveCountryGeopolitics(rawName, props);
+    const temporalGeo = resolveTemporalCountry(rawName, props, selectedYear);
+    const geopolitics = { ...baseGeo, ...temporalGeo };
     const pop = geopolitics.pop2026 || props.POP_EST || props.POP2005;
     const popFormatted = geopolitics.popFormatted || (pop ? Number(pop).toLocaleString('fr-FR') : 'N/A');
     const areaKm2 = geopolitics.areaKm2 || getCountryAreaKm2(foundFeature);
@@ -545,9 +546,9 @@ export function OrbitView3D({
     const targetLng = typeof lng === 'number' ? lng : (foundFeature.bbox ? (foundFeature.bbox[0] + foundFeature.bbox[2]) / 2 : 0);
 
     const territoryObj = {
-      name: displayName,
+      name: geopolitics.name || displayName,
       rawName,
-      sovereign,
+      sovereign: geopolitics.officialName || sovereign,
       continent,
       subregion,
       pop: popFormatted,
@@ -2517,7 +2518,9 @@ export function OrbitView3D({
             const rawName = props.NAME || props.SUBUNIT || props.ADMIN || 'Territoire';
             const displayName = TERRITORY_NAMES_FR[rawName] || props.NAME_FR || rawName;
             const sovereign = props.SOVEREIGNT || props.SOV_A3 || displayName;
-            const geopolitics = resolveCountryGeopolitics(rawName, props);
+            const baseGeo = resolveCountryGeopolitics(rawName, props);
+            const temporalGeo = resolveTemporalCountry(rawName, props, selectedYear);
+            const geopolitics = { ...baseGeo, ...temporalGeo };
             const pop = geopolitics.pop2026 || props.POP_EST || props.POP2005;
             const popFormatted = geopolitics.popFormatted || (pop ? Number(pop).toLocaleString('fr-FR') : 'N/A');
             const areaKm2 = geopolitics.areaKm2 || getCountryAreaKm2(foundFeature);
@@ -2526,11 +2529,13 @@ export function OrbitView3D({
             setHoveredTerritory({
               x: e.clientX,
               y: e.clientY,
-              name: displayName,
-              sovereign: sovereign !== displayName ? sovereign : null,
+              name: geopolitics.name || displayName,
+              sovereign: geopolitics.officialName || (sovereign !== displayName ? sovereign : null),
               continent,
               pop: popFormatted,
               area: areaFormatted,
+              flagUrl: geopolitics.flagUrl,
+              eraTag: geopolitics.eraTag,
             });
           } else {
             removeHoverMesh();

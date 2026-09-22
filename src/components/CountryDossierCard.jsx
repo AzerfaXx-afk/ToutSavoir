@@ -15,9 +15,11 @@ import {
   Radio,
   RotateCcw,
   Sparkles,
+  History,
 } from 'lucide-react';
 import { sound } from '../utils/soundFX';
 import { getCapitalLocalTimeString } from '../data/countryGeopolitics';
+import { resolveTemporalCountry, getHistoricalMilestonesForCountry } from '../data/chronosTemporalEngine';
 import {
   getUNProjectionForYear,
   getCountryDemographicTrajectory,
@@ -51,15 +53,30 @@ export function CountryDossierCard({
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
 
-  const geo = territory?.geopolitics || {};
+  // Dynamic Spatio-Temporal Geopolitical Resolution
+  const geo = useMemo(() => {
+    if (!territory) return {};
+    const baseGeo = territory.geopolitics || {};
+    const temporalGeo = resolveTemporalCountry(
+      territory.rawName || territory.name,
+      territory.feature?.properties || territory.properties || {},
+      selectedYear
+    );
+    return { ...baseGeo, ...temporalGeo };
+  }, [territory, selectedYear]);
+
+  const milestones = useMemo(() => {
+    return getHistoricalMilestonesForCountry(geo.iso3 || geo.iso2 || territory?.rawName);
+  }, [geo.iso3, geo.iso2, territory?.rawName]);
+
   const timeZone = geo.timeZone || 'UTC';
   const capitalName = geo.capital || geo.timeZoneName || '';
 
-  // Reset flag and tab when territory changes
+  // Reset flag and tab when territory or year changes
   useEffect(() => {
     setFlagError(false);
     setUseFallback(false);
-  }, [territory?.name, geo.iso2, geo.flagUrl]);
+  }, [territory?.name, geo.iso2, geo.flagUrl, selectedYear]);
 
   // Live ticking capital clock using real IANA timezone
   useEffect(() => {
@@ -337,7 +354,7 @@ export function CountryDossierCard({
           </div>
 
           <div className="minimized-meta">
-            <span className="minimized-country-name">{territory.name}</span>
+            <span className="minimized-country-name">{geo.name || territory.name}</span>
             <span className="minimized-stat-tag">
               {projections?.projectedPop} hab. · {selectedYear}
             </span>
@@ -548,15 +565,18 @@ export function CountryDossierCard({
           </div>
 
           <div className="dossier-identity-text">
-            <h3 className="dossier-country-name">{territory.name}</h3>
+            <h3 className="dossier-country-name">{geo.name || territory.name}</h3>
             <span className="dossier-country-sub">
-              {territory.sovereign && territory.sovereign !== territory.name
+              {geo.isUnionMember && geo.subEntityName
+                ? `${geo.subEntityName} · ${geo.officialName}`
+                : territory.sovereign && territory.sovereign !== territory.name
                 ? `Rattaché à : ${territory.sovereign}`
                 : geo.officialName || 'État souverain'}
             </span>
             <div className="dossier-code-badges">
               <span className="dossier-tag-pill">{geo.iso2 || 'ISO'} / {geo.iso3 || '---'}</span>
               <span className="dossier-tag-capital">Capitale : <strong>{geo.capital || 'N/A'}</strong></span>
+              {geo.eraTag && <span className="dossier-era-pill">{geo.eraTag}</span>}
             </div>
           </div>
         </div>
@@ -637,6 +657,45 @@ export function CountryDossierCard({
                       {alliance}
                     </span>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Historical Context & Era Box if historical shift is active */}
+            {geo.historicalContext && (
+              <div className="dossier-historical-context-box">
+                <div className="dhc-header">
+                  <History size={12} className="dhc-icon" />
+                  <span>{geo.eraTag || `CHRONIQUE GÉOPOLITIQUE // AN ${selectedYear}`}</span>
+                </div>
+                <p className="dhc-body">{geo.historicalContext}</p>
+              </div>
+            )}
+
+            {/* Historical Regime Shifts Milestones if available for this country */}
+            {milestones && milestones.length > 0 && (
+              <div className="dossier-regime-timeline">
+                <span className="drt-title">
+                  <History size={11} />
+                  <span>CHRONOLOGIE DES RÉGIMES // 1900 - 2084</span>
+                </span>
+                <div className="drt-track">
+                  {milestones.map((m) => {
+                    const isPassed = selectedYear >= m.year;
+                    return (
+                      <div key={m.year} className={`drt-node ${isPassed ? 'is-active' : ''}`}>
+                        <span className="drt-dot" />
+                        <div className="drt-content">
+                          <span className="drt-year">{m.year}</span>
+                          {m.flag && (
+                            <img src={m.flag} alt="" className="drt-flag-thumb" />
+                          )}
+                          <span className="drt-label">{m.label}</span>
+                          <span className="drt-regime-desc">({m.regime})</span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

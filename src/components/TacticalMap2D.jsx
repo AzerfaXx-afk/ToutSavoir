@@ -26,6 +26,12 @@ import { marineTrafficService, getMarineTrafficVesselSvg } from '../services/mar
 import { TacticalInspectionCard } from './TacticalInspectionCard';
 import { CountryDossierCard } from './CountryDossierCard';
 import { resolveCountryGeopolitics } from '../data/countryGeopolitics';
+import {
+  resolveTemporalCountry,
+  getTemporalGroupKey,
+  SOVIET_UNION_REPUBLICS,
+  YUGOSLAV_REPUBLICS,
+} from '../data/chronosTemporalEngine';
 
 
 const OVERSEAS_FRENCH_DEPS = new Set(['GUF', 'REU', 'GLP', 'MTQ', 'MYT']);
@@ -108,6 +114,11 @@ export function TacticalMap2D({
   const vesselLimitRef = useRef(vesselLimit);
   const updateMarineTrafficVesselsRef = useRef(null);
   const inspectedTargetRef = useRef(inspectedTarget);
+  const selectedYearRef = useRef(selectedYear);
+
+  useEffect(() => {
+    selectedYearRef.current = selectedYear;
+  }, [selectedYear]);
 
   useEffect(() => {
     inspectedTargetRef.current = inspectedTarget;
@@ -2055,7 +2066,25 @@ export function TacticalMap2D({
                 }
 
                 hoveredGroupKeyRef.current = targetGroupKey;
-                const groupLayers = countryGroupLayersMapRef.current.get(targetGroupKey) || [target];
+                const targetYear = selectedYearRef.current || 2026;
+                const temporalGroupKey = getTemporalGroupKey(targetGroupKey, targetYear);
+
+                let groupLayers = countryGroupLayersMapRef.current.get(targetGroupKey) || [target];
+                if (temporalGroupKey === 'USSR') {
+                  const ussrLayers = [];
+                  SOVIET_UNION_REPUBLICS.forEach((repCode) => {
+                    const layers = countryGroupLayersMapRef.current.get(repCode);
+                    if (layers) ussrLayers.push(...layers);
+                  });
+                  if (ussrLayers.length > 0) groupLayers = ussrLayers;
+                } else if (temporalGroupKey === 'YUGOSLAVIA') {
+                  const yugoLayers = [];
+                  YUGOSLAV_REPUBLICS.forEach((repCode) => {
+                    const layers = countryGroupLayersMapRef.current.get(repCode);
+                    if (layers) yugoLayers.push(...layers);
+                  });
+                  if (yugoLayers.length > 0) groupLayers = yugoLayers;
+                }
                 hoveredGroupLayersRef.current = groupLayers;
 
                 const isAntarctic = targetGroupKey === 'ATA';
@@ -2075,9 +2104,10 @@ export function TacticalMap2D({
                   selectedLayersRef.current.forEach((sl) => sl.bringToFront());
                 }
 
-                let hoverName = displayName;
+                const temporalGeo = resolveTemporalCountry(rawName, props, targetYear);
+                let hoverName = temporalGeo.name || displayName;
                 if (targetGroupKey === 'USA') hoverName = 'États-Unis';
-                else if (targetGroupKey === 'RUS') hoverName = 'Russie';
+                else if (targetGroupKey === 'RUS' && targetYear > 1991) hoverName = 'Russie';
                 else if (targetGroupKey === 'FRA') hoverName = 'France';
                 else if (targetGroupKey === 'ATA') hoverName = 'Antarctique';
 
@@ -2087,12 +2117,13 @@ export function TacticalMap2D({
                   x: clientX,
                   y: clientY,
                   name: hoverName,
-                  sovereign: sovereign !== hoverName ? sovereign : null,
+                  sovereign: temporalGeo.officialName || (sovereign !== hoverName ? sovereign : null),
                   continent,
-                  pop: popFormatted,
-                  area: areaFormatted,
-                  iso2: geopolitics.iso2,
-                  flagUrl: geopolitics.flagUrl,
+                  pop: temporalGeo.popFormatted || popFormatted,
+                  area: temporalGeo.areaFormatted || areaFormatted,
+                  iso2: temporalGeo.iso2,
+                  flagUrl: temporalGeo.flagUrl,
+                  eraTag: temporalGeo.eraTag,
                 });
               },
               mousemove: (e) => {
@@ -2213,11 +2244,15 @@ export function TacticalMap2D({
                 }
 
                 // 4. Set Selected Territory with Unified Metrics
-                let unifiedName = displayName;
-                let unifiedSovereign = sovereign;
-                let unifiedPop = popFormatted;
-                let unifiedArea = areaFormatted;
-                let unifiedAreaKm2 = areaKm2;
+                const clickTargetYear = selectedYearRef.current || 2026;
+                const temporalGeo = resolveTemporalCountry(rawName, props, clickTargetYear);
+                const activeGeo = { ...geopolitics, ...temporalGeo };
+
+                let unifiedName = activeGeo.name || displayName;
+                let unifiedSovereign = activeGeo.officialName || sovereign;
+                let unifiedPop = activeGeo.popFormatted || popFormatted;
+                let unifiedArea = activeGeo.areaFormatted || areaFormatted;
+                let unifiedAreaKm2 = activeGeo.areaKm2 || areaKm2;
 
                 if (targetGroupKey === 'USA') {
                   unifiedName = 'États-Unis';
@@ -2225,7 +2260,7 @@ export function TacticalMap2D({
                   unifiedPop = '335 893 238';
                   unifiedArea = '9 833 517 km²';
                   unifiedAreaKm2 = 9833517;
-                } else if (targetGroupKey === 'RUS') {
+                } else if (targetGroupKey === 'RUS' && clickTargetYear > 1991) {
                   unifiedName = 'Russie';
                   unifiedSovereign = 'Russia';
                   unifiedPop = '144 200 000';
@@ -2266,7 +2301,7 @@ export function TacticalMap2D({
                   centerLat: `${Math.abs(primaryCenter.lat).toFixed(2)}° ${primaryCenter.lat >= 0 ? 'N' : 'S'}`,
                   centerLng: `${Math.abs(primaryCenter.lng).toFixed(2)}° ${primaryCenter.lng >= 0 ? 'E' : 'W'}`,
                   centerCoords: [primaryCenter.lat, primaryCenter.lng],
-                  geopolitics,
+                  geopolitics: activeGeo,
                   feature: clickedSubunitFeature,
                   primaryFeature: clickedSubunitFeature,
                   primaryName: subunitDisplayName,
