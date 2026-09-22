@@ -26,8 +26,9 @@ import { WORLD_TV_CHANNELS } from '../data/worldTvChannels';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { flightRadarService } from '../services/flightRadarService';
 import { marineTrafficService } from '../services/marineTrafficService';
-import { interpolateGreatCircle } from '../data/liveTransits';
 import { TacticalInspectionCard } from './TacticalInspectionCard';
+import { CountryDossierCard } from './CountryDossierCard';
+import { resolveCountryGeopolitics } from '../data/countryGeopolitics';
 
 // Fast point-in-polygon ray-casting algorithm
 function pointInPolygon(point, poly) {
@@ -407,6 +408,197 @@ export function OrbitView3D({
     return group;
   };
 
+  // Find country feature for a given coordinate
+  const findCountryFeature = useCallback((lat, lng) => {
+    if (!geoFeaturesRef.current || geoFeaturesRef.current.length === 0) return null;
+    for (const f of geoFeaturesRef.current) {
+      const [minLng, minLat, maxLng, maxLat] = f.bbox || [-180, -90, 180, 90];
+      if (lng < minLng || lng > maxLng || lat < minLat || lat > maxLat) continue;
+
+      const geom = f.geometry;
+      if (!geom) continue;
+      const polyList =
+        geom.type === 'Polygon'
+          ? [geom.coordinates]
+          : geom.type === 'MultiPolygon'
+          ? geom.coordinates
+          : [];
+
+      for (const poly of polyList) {
+        if (poly && poly[0] && pointInPolygon([lng, lat], poly[0])) {
+          return f;
+        }
+      }
+    }
+    return null;
+  }, []);
+
+  // Find country feature by ISO code or name
+  const findFeatureByKeyOrName = useCallback((countryKey, name) => {
+    if (!geoFeaturesRef.current || geoFeaturesRef.current.length === 0) return null;
+    const cleanKey = (countryKey || '').toUpperCase().trim();
+    const cleanName = (name || '').toLowerCase().trim();
+
+    return geoFeaturesRef.current.find((f) => {
+      const p = f.properties || {};
+      const a3 = (p.ADM0_A3 || p.ISO_A3 || '').toUpperCase();
+      const a2 = (p.ISO_A2 || '').toUpperCase();
+      const sov = (p.SOVEREIGNT || p.SOV_A3 || '').toUpperCase();
+      const n = (p.NAME || '').toLowerCase();
+      const nFr = (p.NAME_FR || '').toLowerCase();
+      const adm = (p.ADMIN || '').toLowerCase();
+
+      if (cleanKey && (a3 === cleanKey || a2 === cleanKey || sov === cleanKey)) return true;
+      if (cleanName && (n === cleanName || nFr === cleanName || adm === cleanName)) return true;
+      return false;
+    });
+  }, []);
+
+  // Smoothly fly camera to face 3D lat/lng on Earth
+  const flyTo3DCoordinates = useCallback((lat, lng, zoom = 5) => {
+    if (!cameraRef.current || !earthGroupRef.current || !controlsRef.current) return;
+    const camera = cameraRef.current;
+    const earthGroup = earthGroupRef.current;
+    const controls = controlsRef.current;
+
+    // Local 3D point on Earth
+    const localVec = new THREE.Vector3(...coordsToVector(lng, lat, 1.0));
+    // World space direction taking current Earth rotation into account
+    const worldDir = localVec.clone().applyEuler(earthGroup.rotation).normalize();
+
+    // Target distance based on zoom level: zoom 4-8 maps to dist 4.0 - 2.6
+    const targetDist = Math.max(2.45, Math.min(4.5, 4.8 - (zoom || 5) * 0.32));
+    const targetPos = worldDir.multiplyScalar(targetDist);
+
+    const startPos = camera.position.clone();
+    const startTime = performance.now();
+    const duration = 1100; // ms
+
+    const animateFly = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1.0, elapsed / duration);
+      // Smooth ease-out cubic
+      const ease = 1 - Math.pow(1 - progress, 3);
+
+      const startDir = startPos.clone().normalize();
+      const endDir = targetPos.clone().normalize();
+      const curDir = new THREE.Vector3().copy(startDir).lerp(endDir, ease).normalize();
+      const curDist = THREE.MathUtils.lerp(startPos.length(), targetDist, ease);
+
+      camera.position.copy(curDir.multiplyScalar(curDist));
+      controls.target.set(0, 0, 0);
+      controls.update();
+
+      if (progress < 1.0) {
+        requestAnimationFrame(animateFly);
+      }
+    };
+    requestAnimationFrame(animateFly);
+  }, []);
+
+  // Apply full territory selection (both 3D mesh highlight and CountryDossierCard synchronization)
+  const applyTerritorySelection = useCallback((foundFeature, lat, lng) => {
+    if (!foundFeature) return;
+
+    sound.click();
+
+    // 1. Clear previous hover & select
+    removeHoverMesh();
+    setHoveredTerritory(null);
+    removeSelectedMesh();
+    setInspectedTarget(null);
+
+    // 2. Create elevated glowing selected mesh
+    const selectedMesh = createTerritoryMesh(foundFeature, {
+      surfaceRadius: R_SELECT,
+      borderRadius: R_SELECT + 0.003,
+      baseRadius: R_HOVER_BASE,
+      fillColor: 0x00f2fe,
+      fillOpacity: 0.52,
+      borderColor: 0xffffff,
+      borderOpacity: 1.0,
+      hasWalls: true,
+      wallColor: 0x00f2fe,
+      wallOpacity: 0.42,
+    });
+
+    if (earthGroupRef.current) {
+      earthGroupRef.current.add(selectedMesh);
+      selectedMeshRef.current = selectedMesh;
+      selectedFillMatRef.current = selectedMesh.userData?.fillMat;
+    }
+
+    // 3. Extract properties & resolve geopolitics
+    const props = foundFeature.properties || {};
+    const rawName = props.NAME || props.SUBUNIT || props.ADMIN || 'Territoire';
+    const displayName = TERRITORY_NAMES_FR[rawName] || props.NAME_FR || rawName;
+    const sovereign = props.SOVEREIGNT || props.SOV_A3 || displayName;
+    const continent = props.CONTINENT || 'International';
+    const subregion = props.SUBREGION || '';
+    const pop = props.POP_EST || props.POP2005;
+    const popFormatted = pop ? Number(pop).toLocaleString('fr-FR') : 'N/A';
+    const areaKm2 = getCountryAreaKm2(foundFeature);
+    const areaFormatted = formatAreaKm2(areaKm2);
+
+    const geopolitics = resolveCountryGeopolitics(rawName, props);
+
+    // Fallback coordinates if lat/lng not provided
+    const targetLat = typeof lat === 'number' ? lat : (foundFeature.bbox ? (foundFeature.bbox[1] + foundFeature.bbox[3]) / 2 : 0);
+    const targetLng = typeof lng === 'number' ? lng : (foundFeature.bbox ? (foundFeature.bbox[0] + foundFeature.bbox[2]) / 2 : 0);
+
+    const territoryObj = {
+      name: displayName,
+      rawName,
+      sovereign,
+      continent,
+      subregion,
+      pop: popFormatted,
+      area: areaFormatted,
+      areaKm2,
+      centerLat: `${Math.abs(targetLat).toFixed(2)}° ${targetLat >= 0 ? 'N' : 'S'}`,
+      centerLng: `${Math.abs(targetLng).toFixed(2)}° ${targetLng >= 0 ? 'E' : 'W'}`,
+      centerCoords: [targetLat, targetLng],
+      geopolitics,
+      feature: foundFeature,
+      primaryFeature: foundFeature,
+      primaryName: displayName,
+      flagUrl: geopolitics?.flagUrl,
+      type: 'country',
+    };
+
+    setSelectedTerritory(territoryObj);
+
+    if (onSelectCountry) {
+      const code = geopolitics?.iso2 || props.ISO_A2 || displayName;
+      onSelectCountry(code, displayName);
+    }
+  }, [onSelectCountry, setInspectedTarget]);
+
+  // Keep ref to targetLocation for when GeoJSON finishes async loading
+  const targetLocationRef = useRef(targetLocation);
+  useEffect(() => {
+    targetLocationRef.current = targetLocation;
+  }, [targetLocation]);
+
+  // Handle targetLocation changes (from search bar, drawer, or map jump)
+  useEffect(() => {
+    if (!targetLocation) return;
+    const { lat, lng, zoom, countryKey, name } = targetLocation;
+    if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) return;
+
+    flyTo3DCoordinates(lat, lng, zoom || 5);
+
+    if (countryKey || name) {
+      let feature = findFeatureByKeyOrName(countryKey, name);
+      if (!feature) {
+        feature = findCountryFeature(lat, lng);
+      }
+      if (feature) {
+        applyTerritorySelection(feature, lat, lng);
+      }
+    }
+  }, [targetLocation, flyTo3DCoordinates, findFeatureByKeyOrName, findCountryFeature, applyTerritorySelection]);
+
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
@@ -666,6 +858,16 @@ export function OrbitView3D({
 
           f.bbox = [minLng, minLat, maxLng, maxLat];
         });
+
+        // If targetLocation was already requested before GeoJSON completed loading
+        if (targetLocationRef.current) {
+          const { lat, lng, countryKey, name } = targetLocationRef.current;
+          if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
+            let feature = findFeatureByKeyOrName(countryKey, name);
+            if (!feature) feature = findCountryFeature(lat, lng);
+            if (feature) applyTerritorySelection(feature, lat, lng);
+          }
+        }
 
         const positions = [];
         geoData.features.forEach((f) => {
@@ -1992,31 +2194,6 @@ export function OrbitView3D({
       return { lat: latDeg, lng: lngDeg };
     };
 
-    // Find country feature for a given coordinate
-    const findCountryFeature = (lat, lng) => {
-      if (!geoFeaturesRef.current || geoFeaturesRef.current.length === 0) return null;
-      for (const f of geoFeaturesRef.current) {
-        const [minLng, minLat, maxLng, maxLat] = f.bbox || [-180, -90, 180, 90];
-        if (lng < minLng || lng > maxLng || lat < minLat || lat > maxLat) continue;
-
-        const geom = f.geometry;
-        if (!geom) continue;
-        const polyList =
-          geom.type === 'Polygon'
-            ? [geom.coordinates]
-            : geom.type === 'MultiPolygon'
-            ? geom.coordinates
-            : [];
-
-        for (const poly of polyList) {
-          if (pointInPolygon([lng, lat], poly[0])) {
-            return f;
-          }
-        }
-      }
-      return null;
-    };
-
     const onPointerDown = (e) => {
       pointerDownPos = { x: e.clientX, y: e.clientY };
 
@@ -2272,57 +2449,7 @@ export function OrbitView3D({
           const foundFeature = findCountryFeature(lat, lng);
 
           if (foundFeature) {
-            sound.click();
-            const props = foundFeature.properties || {};
-            if (onSelectCountry) onSelectCountry(props.ISO_A2 || props.ADM0_A3 || props.NAME, props.NAME || 'Pays');
-            const rawName = props.NAME || props.SUBUNIT || props.ADMIN || 'Territoire';
-            const displayName = TERRITORY_NAMES_FR[rawName] || props.NAME_FR || rawName;
-            const sovereign = props.SOVEREIGNT || props.SOV_A3 || displayName;
-            const continent = props.CONTINENT || 'International';
-            const subregion = props.SUBREGION || '';
-            const pop = props.POP_EST || props.POP2005;
-            const popFormatted = pop ? Number(pop).toLocaleString('fr-FR') : 'N/A';
-            const areaKm2 = getCountryAreaKm2(foundFeature);
-            const areaFormatted = formatAreaKm2(areaKm2);
-
-            // Deselect any active inspected target card (missile, flight, vessel, conflict) to guarantee single selection
-            setInspectedTarget(null);
-
-            setSelectedTerritory({
-              name: displayName,
-              sovereign,
-              continent,
-              subregion,
-              pop: popFormatted,
-              area: areaFormatted,
-              centerLat: `${Math.abs(lat).toFixed(2)}° ${lat >= 0 ? 'N' : 'S'}`,
-              centerLng: `${Math.abs(lng).toFixed(2)}° ${lng >= 0 ? 'E' : 'W'}`,
-            });
-
-            // Remove hover mesh and floating tooltip when territory is clicked & selected
-            removeHoverMesh();
-            setHoveredTerritory(null);
-
-            // Remove existing selected mesh
-            removeSelectedMesh();
-
-            // Build full selected mesh with elevated surface, walls and bright neon border
-            const selectedMesh = createTerritoryMesh(foundFeature, {
-              surfaceRadius: R_SELECT,
-              borderRadius: R_SELECT + 0.003,
-              baseRadius: R_HOVER_BASE,
-              fillColor: 0x00f2fe,
-              fillOpacity: 0.52,
-              borderColor: 0xffffff,
-              borderOpacity: 1.0,
-              hasWalls: true,
-              wallColor: 0x00f2fe,
-              wallOpacity: 0.42,
-            });
-
-            earthGroup.add(selectedMesh);
-            selectedMeshRef.current = selectedMesh;
-            selectedFillMatRef.current = selectedMesh.userData.fillMat;
+            applyTerritorySelection(foundFeature, lat, lng);
           } else {
             sound.click();
             handleResetSelection();
@@ -2858,73 +2985,22 @@ export function OrbitView3D({
         </div>
       )}
 
-      {/* Country Inspector HUD Overlay (Same design as 2D) */}
+      {/* Strategic Country Dossier Card (Awwwards OSINT Inspection) - Exactly like 2D! */}
       {selectedTerritory && (
-        <div className="territory-inspector-card">
-          <div className="inspector-header">
-            <div className="inspector-title-group">
-              <span className="inspector-badge">TERRITOIRE SÉLECTIONNÉ (3D)</span>
-              <div className="inspector-titles">
-                <h3 className="inspector-main-name">{selectedTerritory.name}</h3>
-                {selectedTerritory.sovereign && selectedTerritory.sovereign !== selectedTerritory.name && (
-                  <span className="inspector-sub-name">RATTACHÉ : {selectedTerritory.sovereign}</span>
-                )}
-              </div>
-            </div>
-            <button
-              className="inspector-close-btn"
-              onClick={handleResetSelection}
-              onMouseEnter={() => sound.hover()}
-              title="Fermer"
-            >
-              <X size={13} />
-            </button>
-          </div>
-
-          <div className="inspector-body">
-            <div className="inspector-metric-row">
-              <span className="metric-tag">CONTINENT / ZONE</span>
-              <span className="metric-val">{selectedTerritory.continent}</span>
-            </div>
-
-            {selectedTerritory.subregion && (
-              <div className="inspector-metric-row">
-                <span className="metric-tag">SOUS-RÉGION</span>
-                <span className="metric-val text-cyan">{selectedTerritory.subregion}</span>
-              </div>
-            )}
-
-            <div className="inspector-metric-row">
-              <span className="metric-tag">POPULATION EST.</span>
-              <span className="metric-val text-cyan">{selectedTerritory.pop}</span>
-            </div>
-
-            {selectedTerritory.area && (
-              <div className="inspector-metric-row">
-                <span className="metric-tag">SUPERFICIE TOTALE</span>
-                <span className="metric-val text-cyan">{selectedTerritory.area}</span>
-              </div>
-            )}
-
-            <div className="inspector-metric-row">
-              <span className="metric-tag">CENTROÏDE GPS</span>
-              <span className="metric-val font-mono">
-                {selectedTerritory.centerLat} • {selectedTerritory.centerLng}
-              </span>
-            </div>
-          </div>
-
-          <div className="inspector-footer">
-            <button
-              className="inspector-reset-zoom-btn"
-              onClick={handleResetSelection}
-              onMouseEnter={() => sound.hover()}
-            >
-              <Maximize2 size={12} />
-              <span>REPRENDRE LA ROTATION GLOBALE</span>
-            </button>
-          </div>
-        </div>
+        <CountryDossierCard
+          territory={selectedTerritory}
+          selectedYear={selectedYear}
+          onClose={handleResetSelection}
+          onResetView={handleResetSelection}
+          onCompareSize={() => {}}
+          onOpenDrawer={(terr) => {
+            if (onSelectCountry) {
+              const code = terr.geopolitics?.iso2 || 'FR';
+              onSelectCountry(code, terr.name);
+            }
+          }}
+          isDrawerOpen={isDrawerOpen}
+        />
       )}
 
       {/* Tactical Bottom-Right Inspection Target Card (Osiris HUD style) */}

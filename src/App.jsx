@@ -8,6 +8,7 @@ import { GlobalSpotlightModal } from './components/GlobalSpotlightModal';
 import { CCTVLiveMonitor } from './components/CCTVLiveMonitor';
 import { TacticalShortcutsModal } from './components/TacticalShortcutsModal';
 import { MapLayerToggles } from './components/MapLayerToggles';
+import { TopSearchBar } from './components/TopSearchBar';
 import { flightRadarService } from './services/flightRadarService';
 import { marineTrafficService } from './services/marineTrafficService';
 import { Play, Pause, VolumeX, Maximize2, Minimize2, HelpCircle } from 'lucide-react';
@@ -251,37 +252,46 @@ export default function App() {
   }, []);
 
   // Generic coordinate target handler
-  const handleSelectLocation = useCallback((lat, lng, zoom = 5) => {
+  const handleSelectLocation = useCallback((lat, lng, zoom = 5, extra = {}) => {
     if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
-      setTargetLocation({ lat, lng, zoom });
+      setTargetLocation({ lat, lng, zoom, ...extra, timestamp: Date.now() });
     }
   }, []);
 
   return (
     <div className="aegis-app-root">
-      {/* Centered Top: Pure 2D/3D Switcher with Pause/Play directly below */}
+      {/* Centered Top: Pure 2D/3D Switcher + Rotation + Search Bar centered below */}
       <div className="top-center-dock">
-        <Switch3D
-          is3D={is3D}
-          onToggle={setIs3D}
-        />
+        <div className="top-center-switch-row">
+          <Switch3D
+            is3D={is3D}
+            onToggle={setIs3D}
+          />
 
-        {/* In 3D: Minimalist Awwwards rotation play/pause toggle directly below */}
-        {is3D && (
-          <button
-            type="button"
-            className="top-rotation-icon-btn"
-            onMouseEnter={() => sound.hover()}
-            onClick={() => {
-              sound.click();
-              setAutoRotate((prev) => !prev);
-            }}
-            title={autoRotate ? 'Pause rotation (Espace)' : 'Reprendre rotation (Espace)'}
-            aria-label={autoRotate ? 'Pause rotation' : 'Reprendre rotation'}
-          >
-            {autoRotate ? <Pause size={14} strokeWidth={1.8} /> : <Play size={14} strokeWidth={1.8} />}
-          </button>
-        )}
+          {/* In 3D: Minimalist Awwwards rotation play/pause toggle */}
+          {is3D && (
+            <button
+              type="button"
+              className="top-rotation-icon-btn"
+              onMouseEnter={() => sound.hover()}
+              onClick={() => {
+                sound.click();
+                setAutoRotate((prev) => !prev);
+              }}
+              title={autoRotate ? 'Pause rotation (Espace)' : 'Reprendre rotation (Espace)'}
+              aria-label={autoRotate ? 'Pause rotation' : 'Reprendre rotation'}
+            >
+              {autoRotate ? <Pause size={14} strokeWidth={1.8} /> : <Play size={14} strokeWidth={1.8} />}
+            </button>
+          )}
+        </div>
+
+        {/* Top Neumorphic Search Bar (All Countries & Islands with Alphabetical Index) */}
+        <TopSearchBar
+          onSelectCountry={handleSelectCountry}
+          onSelectLocation={handleSelectLocation}
+          is3D={is3D}
+        />
       </div>
 
       {/* Top-Right: Shortcuts Help Button */}

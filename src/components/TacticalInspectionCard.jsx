@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   X,
   Maximize2,
@@ -28,6 +28,128 @@ export function TacticalInspectionCard({
   isDrawerOpen = false,
 }) {
   const [zuluTime, setZuluTime] = useState('');
+
+  // Drag & Corner Resizing State
+  const cardRef = useRef(null);
+  const dragState = useRef(null);
+  const resizeState = useRef(null);
+
+  const [position, setPosition] = useState(null); // { x, y }
+  const [customSize, setCustomSize] = useState(null); // { width, height }
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+
+  /* ── Drag & Drop Pointer Logic (header grab) ──────────────────── */
+  const handlePointerDownHeader = useCallback((e) => {
+    if (
+      e.target.closest('button') ||
+      e.target.closest('a') ||
+      e.target.closest('.tic-resize-handle')
+    ) {
+      return;
+    }
+    e.preventDefault();
+
+    const cardEl = cardRef.current;
+    if (!cardEl) return;
+
+    const rect = cardEl.getBoundingClientRect();
+    dragState.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startLeft: rect.left,
+      startTop: rect.top,
+      cardWidth: rect.width,
+      cardHeight: rect.height,
+    };
+
+    setIsDragging(true);
+    document.body.style.userSelect = 'none';
+
+    const handlePointerMove = (moveEvt) => {
+      if (!dragState.current) return;
+      const dx = moveEvt.clientX - dragState.current.startX;
+      const dy = moveEvt.clientY - dragState.current.startY;
+
+      let newX = dragState.current.startLeft + dx;
+      let newY = dragState.current.startTop + dy;
+
+      const pad = 10;
+      const maxX = window.innerWidth - dragState.current.cardWidth - pad;
+      const maxY = window.innerHeight - dragState.current.cardHeight - pad;
+
+      newX = Math.max(pad, Math.min(maxX, newX));
+      newY = Math.max(pad, Math.min(maxY, newY));
+
+      setPosition({ x: newX, y: newY });
+    };
+
+    const handlePointerUp = () => {
+      setIsDragging(false);
+      dragState.current = null;
+      document.body.style.userSelect = '';
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+  }, []);
+
+  /* ── Corner Resize Pointer Logic ──────────────────────────────── */
+  const handleResizePointerDown = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const cardEl = cardRef.current;
+    if (!cardEl) return;
+
+    const rect = cardEl.getBoundingClientRect();
+    resizeState.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startWidth: rect.width,
+      startHeight: rect.height,
+      startLeft: rect.left,
+      startTop: rect.top,
+    };
+
+    setIsResizing(true);
+    document.body.style.userSelect = 'none';
+
+    const handleResizeMove = (moveEvt) => {
+      if (!resizeState.current) return;
+      const dw = moveEvt.clientX - resizeState.current.startX;
+      const dh = moveEvt.clientY - resizeState.current.startY;
+
+      const minW = 280;
+      const maxW = Math.min(window.innerWidth - 20, 800);
+      const minH = 220;
+      const maxH = Math.min(window.innerHeight - 40, 800);
+
+      const nextW = Math.max(minW, Math.min(maxW, resizeState.current.startWidth + dw));
+      const nextH = Math.max(minH, Math.min(maxH, resizeState.current.startHeight + dh));
+
+      setCustomSize({ width: nextW, height: nextH });
+    };
+
+    const handleResizeUp = () => {
+      setIsResizing(false);
+      resizeState.current = null;
+      document.body.style.userSelect = '';
+      window.removeEventListener('pointermove', handleResizeMove);
+      window.removeEventListener('pointerup', handleResizeUp);
+    };
+
+    window.addEventListener('pointermove', handleResizeMove);
+    window.addEventListener('pointerup', handleResizeUp);
+  }, []);
+
+  const handleResetPosition = () => {
+    sound.click();
+    setPosition(null);
+    setCustomSize(null);
+  };
 
   // Real-time ticking UTC Zulu clock
   useEffect(() => {
@@ -75,14 +197,35 @@ export function TacticalInspectionCard({
     if (onOpenLive) onOpenLive(target);
   };
 
+  const cardStyle = {};
+  if (position) {
+    cardStyle.left = `${position.x}px`;
+    cardStyle.top = `${position.y}px`;
+    cardStyle.right = 'auto';
+    cardStyle.bottom = 'auto';
+  }
+  if (customSize) {
+    cardStyle.width = `${customSize.width}px`;
+    cardStyle.height = `${customSize.height}px`;
+    cardStyle.maxWidth = '96vw';
+    cardStyle.maxHeight = '92vh';
+  }
+
   return (
     <div
-      className={`tactical-inspection-card ${isDrawerOpen ? 'drawer-is-open' : ''}`}
+      ref={cardRef}
+      className={`tactical-inspection-card ${isDrawerOpen ? 'drawer-is-open' : ''} ${isDragging ? 'is-dragging' : ''} ${isResizing ? 'is-resizing' : ''}`}
+      style={cardStyle}
       role="region"
       aria-label="Fiche d'inspection tactique"
     >
-      {/* Card Header */}
-      <div className="tic-header">
+      {/* Card Header (Draggable) */}
+      <div
+        className="tic-header"
+        onPointerDown={handlePointerDownHeader}
+        onDoubleClick={handleResetPosition}
+        title="Glisser pour déplacer • Double-clic pour réinitialiser la position"
+      >
         <div className="tic-target-badge">
           {isCCTV && <Video size={13} className="tic-icon cctv" />}
           {isFlight && <Plane size={13} className="tic-icon flight" />}
@@ -700,6 +843,22 @@ export function TacticalInspectionCard({
           <LocateFixed size={13} />
           <span>CENTRER CARTE</span>
         </button>
+      </div>
+
+      {/* ── Corner Interactive Resize Grip Handle ── */}
+      <div
+        className="tic-resize-handle"
+        onPointerDown={handleResizePointerDown}
+        title="Glisser pour redimensionner librement la fiche"
+      >
+        <svg viewBox="0 0 16 16" width="12" height="12" className="resize-svg">
+          <circle cx="13" cy="13" r="1.2" fill="currentColor" />
+          <circle cx="9" cy="13" r="1.2" fill="currentColor" />
+          <circle cx="13" cy="9" r="1.2" fill="currentColor" />
+          <circle cx="5" cy="13" r="1.2" fill="currentColor" />
+          <circle cx="9" cy="9" r="1.2" fill="currentColor" />
+          <circle cx="13" cy="5" r="1.2" fill="currentColor" />
+        </svg>
       </div>
     </div>
   );

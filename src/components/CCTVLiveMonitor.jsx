@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Hls from 'hls.js';
 import {
   X,
@@ -37,6 +37,129 @@ export function CCTVLiveMonitor({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Drag & Corner Resizing State
+  const cardRef = useRef(null);
+  const dragState = useRef(null);
+  const resizeState = useRef(null);
+
+  const [position, setPosition] = useState(null); // { x, y }
+  const [customSize, setCustomSize] = useState(null); // { width, height }
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+
+  /* ── Drag & Drop Pointer Logic (header grab) ──────────────────── */
+  const handlePointerDownHeader = useCallback((e) => {
+    if (
+      e.target.closest('button') ||
+      e.target.closest('input') ||
+      e.target.closest('a') ||
+      e.target.closest('.cctv-resize-handle')
+    ) {
+      return;
+    }
+    e.preventDefault();
+
+    const cardEl = cardRef.current;
+    if (!cardEl) return;
+
+    const rect = cardEl.getBoundingClientRect();
+    dragState.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startLeft: rect.left,
+      startTop: rect.top,
+      cardWidth: rect.width,
+      cardHeight: rect.height,
+    };
+
+    setIsDragging(true);
+    document.body.style.userSelect = 'none';
+
+    const handlePointerMove = (moveEvt) => {
+      if (!dragState.current) return;
+      const dx = moveEvt.clientX - dragState.current.startX;
+      const dy = moveEvt.clientY - dragState.current.startY;
+
+      let newX = dragState.current.startLeft + dx;
+      let newY = dragState.current.startTop + dy;
+
+      const pad = 10;
+      const maxX = window.innerWidth - dragState.current.cardWidth - pad;
+      const maxY = window.innerHeight - dragState.current.cardHeight - pad;
+
+      newX = Math.max(pad, Math.min(maxX, newX));
+      newY = Math.max(pad, Math.min(maxY, newY));
+
+      setPosition({ x: newX, y: newY });
+    };
+
+    const handlePointerUp = () => {
+      setIsDragging(false);
+      dragState.current = null;
+      document.body.style.userSelect = '';
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+  }, []);
+
+  /* ── Corner Resize Pointer Logic ──────────────────────────────── */
+  const handleResizePointerDown = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const cardEl = cardRef.current;
+    if (!cardEl) return;
+
+    const rect = cardEl.getBoundingClientRect();
+    resizeState.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startWidth: rect.width,
+      startHeight: rect.height,
+      startLeft: rect.left,
+      startTop: rect.top,
+    };
+
+    setIsResizing(true);
+    document.body.style.userSelect = 'none';
+
+    const handleResizeMove = (moveEvt) => {
+      if (!resizeState.current) return;
+      const dw = moveEvt.clientX - resizeState.current.startX;
+      const dh = moveEvt.clientY - resizeState.current.startY;
+
+      const minW = 320;
+      const maxW = Math.min(window.innerWidth - 20, 1080);
+      const minH = 260;
+      const maxH = Math.min(window.innerHeight - 40, 920);
+
+      const nextW = Math.max(minW, Math.min(maxW, resizeState.current.startWidth + dw));
+      const nextH = Math.max(minH, Math.min(maxH, resizeState.current.startHeight + dh));
+
+      setCustomSize({ width: nextW, height: nextH });
+    };
+
+    const handleResizeUp = () => {
+      setIsResizing(false);
+      resizeState.current = null;
+      document.body.style.userSelect = '';
+      window.removeEventListener('pointermove', handleResizeMove);
+      window.removeEventListener('pointerup', handleResizeUp);
+    };
+
+    window.addEventListener('pointermove', handleResizeMove);
+    window.addEventListener('pointerup', handleResizeUp);
+  }, []);
+
+  const handleResetPosition = () => {
+    sound.click();
+    setPosition(null);
+    setCustomSize(null);
+  };
 
   // Audio Control (Webcams & Live World TV Channels)
   const [isMuted, setIsMuted] = useState(true);
@@ -360,25 +483,43 @@ export function CCTVLiveMonitor({
     }
   };
 
+  const monitorStyle = {};
+  if (isFullscreen) {
+    monitorStyle.position = 'fixed';
+    monitorStyle.top = '8vh';
+    monitorStyle.left = '50%';
+    monitorStyle.transform = 'translateX(-50%)';
+    monitorStyle.width = '860px';
+    monitorStyle.maxWidth = '96vw';
+    monitorStyle.zIndex = 9999;
+  } else {
+    if (position) {
+      monitorStyle.left = `${position.x}px`;
+      monitorStyle.top = `${position.y}px`;
+      monitorStyle.right = 'auto';
+      monitorStyle.bottom = 'auto';
+    }
+    if (customSize) {
+      monitorStyle.width = `${customSize.width}px`;
+      monitorStyle.height = `${customSize.height}px`;
+      monitorStyle.maxWidth = '96vw';
+      monitorStyle.maxHeight = '94vh';
+    }
+  }
+
   return (
     <div
-      className={`cctv-monitor-pip ${isFullscreen ? 'is-fullscreen' : ''}`}
-      style={
-        isFullscreen
-          ? {
-              position: 'fixed',
-              top: '8vh',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '860px',
-              maxWidth: '96vw',
-              zIndex: 9999,
-            }
-          : {}
-      }
+      ref={cardRef}
+      className={`cctv-monitor-pip ${isFullscreen ? 'is-fullscreen' : ''} ${isDragging ? 'is-dragging' : ''} ${isResizing ? 'is-resizing' : ''}`}
+      style={monitorStyle}
     >
-      {/* ─── Barre de Contrôle Supérieure ─── */}
-      <div className="cctv-monitor-header">
+      {/* ─── Barre de Contrôle Supérieure (Grabbable pour déplacer) ─── */}
+      <div
+        className="cctv-monitor-header"
+        onPointerDown={handlePointerDownHeader}
+        onDoubleClick={handleResetPosition}
+        title="Glisser pour déplacer le moniteur • Double-clic pour réinitialiser la position"
+      >
         <div className="cctv-live-tag">
           <span className="cctv-rec-dot" />
           <span>
@@ -539,7 +680,10 @@ export function CCTVLiveMonitor({
       {/* ─── Écran Vidéo de Surveillance (Scanlines, Shaders & PTZ) ─── */}
       <div
         className={`cctv-video-viewport mode-${visionMode}`}
-        style={{ height: isFullscreen ? '480px' : '230px' }}
+        style={{
+          height: isFullscreen ? '480px' : customSize ? 'auto' : '230px',
+          flex: customSize ? '1 1 auto' : 'none',
+        }}
       >
         {/* Flash de capture snapshot */}
         {snapshotAlert && (
@@ -890,6 +1034,24 @@ export function CCTVLiveMonitor({
           </div>
         )}
       </div>
+
+      {/* ── Corner Interactive Resize Grip Handle ── */}
+      {!isFullscreen && (
+        <div
+          className="cctv-resize-handle"
+          onPointerDown={handleResizePointerDown}
+          title="Glisser pour redimensionner librement le moniteur"
+        >
+          <svg viewBox="0 0 16 16" width="12" height="12" className="resize-svg">
+            <circle cx="13" cy="13" r="1.2" fill="currentColor" />
+            <circle cx="9" cy="13" r="1.2" fill="currentColor" />
+            <circle cx="13" cy="9" r="1.2" fill="currentColor" />
+            <circle cx="5" cy="13" r="1.2" fill="currentColor" />
+            <circle cx="9" cy="9" r="1.2" fill="currentColor" />
+            <circle cx="13" cy="5" r="1.2" fill="currentColor" />
+          </svg>
+        </div>
+      )}
     </div>
   );
 }

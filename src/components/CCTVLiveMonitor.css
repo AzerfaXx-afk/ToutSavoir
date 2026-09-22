@@ -47,6 +47,47 @@
   padding: 8px 12px;
   background: rgba(0, 0, 0, 0.55);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: grab;
+}
+
+.cctv-monitor-header:active {
+  cursor: grabbing;
+}
+
+.cctv-monitor-pip.is-dragging {
+  cursor: grabbing !important;
+  opacity: 0.95;
+  transition: none !important;
+}
+
+.cctv-monitor-pip.is-resizing {
+  user-select: none !important;
+  transition: none !important;
+}
+
+/* Corner Interactive Resize Grip Handle */
+.cctv-resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 22px;
+  height: 22px;
+  cursor: nwse-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 25;
+  color: rgba(0, 242, 254, 0.45);
+  transition: all 0.18s ease;
+}
+
+.cctv-resize-handle:hover {
+  color: var(--cyan-bright, #00f2fe);
+  transform: scale(1.15);
+}
+
+.cctv-resize-handle .resize-svg {
+  filter: drop-shadow(0 0 4px rgba(0, 242, 254, 0.5));
 }
 
 .cctv-live-tag {

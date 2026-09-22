@@ -2387,7 +2387,7 @@ export function TacticalMap2D({
     });
   }, [activeLayers]);
 
-  // Smooth cinematic flight when user selects a target location from Spotlight or dossier
+  // Smooth cinematic flight when user selects a target location from Search, Spotlight or dossier
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !targetLocation) return;
@@ -2403,6 +2403,35 @@ export function TacticalMap2D({
       duration: 1.4,
       easeLinearity: 0.25,
     });
+
+    // Programmatic polygon selection & highlighting if countryKey is provided
+    if (targetLocation.countryKey && countryGroupLayersMapRef.current && geoJsonLayerRef.current) {
+      const groupKey = targetLocation.countryKey;
+      const groupLayers = countryGroupLayersMapRef.current.get(groupKey);
+      if (groupLayers && groupLayers.length > 0) {
+        // Reset previously selected layers
+        if (selectedLayersRef.current.length > 0) {
+          selectedLayersRef.current.forEach((l) => {
+            geoJsonLayerRef.current.resetStyle(l);
+            if (l._path) {
+              l._path.classList.remove('country-path-selected', 'country-path-elevated');
+            }
+          });
+        }
+        selectedLayersRef.current = groupLayers;
+        selectedGroupKeyRef.current = groupKey;
+        const isAntarctic = groupKey === 'ATA';
+        const curSelectedStyle = isAntarctic ? antarcticaSelectedStyle : selectedStyle;
+        groupLayers.forEach((l) => {
+          l.setStyle(curSelectedStyle);
+          l.bringToFront();
+          if (l._path) {
+            l._path.classList.add('country-path-selected');
+            l._path.classList.remove('country-path-elevated');
+          }
+        });
+      }
+    }
   }, [targetLocation]);
 
   // Dynamic Route Highlighting for Inspected Transits (Vessels & Flights)
