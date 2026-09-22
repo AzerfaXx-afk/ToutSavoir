@@ -237,10 +237,11 @@ export default function App() {
   }, [isShortcutsOpen, isSpotlightOpen, activeCCTV, isDrawerOpen, handleToggleMute, handleToggleFullscreen]);
 
   // Country selection handler (from map, search or drawer)
+  // CRITICAL: Country selection must NOT automatically open the right drawer.
+  // The right drawer only opens if the user explicitly clicks on it.
   const handleSelectCountry = useCallback((countryCode) => {
     setSelectedCountry(countryCode);
     setDrawerTab('country');
-    setIsDrawerOpen(true);
   }, []);
 
   // Worldometer metric select from search
@@ -394,6 +395,7 @@ export default function App() {
             onSelectCCTV={handleSelectCCTV}
             onSelectSatellite={handleSelectSatellite}
             onSelectCountry={handleSelectCountry}
+            onOpenDrawer={() => setIsDrawerOpen(true)}
             targetLocation={targetLocation}
             isDrawerOpen={isDrawerOpen}
             inspectedTarget={inspectedTarget}
@@ -410,6 +412,7 @@ export default function App() {
             onSelectCCTV={handleSelectCCTV}
             onSelectSatellite={handleSelectSatellite}
             onSelectCountry={handleSelectCountry}
+            onOpenDrawer={() => setIsDrawerOpen(true)}
             targetLocation={targetLocation}
             isDrawerOpen={isDrawerOpen}
             inspectedTarget={inspectedTarget}

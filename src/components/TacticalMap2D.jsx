@@ -66,6 +66,7 @@ export function TacticalMap2D({
   onSelectCCTV,
   onSelectSatellite,
   onSelectCountry,
+  onOpenDrawer,
   targetLocation,
   isDrawerOpen = false,
   inspectedTarget: propInspectedTarget,
@@ -102,6 +103,8 @@ export function TacticalMap2D({
   const hoveredGroupKeyRef = useRef(null);
   const hoveredLayerRef = useRef(null);
   const hoveredCountryIdRef = useRef(null);
+  const mousePosRef = useRef({ x: 200, y: 200 });
+  const justClickedCountryRef = useRef(false);
   const [internalInspectedTarget, setInternalInspectedTarget] = useState(null);
   const inspectedTarget = propInspectedTarget !== undefined ? propInspectedTarget : internalInspectedTarget;
   const setInspectedTarget = useCallback((target) => {
@@ -621,10 +624,25 @@ export function TacticalMap2D({
 
       if (coordLatRef.current) coordLatRef.current.textContent = latStr;
       if (coordLngRef.current) coordLngRef.current.textContent = lngStr;
+
+      const nativeEvt = e.originalEvent;
+      if (nativeEvt && typeof nativeEvt.clientX === 'number') {
+        mousePosRef.current = { x: nativeEvt.clientX, y: nativeEvt.clientY };
+        if (hoveredCountryIdRef.current) {
+          setHoveredTerritory((prev) =>
+            prev ? { ...prev, x: nativeEvt.clientX, y: nativeEvt.clientY } : null
+          );
+        }
+      }
     });
 
     // Close selected card & unhighlight when clicking empty ocean or map background
     map.on('click', () => {
+      // If a country was just clicked, do not dismiss the selection!
+      if (justClickedCountryRef.current) {
+        justClickedCountryRef.current = false;
+        return;
+      }
       // Do not deselect if currently dragging or comparing a detached country
       if (isDraggingDetachedRef.current) return;
       if (detachedCountryRef.current) return;
@@ -2111,8 +2129,12 @@ export function TacticalMap2D({
                 else if (targetGroupKey === 'FRA') hoverName = 'France';
                 else if (targetGroupKey === 'ATA') hoverName = 'Antarctique';
 
-                const clientX = e.originalEvent?.clientX || 0;
-                const clientY = e.originalEvent?.clientY || 0;
+                const clientX = (e.originalEvent && typeof e.originalEvent.clientX === 'number')
+                  ? e.originalEvent.clientX
+                  : (mousePosRef.current?.x || 200);
+                const clientY = (e.originalEvent && typeof e.originalEvent.clientY === 'number')
+                  ? e.originalEvent.clientY
+                  : (mousePosRef.current?.y || 200);
                 setHoveredTerritory({
                   x: clientX,
                   y: clientY,
@@ -2127,7 +2149,8 @@ export function TacticalMap2D({
                 });
               },
               mousemove: (e) => {
-                if (e.originalEvent) {
+                if (e.originalEvent && typeof e.originalEvent.clientX === 'number') {
+                  mousePosRef.current = { x: e.originalEvent.clientX, y: e.originalEvent.clientY };
                   setHoveredTerritory((prev) =>
                     prev ? { ...prev, x: e.originalEvent.clientX, y: e.originalEvent.clientY } : null
                   );
@@ -2165,7 +2188,15 @@ export function TacticalMap2D({
               click: (e) => {
                 // Only left click selects
                 if (e.originalEvent && typeof e.originalEvent.button === 'number' && e.originalEvent.button !== 0) return;
-                L.DomEvent.stopPropagation(e);
+                if (e.originalEvent) {
+                  L.DomEvent.stopPropagation(e.originalEvent);
+                  if (e.originalEvent.stopPropagation) e.originalEvent.stopPropagation();
+                }
+                justClickedCountryRef.current = true;
+                setTimeout(() => {
+                  justClickedCountryRef.current = false;
+                }, 350);
+
                 sound.click();
                 sound.clearCountryHover();
                 setHoveredTerritory(null);
@@ -2310,6 +2341,11 @@ export function TacticalMap2D({
                   features: groupFeatures.length > 0 ? groupFeatures : [feature],
                   groupKey: targetGroupKey,
                 });
+
+                if (onSelectCountry) {
+                  const code = activeGeo.iso2 || props.ISO_A2 || rawName;
+                  onSelectCountry(code, unifiedName);
+                }
               },
             });
           },
@@ -2778,6 +2814,9 @@ export function TacticalMap2D({
               const code = terr.geopolitics?.iso2 || 'FR';
               onSelectCountry(code);
             }
+            if (onOpenDrawer) {
+              onOpenDrawer();
+            }
           }}
           isDrawerOpen={isDrawerOpen}
         />
@@ -2826,8 +2865,8 @@ export function TacticalMap2D({
           className="orbit-country-hover-tooltip"
           style={{
             position: 'fixed',
-            left: `${hoveredTerritory.x + 16}px`,
-            top: `${hoveredTerritory.y - 30}px`,
+            left: `${Math.min(Math.max(16, (hoveredTerritory.x || 0) + 16), window.innerWidth - 300)}px`,
+            top: `${Math.min(Math.max(65, (hoveredTerritory.y || 0) - 30), window.innerHeight - 170)}px`,
             pointerEvents: 'none',
             zIndex: 9999,
           }}

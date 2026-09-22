@@ -56,6 +56,7 @@ export function OrbitView3D({
   onSelectCCTV,
   onSelectSatellite,
   onSelectCountry,
+  onOpenDrawer,
   targetLocation,
   isDrawerOpen = false,
   inspectedTarget: propInspectedTarget,
@@ -67,6 +68,10 @@ export function OrbitView3D({
   const coordLngRef = useRef(null);
   const coordAltRef = useRef(null);
   const [selectedTerritory, setSelectedTerritory] = useState(null);
+  const selectedTerritoryRef = useRef(selectedTerritory);
+  useEffect(() => {
+    selectedTerritoryRef.current = selectedTerritory;
+  }, [selectedTerritory]);
   const [hoveredTerritory, setHoveredTerritory] = useState(null);
   const [internalInspectedTarget, setInternalInspectedTarget] = useState(null);
   const inspectedTarget = propInspectedTarget !== undefined ? propInspectedTarget : internalInspectedTarget;
@@ -2491,10 +2496,11 @@ export function OrbitView3D({
 
         if (foundFeature && foundFeature !== hoveredFeatureRef.current) {
           const props = foundFeature.properties || {};
-          const isCurrentSelected = selectedTerritory && (
-            props.NAME === selectedTerritory.name ||
-            props.NAME_FR === selectedTerritory.name ||
-            props.ADMIN === selectedTerritory.name
+          const currentSel = selectedTerritoryRef.current;
+          const isCurrentSelected = currentSel && (
+            props.NAME === currentSel.name ||
+            props.NAME_FR === currentSel.name ||
+            props.ADMIN === currentSel.name
           );
 
           if (!isCurrentSelected) {
@@ -2541,7 +2547,7 @@ export function OrbitView3D({
             removeHoverMesh();
             setHoveredTerritory(null);
           }
-        } else if (foundFeature && hoveredTerritory) {
+        } else if (foundFeature && hoveredFeatureRef.current) {
           setHoveredTerritory((prev) => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
         } else if (!foundFeature && hoveredFeatureRef.current) {
           removeHoverMesh();
@@ -2961,8 +2967,8 @@ export function OrbitView3D({
           className="orbit-country-hover-tooltip"
           style={{
             position: 'fixed',
-            left: `${hoveredTerritory.x + 16}px`,
-            top: `${hoveredTerritory.y - 30}px`,
+            left: `${Math.min(Math.max(16, (hoveredTerritory.x || 0) + 16), window.innerWidth - 300)}px`,
+            top: `${Math.min(Math.max(65, (hoveredTerritory.y || 0) - 30), window.innerHeight - 170)}px`,
             pointerEvents: 'none',
             zIndex: 9999,
           }}
@@ -3000,6 +3006,9 @@ export function OrbitView3D({
             if (onSelectCountry) {
               const code = terr.geopolitics?.iso2 || 'FR';
               onSelectCountry(code, terr.name);
+            }
+            if (onOpenDrawer) {
+              onOpenDrawer();
             }
           }}
           isDrawerOpen={isDrawerOpen}
