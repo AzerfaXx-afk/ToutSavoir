@@ -534,13 +534,11 @@ export function OrbitView3D({
     const displayName = TERRITORY_NAMES_FR[rawName] || props.NAME_FR || rawName;
     const sovereign = props.SOVEREIGNT || props.SOV_A3 || displayName;
     const continent = props.CONTINENT || 'International';
-    const subregion = props.SUBREGION || '';
-    const pop = props.POP_EST || props.POP2005;
-    const popFormatted = pop ? Number(pop).toLocaleString('fr-FR') : 'N/A';
-    const areaKm2 = getCountryAreaKm2(foundFeature);
-    const areaFormatted = formatAreaKm2(areaKm2);
-
     const geopolitics = resolveCountryGeopolitics(rawName, props);
+    const pop = geopolitics.pop2026 || props.POP_EST || props.POP2005;
+    const popFormatted = geopolitics.popFormatted || (pop ? Number(pop).toLocaleString('fr-FR') : 'N/A');
+    const areaKm2 = geopolitics.areaKm2 || getCountryAreaKm2(foundFeature);
+    const areaFormatted = geopolitics.areaFormatted || formatAreaKm2(areaKm2);
 
     // Fallback coordinates if lat/lng not provided
     const targetLat = typeof lat === 'number' ? lat : (foundFeature.bbox ? (foundFeature.bbox[1] + foundFeature.bbox[3]) / 2 : 0);
@@ -2519,11 +2517,11 @@ export function OrbitView3D({
             const rawName = props.NAME || props.SUBUNIT || props.ADMIN || 'Territoire';
             const displayName = TERRITORY_NAMES_FR[rawName] || props.NAME_FR || rawName;
             const sovereign = props.SOVEREIGNT || props.SOV_A3 || displayName;
-            const continent = props.CONTINENT || 'International';
-            const pop = props.POP_EST || props.POP2005;
-            const popFormatted = pop ? Number(pop).toLocaleString('fr-FR') : 'N/A';
-            const areaKm2 = getCountryAreaKm2(foundFeature);
-            const areaFormatted = formatAreaKm2(areaKm2);
+            const geopolitics = resolveCountryGeopolitics(rawName, props);
+            const pop = geopolitics.pop2026 || props.POP_EST || props.POP2005;
+            const popFormatted = geopolitics.popFormatted || (pop ? Number(pop).toLocaleString('fr-FR') : 'N/A');
+            const areaKm2 = geopolitics.areaKm2 || getCountryAreaKm2(foundFeature);
+            const areaFormatted = geopolitics.areaFormatted || formatAreaKm2(areaKm2);
 
             setHoveredTerritory({
               x: e.clientX,

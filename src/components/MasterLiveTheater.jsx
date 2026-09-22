@@ -243,9 +243,18 @@ export function MasterLiveTheater({
         {mediaError ? (
           <div className="theater-fallback-wrap">
             <img
-              src={feed.thumbnail || feed.feedUrl}
-              alt={feed.name}
+              src={
+                (feed.fallbackImage && !feed.fallbackImage.includes('skylinewebcams.com') ? feed.fallbackImage : null) ||
+                (feed.thumbnail && !feed.thumbnail.includes('skylinewebcams.com') ? feed.thumbnail : null) ||
+                'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80'
+              }
+              alt=""
               className="master-theater-snapshot-element"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80';
+              }}
             />
             <div className="theater-fallback-overlay">
               <span className="theater-fallback-pill">SIGNAL FLUX RECONFIGURÉ // CAPTEUR DIRECT OPTIQUE ACTIF</span>
@@ -268,11 +277,18 @@ export function MasterLiveTheater({
                 ? `https://cdn.skylinewebcams.com/live${feed.skylineId}.jpg?_t=${snapshotTimestamp}`
                 : `${feed.feedUrl}?_t=${snapshotTimestamp}`
             }
-            alt={feed.name}
+            alt=""
             className="master-theater-snapshot-element"
+            referrerPolicy="no-referrer"
             onError={(e) => {
-              if (feed.thumbnail && e.currentTarget.src !== feed.thumbnail) {
-                e.currentTarget.src = feed.thumbnail;
+              e.currentTarget.onerror = null;
+              const safeFallback = (feed.fallbackImage && !feed.fallbackImage.includes('skylinewebcams.com') ? feed.fallbackImage : null) ||
+                (feed.thumbnail && !feed.thumbnail.includes('skylinewebcams.com') ? feed.thumbnail : null) ||
+                'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80';
+              if (e.currentTarget.src !== safeFallback) {
+                e.currentTarget.src = safeFallback;
+              } else {
+                setMediaError(true);
               }
             }}
           />
@@ -283,14 +299,20 @@ export function MasterLiveTheater({
             title={feed.name}
             className="master-theater-iframe-element"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
             allowFullScreen
             onError={() => setMediaError(true)}
           />
         ) : (
           <img
-            src={feed.thumbnail || 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80'}
-            alt={feed.name}
+            src={feed.thumbnail || 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80'}
+            alt=""
             className="master-theater-snapshot-element"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80';
+            }}
           />
         )}
 

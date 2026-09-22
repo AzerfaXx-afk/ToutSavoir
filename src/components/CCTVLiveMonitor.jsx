@@ -298,6 +298,7 @@ export function CCTVLiveMonitor({
               break;
             default:
               hls.destroy();
+              setMediaError(true);
               break;
           }
         }
@@ -703,14 +704,19 @@ export function CCTVLiveMonitor({
           {mediaError ? (
             <div className="cctv-media-fallback-wrap">
               <img
-                src={camera.thumbnail || currentMediaUrl}
+                src={
+                  (camera.fallbackImage && !camera.fallbackImage.includes('skylinewebcams.com') ? camera.fallbackImage : null) ||
+                  (camera.thumbnail && !camera.thumbnail.includes('skylinewebcams.com') ? camera.thumbnail : null) ||
+                  'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80'
+                }
                 alt={camera.name}
                 className="cctv-optical-media"
+                referrerPolicy="no-referrer"
               />
               <div className="cctv-fallback-overlay">
                 <div className="cctv-fallback-hud">
                   <span className="fallback-status-dot" />
-                  <span className="fallback-title">SIGNAL FLUX SECONDORISE // CAPTEUR OPTIQUE DIRECT</span>
+                  <span className="fallback-title">SIGNAL FLUX SECONDAIRE // CAPTEUR OPTIQUE DIRECT</span>
                 </div>
                 <div className="cctv-fallback-controls">
                   <button
@@ -740,31 +746,38 @@ export function CCTVLiveMonitor({
               <img
                 key={`skyline-${camera.id}`}
                 src={currentMediaUrl}
-                alt={camera.name}
+                alt=""
                 className="cctv-optical-media"
                 loading="eager"
+                referrerPolicy="no-referrer"
                 onError={(e) => {
-                  if (camera.thumbnail && e.currentTarget.src !== camera.thumbnail) {
-                    e.currentTarget.src = camera.thumbnail;
+                  e.currentTarget.onerror = null;
+                  const safeFallback = (camera.fallbackImage && !camera.fallbackImage.includes('skylinewebcams.com') ? camera.fallbackImage : null) ||
+                    (camera.thumbnail && !camera.thumbnail.includes('skylinewebcams.com') ? camera.thumbnail : null) ||
+                    'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80';
+                  if (e.currentTarget.src !== safeFallback) {
+                    e.currentTarget.src = safeFallback;
+                  } else {
+                    setMediaError(true);
                   }
                 }}
               />
-              <div className="cctv-dot-live-indicator is-skyline-badge">
+              <div className="cctv-dot-live-indicator">
                 <span className="dot-pulse" />
-                <span>DIRECT SKYLINEWEBCAMS // CAPTEUR LIVE HD (2.5s)</span>
-                {camera.externalUrl && (
-                  <a
-                    href={camera.externalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="cctv-skyline-badge-link"
-                    onClick={(e) => e.stopPropagation()}
-                    title="Ouvrir sur le site officiel SkylineWebcams"
-                  >
-                    OUVRIR SUR SKYLINEWEBCAMS HD ↗
-                  </a>
-                )}
+                <span>DIRECT SKYLINEWEBCAMS // CAPTEUR LIVE HD</span>
               </div>
+              {camera.externalUrl && (
+                <a
+                  href={camera.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="cctv-skyline-live-badge"
+                  title="Ouvrir le flux en direct haute définition sur SkylineWebcams"
+                >
+                  <ExternalLink size={10} />
+                  <span>OUVRIR SUR SKYLINEWEBCAMS HD</span>
+                </a>
+              )}
             </div>
           ) : isHls ? (
             <div className="cctv-stream-container">
@@ -802,6 +815,7 @@ export function CCTVLiveMonitor({
                 src={computedIframeSrc}
                 title={camera.name}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
                 allowFullScreen
                 loading="eager"
                 onError={() => setMediaError(true)}
@@ -812,8 +826,9 @@ export function CCTVLiveMonitor({
               <img
                 key={`mjpeg-${camera.id}-${reloadKey}`}
                 src={streamVideoUrl}
-                alt={camera.name}
+                alt=""
                 className="cctv-optical-media"
+                referrerPolicy="no-referrer"
                 onError={() => setMediaError(true)}
               />
             </div>
@@ -822,13 +837,16 @@ export function CCTVLiveMonitor({
               <img
                 key={`dot-${camera.id}`}
                 src={currentMediaUrl}
-                alt={camera.name}
+                alt=""
                 className="cctv-optical-media"
                 loading="eager"
-                onError={() => {
-                  if (camera.thumbnail && currentMediaUrl !== camera.thumbnail) {
-                    setMediaError(true);
-                  }
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  const safeFallback = (camera.fallbackImage && !camera.fallbackImage.includes('skylinewebcams.com') ? camera.fallbackImage : null) ||
+                    (camera.thumbnail && !camera.thumbnail.includes('skylinewebcams.com') ? camera.thumbnail : null) ||
+                    'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80';
+                  e.currentTarget.src = safeFallback;
                 }}
               />
               <div className="cctv-dot-live-indicator">
@@ -840,9 +858,17 @@ export function CCTVLiveMonitor({
             <div className="cctv-optical-stream-wrap">
               <img
                 src={currentMediaUrl}
-                alt={camera.name}
+                alt=""
                 className="cctv-optical-media"
                 loading="eager"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  const safeFallback = (camera.fallbackImage && !camera.fallbackImage.includes('skylinewebcams.com') ? camera.fallbackImage : null) ||
+                    (camera.thumbnail && !camera.thumbnail.includes('skylinewebcams.com') ? camera.thumbnail : null) ||
+                    'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80';
+                  e.currentTarget.src = safeFallback;
+                }}
               />
               <div className="cctv-ambient-shimmer" />
             </div>

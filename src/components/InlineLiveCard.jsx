@@ -143,8 +143,16 @@ export function InlineLiveCard({
           ) : feed.isLiveSnapshot && feed.feedUrl ? (
             <img
               src={`${feed.feedUrl}?_t=${snapshotTimestamp}`}
-              alt={feed.name}
+              alt=""
               className="inline-live-img"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                const fallback = (feed.fallbackImage && !feed.fallbackImage.includes('skylinewebcams.com') ? feed.fallbackImage : null) ||
+                  (feed.thumbnail && !feed.thumbnail.includes('skylinewebcams.com') ? feed.thumbnail : null) ||
+                  'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600&q=80';
+                e.currentTarget.src = fallback;
+              }}
             />
           ) : embedUrl ? (
             <iframe
@@ -152,21 +160,40 @@ export function InlineLiveCard({
               title={feed.name}
               className="inline-live-iframe"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              referrerPolicy="strict-origin-when-cross-origin"
               allowFullScreen
             />
           ) : (
             <img
-              src={feed.thumbnail || 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&q=80'}
-              alt={feed.name}
+              src={
+                (feed.fallbackImage && !feed.fallbackImage.includes('skylinewebcams.com') ? feed.fallbackImage : null) ||
+                (feed.thumbnail && !feed.thumbnail.includes('skylinewebcams.com') ? feed.thumbnail : null) ||
+                'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600&q=80'
+              }
+              alt=""
               className="inline-live-img"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600&q=80';
+              }}
             />
           )
         ) : (
           <img
-            src={feed.thumbnail || 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&q=80'}
-            alt={feed.name}
+            src={
+              (feed.fallbackImage && !feed.fallbackImage.includes('skylinewebcams.com') ? feed.fallbackImage : null) ||
+              (feed.thumbnail && !feed.thumbnail.includes('skylinewebcams.com') ? feed.thumbnail : null) ||
+              'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600&q=80'
+            }
+            alt=""
             className="inline-live-img"
             loading="lazy"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600&q=80';
+            }}
           />
         )}
 

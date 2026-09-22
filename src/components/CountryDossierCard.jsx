@@ -78,9 +78,10 @@ export function CountryDossierCard({
     const isLiveYear = year === 2026;
     const diffYears = year - 2026;
 
-    // Base Population
-    const rawPopNum = territory.pop
-      ? parseInt(String(territory.pop).replace(/\s+/g, ''), 10)
+    // Base Population - safe parse removing any non-digits (non-breaking spaces, text)
+    const cleanDigits = territory.pop ? String(territory.pop).replace(/[^0-9]/g, '') : '';
+    const rawPopNum = cleanDigits
+      ? parseInt(cleanDigits, 10)
       : (territory.properties?.POP_EST || 0);
 
     const iso2 = geo.iso2 || territory.properties?.ISO_A2 || territory.code || '';

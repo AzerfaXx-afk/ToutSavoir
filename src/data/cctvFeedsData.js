@@ -21,7 +21,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?w=800&q=80",
     "description": "Surveillance panoramique 180° en direct du Vieux-Port de Marseille, du Mucem, du Fort Saint-Jean et de la basilique Notre-Dame de la Garde depuis le World Trade Center.",
     "provider": "Skaping / Ville de Marseille",
-    "externalUrl": "https://www.skaping.com/marseille/sky"
+    "externalUrl": "https://www.skaping.com/marseille/sky",
+    "fallbackImage": "https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?w=800&q=80"
   },
   {
     "id": "cctv-fr-cannes-laubeuf",
@@ -40,7 +41,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&q=80",
     "description": "Surveillance panoramique en direct du Quai Max Laubeuf, du Vieux-Port de Cannes et des îles de Lérins.",
     "provider": "Ville de Cannes / Cannes Webcams",
-    "externalUrl": "https://www.cannes.com/fr/cadre-de-vie/la-mer-et-le-littoral/webcams.html"
+    "externalUrl": "https://www.cannes.com/fr/cadre-de-vie/la-mer-et-le-littoral/webcams.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&q=80"
   },
   {
     "id": "cctv-fr-cannes-midi",
@@ -59,7 +61,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     "description": "Vue continue en direct sur le boulevard du Midi, les plages de sable de Cannes et le trafic côtier.",
     "provider": "Ville de Cannes / Cannes Webcams",
-    "externalUrl": "https://www.cannes.com/fr/cadre-de-vie/la-mer-et-le-littoral/webcams.html"
+    "externalUrl": "https://www.cannes.com/fr/cadre-de-vie/la-mer-et-le-littoral/webcams.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&q=80"
   },
   {
     "id": "cctv-fr-nice-promenade",
@@ -78,7 +81,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=800&q=80",
     "description": "Surveillance continue en direct de la Promenade des Anglais, du front de mer et de la Baie des Anges à Nice.",
     "provider": "Skaping / Ville de Nice",
-    "externalUrl": "https://www.skaping.com/nice/promenade"
+    "externalUrl": "https://www.skaping.com/nice/promenade",
+    "fallbackImage": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&q=80"
   },
   {
     "id": "cctv-fr-paris-montmartre",
@@ -97,7 +101,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80",
     "description": "Surveillance panoramique 24/7 de la basilique du Sacré-Cœur de Montmartre et des toits de Paris.",
     "provider": "PARIS TV",
-    "externalUrl": "https://www.youtube.com/@PARISTV-live"
+    "externalUrl": "https://www.youtube.com/@PARISTV-live",
+    "fallbackImage": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80"
   },
   {
     "id": "cctv-fr-paris-eiffel",
@@ -116,7 +121,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=800&q=80",
     "description": "Vue directe sur la Tour Eiffel et la Seine depuis le Conseil Économique, Social et Environnemental (CESE - Palais d'Iéna).",
     "provider": "Vision-Environnement / CESE",
-    "externalUrl": "https://www.vision-environnement.com/"
+    "externalUrl": "https://www.vision-environnement.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80"
   },
   {
     "id": "cctv-fr-chamonix-aiguille",
@@ -135,7 +141,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
     "description": "Panorama haute altitude 3 842 m sur le toit de l'Europe, les séracs des glaciers et la Vallée Blanche.",
     "provider": "Skaping / Compagnie du Mont-Blanc",
-    "externalUrl": "https://www.skaping.com/chamonix/aiguille-du-midi"
+    "externalUrl": "https://www.skaping.com/chamonix/aiguille-du-midi",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-fr-biarritz-plage",
@@ -154,7 +161,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=800&q=80",
     "description": "Surveillance maritime, houle et front de mer de la Grande Plage de Biarritz et de l'Hôtel du Palais.",
     "provider": "Skaping / Ville de Biarritz",
-    "externalUrl": "https://www.skaping.com/biarritz/grande-plage"
+    "externalUrl": "https://www.skaping.com/biarritz/grande-plage",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-fr-toulouse-garonne",
@@ -173,7 +181,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&q=80",
     "description": "Surveillance des quais historiques de Toulouse, vue sur le fleuve Garonne et le dôme de La Grave.",
     "provider": "Vision-Environnement",
-    "externalUrl": "https://www.vision-environnement.com/"
+    "externalUrl": "https://www.vision-environnement.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-fr-lehavre-port",
@@ -192,7 +201,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=800&q=80",
     "description": "Trafic maritime commercial de la Manche, avant-port du Havre et digue du Musée Malraux.",
     "provider": "Vision-Environnement / Port du Havre",
-    "externalUrl": "https://www.vision-environnement.com/"
+    "externalUrl": "https://www.vision-environnement.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-fr-bretagne-raz",
@@ -211,7 +221,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     "description": "Bout du monde breton, vagues de l'Atlantique et falaises granitiques de la Pointe du Raz.",
     "provider": "Vision-Environnement",
-    "externalUrl": "https://www.vision-environnement.com/"
+    "externalUrl": "https://www.vision-environnement.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-fr-corse-portovecchio",
@@ -230,7 +241,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&q=80",
     "description": "Surveillance du littoral corse du Sud, baie de Paese Serenu et mouillages côtiers.",
     "provider": "Vision-Environnement",
-    "externalUrl": "https://www.vision-environnement.com/"
+    "externalUrl": "https://www.vision-environnement.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-fr-pyrenees-gourette",
@@ -249,7 +261,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
     "description": "Front de neige, pistes et conditions météo du cirque pyrénéen de Gourette.",
     "provider": "Vision-Environnement / Gourette",
-    "externalUrl": "https://www.vision-environnement.com/"
+    "externalUrl": "https://www.vision-environnement.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-fr-morbihan-vannes",
@@ -268,7 +281,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     "description": "Bassin à flot, esplanade des Lices et porte Saint-Vincent du port de Vannes.",
     "provider": "Golfe du Morbihan Tourisme",
-    "externalUrl": "https://www.golfedumorbihan.bzh/"
+    "externalUrl": "https://www.golfedumorbihan.bzh/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-fr-oleron-perroche",
@@ -287,7 +301,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     "description": "Anse de La Perroche, surveillance de l'océan Atlantique et marées sur l'île d'Oléron.",
     "provider": "Vision-Environnement",
-    "externalUrl": "https://www.vision-environnement.com/"
+    "externalUrl": "https://www.vision-environnement.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-fr-martinique-arlet",
@@ -306,7 +321,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     "description": "Ponton emblématique, église Saint-Henri et mer des Caraïbes aux Anses d'Arlet en Martinique.",
     "provider": "Vision-Environnement",
-    "externalUrl": "https://www.vision-environnement.com/"
+    "externalUrl": "https://www.vision-environnement.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-fr-leman-geneve",
@@ -325,7 +341,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     "description": "Rade du lac Léman, jet d'eau, bateaux Belle Époque et montagnes du Jura.",
     "provider": "Vision-Environnement",
-    "externalUrl": "https://www.vision-environnement.com/"
+    "externalUrl": "https://www.vision-environnement.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-uk-london-bridge",
@@ -344,7 +361,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&q=80",
     "description": "Vue 4K Ultra HD en direct sur la Tamise, le galion Golden Hinde et le trafic maritime de la City de Londres.",
     "provider": "Beach Life Cams / London LIVE",
-    "externalUrl": "https://www.youtube.com/watch?v=AoWlXqIXNZ8"
+    "externalUrl": "https://www.youtube.com/watch?v=AoWlXqIXNZ8",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-uk-london-abbeyroad",
@@ -363,7 +381,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?w=800&q=80",
     "description": "Le passage piéton le plus célèbre au monde devant les studios Abbey Road à St John's Wood.",
     "provider": "EarthCam / Abbey Road Studios",
-    "externalUrl": "https://www.earthcam.com/world/uk/london/abbeyroad/?cam=abbeyroad_uk"
+    "externalUrl": "https://www.earthcam.com/world/uk/london/abbeyroad/?cam=abbeyroad_uk",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-tfl-piccadilly",
@@ -384,7 +403,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?w=800&q=80",
     "description": "Flux officiel en direct de la régie des transports londoniens Transport for London (TfL).",
     "provider": "Transport for London (TfL)",
-    "externalUrl": "https://tfl.gov.uk/traffic/status/"
+    "externalUrl": "https://tfl.gov.uk/traffic/status/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-it-venice-grandcanal",
@@ -403,7 +423,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=800&q=80",
     "description": "Circulation continue des gondoles, vaporetti et taxis nautiques sur le Grand Canal de Venise.",
     "provider": "I Love You Venice",
-    "externalUrl": "https://www.youtube.com/@ILoveYouVenice"
+    "externalUrl": "https://www.youtube.com/@ILoveYouVenice",
+    "fallbackImage": "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=800&q=80"
   },
   {
     "id": "cctv-it-rome-vatican",
@@ -422,7 +443,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80",
     "description": "Diffusion officielle continue de la basilique et de la place Saint-Pierre au Vatican.",
     "provider": "Vatican Media / Vatican News",
-    "externalUrl": "https://www.vaticannews.va/"
+    "externalUrl": "https://www.vaticannews.va/",
+    "fallbackImage": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80"
   },
   {
     "id": "cctv-it-dolomites",
@@ -441,7 +463,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
     "description": "Panoramas en direct des sommets classés UNESCO des Dolomites italiennes.",
     "provider": "feratel",
-    "externalUrl": "https://www.feratel.com/"
+    "externalUrl": "https://www.feratel.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-es-madrid-sol",
@@ -460,7 +483,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80",
     "description": "Animation piétonne et urbaine en temps réel sur la place centrale de la Puerta del Sol à Madrid.",
     "provider": "Streets of Serendipity",
-    "externalUrl": "https://www.youtube.com/watch?v=Ce85cxCgtWU"
+    "externalUrl": "https://www.youtube.com/watch?v=Ce85cxCgtWU",
+    "fallbackImage": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80"
   },
   {
     "id": "cctv-es-costabrava-tamariu",
@@ -479,7 +503,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     "description": "Crique rocheuse aux eaux turquoise de Tamariu sur le littoral sauvage catalan.",
     "provider": "EarthCam",
-    "externalUrl": "https://www.earthcam.com/"
+    "externalUrl": "https://www.earthcam.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-es-baleares-mallorca",
@@ -498,7 +523,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&q=80",
     "description": "Vue maritime en direct du port de plaisance de Palma et des îles Baléares.",
     "provider": "EarthCam",
-    "externalUrl": "https://www.earthcam.com/"
+    "externalUrl": "https://www.earthcam.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-es-canarias-lanzarote",
@@ -517,7 +543,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80",
     "description": "Surveillance de la piste 03/21 de l'aéroport César Manrique avec atterrissages et décollages commerciaux.",
     "provider": "LanzaroteWebcam",
-    "externalUrl": "https://www.lanzarotewebcam.com/"
+    "externalUrl": "https://www.lanzarotewebcam.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-nl-amsterdam-dam",
@@ -536,7 +563,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?w=800&q=80",
     "description": "Caméra motorisée PTZ 4K Ultra HD observant le cœur historique de la place du Dam et le Palais Royal.",
     "provider": "Now4Rent / Amsterdam Live",
-    "externalUrl": "https://www.youtube.com/watch?v=Gd9d4q6WvUY"
+    "externalUrl": "https://www.youtube.com/watch?v=Gd9d4q6WvUY",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-ch-alpes-panorama",
@@ -555,7 +583,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?w=800&q=80",
     "description": "Panoramas haute résolution des massifs suisses, glaciers et vallées alpines.",
     "provider": "feratel",
-    "externalUrl": "https://www.feratel.com/"
+    "externalUrl": "https://www.feratel.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-at-alpes-innsbruck",
@@ -574,7 +603,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
     "description": "Couverture météo et panoramas continus des domaines skiables du Tyrol autrichien.",
     "provider": "feratel",
-    "externalUrl": "https://www.feratel.com/"
+    "externalUrl": "https://www.feratel.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-ie-dublin-templebar",
@@ -593,7 +623,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1549918864-48ac978761a4?w=800&q=80",
     "description": "Ambiance nocturne et diurne des célèbres rues pavées du quartier culturel de Temple Bar.",
     "provider": "EarthCam",
-    "externalUrl": "https://www.earthcam.com/world/ireland/dublin/?cam=templebar"
+    "externalUrl": "https://www.earthcam.com/world/ireland/dublin/?cam=templebar",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-pt-madeira-funchal",
@@ -612,7 +643,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     "description": "Surveillance maritime du port de croisières et de la marina de Funchal sur l'île de Madère.",
     "provider": "Madeira-Web",
-    "externalUrl": "https://www.madeira-web.com/"
+    "externalUrl": "https://www.madeira-web.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-hls-burgas",
@@ -632,7 +664,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     "description": "Flux vidéo HLS natif de la municipalité de Burgas sur la côte de la Mer Noire.",
     "provider": "Smart Burgas Open Data",
-    "externalUrl": "https://smartburgas.eu/"
+    "externalUrl": "https://smartburgas.eu/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-us-nyc-times-square",
@@ -651,7 +684,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=800&q=80",
     "description": "Flux 4K Ultra HD officiel sur les écrans géants, la tour One Times Square et le carrefour mondial de Broadway.",
     "provider": "EarthCam",
-    "externalUrl": "https://www.earthcam.com/usa/newyork/timessquare/?cam=tsrobo1"
+    "externalUrl": "https://www.earthcam.com/usa/newyork/timessquare/?cam=tsrobo1",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-us-nyc-brooklyn-bridge",
@@ -670,7 +704,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80",
     "description": "Vue panoramique 4K sur le pont suspendu de Brooklyn, l'East River et les gratte-ciels du Financial District.",
     "provider": "EarthCam",
-    "externalUrl": "https://www.earthcam.com/usa/newyork/skyline/?cam=brooklynbridge"
+    "externalUrl": "https://www.earthcam.com/usa/newyork/skyline/?cam=brooklynbridge",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-us-nyc-wtc",
@@ -689,7 +724,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=800&q=80",
     "description": "Surveillance continue du mémorial du World Trade Center et de la One World Trade Tower à Manhattan.",
     "provider": "EarthCam",
-    "externalUrl": "https://www.earthcam.com/usa/newyork/worldtradecenter/"
+    "externalUrl": "https://www.earthcam.com/usa/newyork/worldtradecenter/",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-us-nyc-statue-liberty",
@@ -708,7 +744,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1605130284535-11dd9eedc58a?w=800&q=80",
     "description": "Vue directe sur la Statue de la Liberté sur Liberty Island et le trafic maritime de la baie.",
     "provider": "EarthCam",
-    "externalUrl": "https://www.earthcam.com/usa/newyork/statueofliberty/"
+    "externalUrl": "https://www.earthcam.com/usa/newyork/statueofliberty/",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-sky-nyc-empire-state",
@@ -724,13 +761,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "6127",
-    "thumbnail": "https://cdn.skylinewebcams.com/live6127.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80",
     "description": "Vue sur l'Empire State Building depuis SkylineWebcams, mise à jour en direct en continu.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/new-york/new-york/empire-state-building.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live6127.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live6127.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-sky-nyc-broadway-49th",
@@ -746,13 +784,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "846",
-    "thumbnail": "https://cdn.skylinewebcams.com/live846.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80",
     "description": "Panneaux publicitaires iconiques de Broadway à la 49ème Rue, cœur de Times Square.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/new-york/new-york/new-york-city.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live846.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live846.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-us-sf-bayview",
@@ -771,7 +810,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80",
     "description": "Vue panoramique sur la baie de San Francisco, Treasure Island, les gratte-ciels et le Golden Gate Bridge.",
     "provider": "Teleport.camera",
-    "externalUrl": "https://www.teleport.camera/"
+    "externalUrl": "https://www.teleport.camera/",
+    "fallbackImage": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80"
   },
   {
     "id": "cctv-sky-sf-baybridge",
@@ -787,13 +827,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "5709",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5709.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80",
     "description": "Vue sur le Bay Bridge de San Francisco depuis SkylineWebcams, mise à jour en direct.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/california/san-francisco/bay-bridge.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live5709.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live5709.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80"
   },
   {
     "id": "cctv-us-la-venicebeach",
@@ -812,7 +853,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1580655653885-65763b2597d0?w=800&q=80",
     "description": "Surveillance de la promenade de Venice Beach, des palmiers californiens et du coucher de soleil sur le Pacifique.",
     "provider": "Teleport.camera",
-    "externalUrl": "https://www.teleport.camera/"
+    "externalUrl": "https://www.teleport.camera/",
+    "fallbackImage": "https://images.unsplash.com/photo-1580655653885-65763b2597d0?w=800&q=80"
   },
   {
     "id": "cctv-us-la-santamonica",
@@ -831,7 +873,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1580655653885-65763b2597d0?w=800&q=80",
     "description": "Jetée emblématique de Santa Monica Pier, fin historique de la Route 66 et grande roue solaire.",
     "provider": "Surveillance Map Foundation",
-    "externalUrl": "https://www.youtube.com/watch?v=6Xxb5uikewE"
+    "externalUrl": "https://www.youtube.com/watch?v=6Xxb5uikewE",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-la-redondo-beach",
@@ -847,13 +890,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "6011",
-    "thumbnail": "https://cdn.skylinewebcams.com/live6011.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Vue sur Redondo Beach en Californie depuis SkylineWebcams, mise à jour en direct.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/california/redondo-beach/redondo-beach.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live6011.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live6011.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-us-washington-monument",
@@ -872,7 +916,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1501466044931-62695aada8e9?w=800&q=80",
     "description": "Vue officielle sur l'obélisque du Washington Monument et le centre de la capitale fédérale américaine.",
     "provider": "EarthCam",
-    "externalUrl": "https://www.earthcam.com/usa/dc/washingtonmonument/"
+    "externalUrl": "https://www.earthcam.com/usa/dc/washingtonmonument/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-us-neworleans-bourbon",
@@ -891,7 +936,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80",
     "description": "Ambiance nocturne et diurne du French Quarter, balcons en fer forgé et clubs de jazz historiques.",
     "provider": "EarthCam",
-    "externalUrl": "https://www.earthcam.com/usa/louisiana/neworleans/bourbonstreet/"
+    "externalUrl": "https://www.earthcam.com/usa/louisiana/neworleans/bourbonstreet/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-us-chicago-midway",
@@ -910,7 +956,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80",
     "description": "Activité aéroportuaire, décollages et atterrissages commerciaux en continu à Chicago Midway.",
     "provider": "EarthCam",
-    "externalUrl": "https://www.earthcam.com/airports/midway/"
+    "externalUrl": "https://www.earthcam.com/airports/midway/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-us-florida-anglins",
@@ -929,7 +976,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     "description": "Ponton de pêche historique d'Anglins Pier, littoral subtropical et houle atlantique en Floride.",
     "provider": "EarthCam",
-    "externalUrl": "https://www.earthcam.com/usa/florida/lauderdalebythesea/"
+    "externalUrl": "https://www.earthcam.com/usa/florida/lauderdalebythesea/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-cape-canaveral",
@@ -948,7 +996,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1517976487507-5803b91d258a?w=800&q=80",
     "description": "Canal officiel de la NASA retransmettant les missions habitées, sorties spatiales EVA et tirs orbitaux.",
     "provider": "NASA Official",
-    "externalUrl": "https://www.nasa.gov/live"
+    "externalUrl": "https://www.nasa.gov/live",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-caribbean-cayman",
@@ -967,7 +1016,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     "description": "Eaux cristallines de la mer des Caraïbes, plages de sable blanc et barrière de corail.",
     "provider": "EarthCam",
-    "externalUrl": "https://www.earthcam.com/"
+    "externalUrl": "https://www.earthcam.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-jp-tokyo-shinjuku",
@@ -986,7 +1036,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800&q=80",
     "description": "Surveillance 4K Ultra HD en direct de la rue centrale de Kabukicho, des enseignes lumineuses et de la vie nocturne tokyoïte.",
     "provider": "Kabukicho Live Channel II",
-    "externalUrl": "https://www.youtube.com/watch?v=gFRtAAmiFbE"
+    "externalUrl": "https://www.youtube.com/watch?v=gFRtAAmiFbE",
+    "fallbackImage": "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800&q=80"
   },
   {
     "id": "cctv-jp-tokyo-bay",
@@ -1005,7 +1056,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800&q=80",
     "description": "Panorama 4K sur le front de mer de Tokyo, le port maritime et la traversée illuminée du pont Rainbow Bridge.",
     "provider": "Tokyo Views LIVE",
-    "externalUrl": "https://www.youtube.com/watch?v=_k-5U7IeK8g"
+    "externalUrl": "https://www.youtube.com/watch?v=_k-5U7IeK8g",
+    "fallbackImage": "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800&q=80"
   },
   {
     "id": "cctv-kr-seoul-hanriver",
@@ -1024,7 +1076,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=800&q=80",
     "description": "Surveillance 4K des autoroutes riveraines du fleuve Han, des ponts illuminés et des gratte-ciels financiers de Séoul.",
     "provider": "RIVERWORKER / Seoul Live",
-    "externalUrl": "https://www.youtube.com/watch?v=vk5BHoDxXf0"
+    "externalUrl": "https://www.youtube.com/watch?v=vk5BHoDxXf0",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-th-kohphangan",
@@ -1043,7 +1096,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     "description": "Vue continue avec ambiance sonore stéréophonique en direct sur les eaux turquoise du Golfe de Thaïlande.",
     "provider": "Teleport.camera",
-    "externalUrl": "https://www.teleport.camera/"
+    "externalUrl": "https://www.teleport.camera/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-il-jerusalem-kotel",
@@ -1062,7 +1116,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1544971587-b842c27f8e14?w=800&q=80",
     "description": "Surveillance continue en direct de la place du Kotel et des remparts historiques de la vieille ville de Jérusalem.",
     "provider": "EarthCam",
-    "externalUrl": "https://www.earthcam.com/world/israel/jerusalem/?cam=westernwall"
+    "externalUrl": "https://www.earthcam.com/world/israel/jerusalem/?cam=westernwall",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-au-sydney-harbour",
@@ -1081,7 +1136,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=800&q=80",
     "description": "Vue panoramique 4K sur le port de Sydney, les voiles de l'Opéra, les ferries de Circular Quay et le Harbour Bridge.",
     "provider": "WebcamSydney",
-    "externalUrl": "https://www.webcamsydney.com/"
+    "externalUrl": "https://www.webcamsydney.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=800&q=80"
   },
   {
     "id": "cctv-na-namib-desert",
@@ -1100,7 +1156,8 @@ export const CCTV_FEEDS = [
     "thumbnail": "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80",
     "description": "Observation continue avec audio naturel de la faune sauvage africaine (oryx, zèbres, girafes, hyènes) au point d'eau du parc national Namib-Naukluft.",
     "provider": "NamibiaCam",
-    "externalUrl": "https://www.namibiacam.org/"
+    "externalUrl": "https://www.namibiacam.org/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-fr-larochelle",
@@ -1119,10 +1176,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live4771.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live4771.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Surveillance en direct de l'entrée du Vieux-Port de La Rochelle, de la tour Saint-Nicolas et de la tour de la Chaîne.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/"
+    "externalUrl": "https://www.skylinewebcams.com/",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-fr-frejus",
@@ -1141,10 +1199,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live4770.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live4770.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Surveillance de la plage de sable fin de Fréjus et du front de mer méditerranéen sur la Côte d'Azur.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/provence-alpes-cote-dazur/frejus/plage-de-frejus.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/provence-alpes-cote-dazur/frejus/plage-de-frejus.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-fr-collioure",
@@ -1163,10 +1222,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live5040.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5040.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Joyau catalan de la Côte Vermeille, église Notre-Dame-des-Anges et château royal des rois de Majorque.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/occitanie/collioure/chateau-royal.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/occitanie/collioure/chateau-royal.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-fr-sete",
@@ -1185,10 +1245,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live5141.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5141.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Vue continue sur le port de plaisance sétois, les ponts levants et le mont Saint-Clair.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/occitanie/sete/port-de-plaisance.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/occitanie/sete/port-de-plaisance.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-fr-aixlesbains",
@@ -1207,10 +1268,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live4276.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live4276.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Plus grand lac naturel glaciaire français entouré par les crêtes alpines du massif des Bauges.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/auvergne-rhone-alpes/aix-les-bains/lac-du-bourget.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/auvergne-rhone-alpes/aix-les-bains/lac-du-bourget.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-fr-royan",
@@ -1229,10 +1291,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live5082.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5082.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Conche de Pontaillac, casino de Royan et vagues atlantiques de l'embouchure de la Gironde.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/nouvelle-aquitaine/royan/plage-de-pontaillac.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/nouvelle-aquitaine/royan/plage-de-pontaillac.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-fr-portovecchio",
@@ -1251,10 +1314,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live1252.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live1252.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Plage paradisiaque de la Folacca près de Palombaggia dans le golfe de Porto-Vecchio en Corse du Sud.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/corsica/porto-vecchio/porto-vecchio-folacca-beach.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/corsica/porto-vecchio/porto-vecchio-folacca-beach.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-fr-menton",
@@ -1273,10 +1337,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live6035.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live6035.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Front de mer de Menton, basilique Saint-Michel et frontière maritime franco-italienne de la Côte d'Azur.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/provence-alpes-cote-dazur/menton/vue-panoramique.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/provence-alpes-cote-dazur/menton/vue-panoramique.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-fr-vallorcine",
@@ -1295,10 +1360,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live5366.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5366.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Panorama alpin sur la haute vallée glaciaire de Vallorcine et le massif du Mont-Blanc.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/auvergne-rhone-alpes/vallorcine/vallorcine-mont-blanc.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/auvergne-rhone-alpes/vallorcine/vallorcine-mont-blanc.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-rome-trevi",
@@ -1317,10 +1383,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live286.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live286.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80",
     "description": "Vue continue en direct sur la majestueuse fontaine baroque de Trevi au cœur historique de Rome.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lazio/roma/fontana-di-trevi.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lazio/roma/fontana-di-trevi.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-rome-colisee",
@@ -1339,10 +1406,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live1151.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live1151.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80",
     "description": "Surveillance panoramique de l'amphithéâtre Flavien du Colisée à Rome et des ruines impériales.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lazio/roma/colosseo.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lazio/roma/colosseo.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-rome-spagna",
@@ -1361,10 +1429,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live205.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live205.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80",
     "description": "Piazza di Spagna, escalier monumental du XVIIIe siècle et fontaine de la Barcaccia du Bernin.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lazio/roma/piazza-di-spagna.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lazio/roma/piazza-di-spagna.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-rome-navona",
@@ -1383,10 +1452,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live177.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live177.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80",
     "description": "Place Navone, église baroque Sainte-Agnès en Agone et chef-d'œuvre sculpté du Bernin.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lazio/roma/piazza-navona.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lazio/roma/piazza-navona.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-rome-maggiore",
@@ -1405,10 +1475,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live661.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live661.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80",
     "description": "Façade papale et place de la basilique patriarcale Santa Maria Maggiore à Rome.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lazio/roma/santa-maria-maggiore.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lazio/roma/santa-maria-maggiore.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-rome-skyline",
@@ -1427,10 +1498,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live685.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live685.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80",
     "description": "Vue panoramique d'ensemble sur les coupoles, clochers et collines de la Ville Éternelle.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lazio/roma/skyline-roma.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lazio/roma/skyline-roma.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-venise-sanmarco",
@@ -1449,10 +1521,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live522.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live522.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=800&q=80",
     "description": "Piazza San Marco, basilique byzantine, campanile historique et Palais des Doges en direct.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/veneto/venezia/piazza-san-marco.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/veneto/venezia/piazza-san-marco.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-venise-rialto",
@@ -1471,10 +1544,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live416.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live416.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=800&q=80",
     "description": "Pont du Rialto, passage des gondoles, bateaux-taxis et vaporetti sur le Grand Canal de Venise.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/veneto/venezia/ponte-di-rialto.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/veneto/venezia/ponte-di-rialto.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-venise-bassin",
@@ -1493,10 +1567,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live457.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live457.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=800&q=80",
     "description": "Surveillance maritime du bassin de Saint-Marc et du grand quai des Esclavons.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/veneto/venezia/bacino-san-marco.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/veneto/venezia/bacino-san-marco.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-venise-sangiorgio",
@@ -1515,10 +1590,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live458.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live458.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=800&q=80",
     "description": "Basilique palladienne de San Giorgio Maggiore dominant les eaux calmes de la lagune vénitienne.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/veneto/venezia/san-giorgio-maggiore.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/veneto/venezia/san-giorgio-maggiore.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-milan-duomo",
@@ -1537,10 +1613,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live395.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live395.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=800&q=80",
     "description": "Cathédrale de marbre blanc du Duomo de Milan et entrée de la galerie Vittorio Emanuele II.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lombardia/milano/duomo-milano.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lombardia/milano/duomo-milano.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-milan-sanbabila",
@@ -1559,10 +1636,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live750.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live750.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=800&q=80",
     "description": "Animation urbaine, avenue Corso Vittorio Emanuele et carrefour du quartier de la mode à Milan.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lombardia/milano/piazza-san-babila.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lombardia/milano/piazza-san-babila.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-florence-pontevecchio",
@@ -1581,10 +1659,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live369.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live369.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?w=800&q=80",
     "description": "Le pont médiéval couvert emblématique de Florence, le corridor de Vasari et le fleuve Arno.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/toscana/firenze/ponte-vecchio.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/toscana/firenze/ponte-vecchio.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-pise-tour",
@@ -1603,10 +1682,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live995.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live995.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "La célèbre tour penchée campanile de Pise, le dôme de marbre blanc et le baptistère.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/toscana/pisa/torre-di-pisa.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/toscana/pisa/torre-di-pisa.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-verona-arenes",
@@ -1625,10 +1705,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live935.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live935.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Arènes romaines du Ier siècle et esplanade piétonne de la Piazza Bra à Vérone.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/veneto/verona/piazza-bra-arena.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/veneto/verona/piazza-bra-arena.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-verona-juliette",
@@ -1647,10 +1728,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live994.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live994.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Cour médiévale, statue de bronze et célèbre balcon shakespearien de Juliette Capulet.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/veneto/verona/casa-di-giulietta.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/veneto/verona/casa-di-giulietta.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-naples-vesuve",
@@ -1669,10 +1751,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live477.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live477.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80",
     "description": "Panorama sur le golfe campanien, la baie napolitaine et la silhouette du mont Vésuve.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/campania/napoli/golfo-di-napoli.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/campania/napoli/golfo-di-napoli.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-naples-castel",
@@ -1691,10 +1774,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live3716.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live3716.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80",
     "description": "Forteresse médiévale angevine du Castel Nuovo et terminal portuaire de Naples.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/campania/napoli/castel-nuovo-maschio-angioino.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/campania/napoli/castel-nuovo-maschio-angioino.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-sicile-etna",
@@ -1713,10 +1797,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live435.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live435.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Activité volcanique continue en direct des cratères sommitaux du mont Etna en Sicile.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/sicilia/catania/vulcano-etna-crateri-sommitali.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/sicilia/catania/vulcano-etna-crateri-sommitali.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-polignano",
@@ -1735,10 +1820,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live542.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live542.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Célèbre crique de Lama Monachile et maisons blanches perchées sur les falaises des Pouilles.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/puglia/bari/polignano-a-mare.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/puglia/bari/polignano-a-mare.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-tropea",
@@ -1757,10 +1843,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live910.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live910.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Promontoire rocheux de Tropea, sanctuaire insulaire et mer turquoise tyrrhénienne.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/calabria/vibo-valentia/tropea.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/calabria/vibo-valentia/tropea.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-cinqueterre",
@@ -1779,10 +1866,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live109.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live109.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Maisons multicolores accrochées aux falaises abruptes du parc national des Cinque Terre.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/liguria/la-spezia/riomaggiore.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/liguria/la-spezia/riomaggiore.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-es-madrid-callao",
@@ -1801,10 +1889,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live566.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live566.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80",
     "description": "Écrans géants et artères battantes de la Gran Vía et de la Plaza del Callao à Madrid.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/comunidad-de-madrid/madrid/madrid-plaza-del-callao.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/comunidad-de-madrid/madrid/madrid-plaza-del-callao.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80"
   },
   {
     "id": "cctv-sky-es-madrid-sol",
@@ -1823,10 +1912,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live519.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live519.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80",
     "description": "Kilomètre zéro d'Espagne, enseigne historique de Tío Pepe et horloge de la Real Casa de Correos.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/comunidad-de-madrid/madrid/puerta-del-sol-tio-pepe.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/comunidad-de-madrid/madrid/puerta-del-sol-tio-pepe.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80"
   },
   {
     "id": "cctv-sky-es-tenerife-loscristianos",
@@ -1845,10 +1935,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live340.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live340.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1581888227599-779811939961?w=800&q=80",
     "description": "Plage dorée de Los Cristianos, port des ferries inter-îles et littoral sud de Tenerife.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/canarias/santa-cruz-de-tenerife/playa-los-cristianos.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/canarias/santa-cruz-de-tenerife/playa-los-cristianos.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1581888227599-779811939961?w=800&q=80"
   },
   {
     "id": "cctv-sky-es-tenerife-medano",
@@ -1867,10 +1958,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live376.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live376.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1581888227599-779811939961?w=800&q=80",
     "description": "Baie d'El Médano, spot de kitesurf de réputation mondiale et cône volcanique de la Montaña Roja.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/canarias/santa-cruz-de-tenerife/el-medano.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/canarias/santa-cruz-de-tenerife/el-medano.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1581888227599-779811939961?w=800&q=80"
   },
   {
     "id": "cctv-sky-es-tenerife-teide",
@@ -1889,10 +1981,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live1089.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live1089.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1581888227599-779811939961?w=800&q=80",
     "description": "Le sommet le plus élevé d'Espagne, mer de nuages et caldeira martienne des Cañadas del Teide.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/canarias/santa-cruz-de-tenerife/teide.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/canarias/santa-cruz-de-tenerife/teide.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1581888227599-779811939961?w=800&q=80"
   },
   {
     "id": "cctv-sky-es-grancanaria-lascanteras",
@@ -1911,10 +2004,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live680.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live680.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Promenade maritime et barrière naturelle de récif de Las Canteras à Las Palmas.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/canarias/las-palmas-gran-canaria/playa-grande-las-canteras.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/canarias/las-palmas-gran-canaria/playa-grande-las-canteras.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-es-lanzarote-arrecife",
@@ -1933,10 +2027,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live6075.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live6075.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Lagune naturelle côtière et barques de pêcheurs d'Arrecife sur l'île volcanique de Lanzarote.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/canarias/las-palmas/arrecife.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/canarias/las-palmas/arrecife.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-es-benidorm-poniente",
@@ -1955,10 +2050,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live630.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live630.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Front de mer méditerranéen et skyline de gratte-ciels spectaculaire de Benidorm.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/comunidad-valenciana/alicante/benidorm-playa-poniente.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/comunidad-valenciana/alicante/benidorm-playa-poniente.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-es-santander-sardinero",
@@ -1977,10 +2073,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live728.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live728.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Grande plage cantabrique du Sardinero, vagues atlantiques et presqu'île de la Magdalena.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/cantabria/santander/playa-del-sardinero.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/cantabria/santander/playa-del-sardinero.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-es-ibiza-vadella",
@@ -1999,10 +2096,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live713.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live713.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=800&q=80",
     "description": "Eaux turquoise de la baie abritée de Cala Vadella sur la côte ouest d'Ibiza.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/islas-baleares/ibiza/cala-vadella.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/islas-baleares/ibiza/cala-vadella.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=800&q=80"
   },
   {
     "id": "cctv-sky-es-mallorca-palma",
@@ -2021,10 +2119,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live6123.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live6123.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Playa de Palma, littoral baléare et promenade maritime de Can Pastilla.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/islas-baleares/mallorca/can-pastilla-playa-de-palma.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/islas-baleares/mallorca/can-pastilla-playa-de-palma.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-pt-lisbonne-skyline",
@@ -2043,10 +2142,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live2602.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live2602.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Vue panoramique d'ensemble sur le centre historique de Lisbonne et l'estuaire du Tage.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/portugal/lisboa/lisbon/panorama.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/portugal/lisboa/lisbon/panorama.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-mt-valette-harbour",
@@ -2065,10 +2165,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live207.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live207.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Forteresses historiques des Chevaliers de Malte et grand port naturel de La Valette.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/malta/malta/valletta/grand-harbour.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/malta/malta/valletta/grand-harbour.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-mt-valette-tritons",
@@ -2087,10 +2188,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live189.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live189.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Esplanade monumentale d'accès à La Valette et fontaine des Tritons.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/malta/malta/floriana/triton-fountain.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/malta/malta/floriana/triton-fountain.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-mt-spinola-bay",
@@ -2109,10 +2211,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live142.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live142.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Barques traditionnelles luzzu aux yeux d'Osiris et front de mer animé de Spinola Bay.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/malta/malta/saint-julians/spinola-bay.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/malta/malta/saint-julians/spinola-bay.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-gr-athenes-syntagma",
@@ -2131,10 +2234,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live535.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live535.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1555993539-1732b364db19?w=800&q=80",
     "description": "Parlement grec, tombe du Soldat inconnu et relève de la garde des Evzones à Athènes.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/ellada/attica/athens/syntagma-square.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/ellada/attica/athens/syntagma-square.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1555993539-1732b364db19?w=800&q=80"
   },
   {
     "id": "cctv-sky-gr-santorin-caldeira",
@@ -2153,10 +2257,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live524.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live524.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=800&q=80",
     "description": "Maisons blanches cycladiques, dômes bleus et falaise vertigineuse plongeant dans la mer Égée.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/ellada/cyclades/santorini/firostefani.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/ellada/cyclades/santorini/firostefani.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=800&q=80"
   },
   {
     "id": "cctv-sky-gr-thessalonique",
@@ -2175,10 +2280,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live570.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live570.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Grande place monumentale néo-byzantine ouvrant sur le front de mer du golfe Thermaïque.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/ellada/central-macedonia/thessaloniki/thessaloniki.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/ellada/central-macedonia/thessaloniki/thessaloniki.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-no-lofoten-henningsvaer",
@@ -2197,10 +2303,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live525.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live525.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Village de pêcheurs arctiques, séchoirs à morue et montagnes polaires des Lofoten au-delà du cercle polaire.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/norge/nordland/henningsvaer/henningsvaer.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/norge/nordland/henningsvaer/henningsvaer.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-no-lofoten-reine",
@@ -2219,10 +2326,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live617.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live617.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Cabanes rouges rorbuer au pied du pic vertigineux de Reinebringen dans les fjords nordiques.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/norge/nordland/reine/reine-reinefjorden.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/norge/nordland/reine/reine-reinefjorden.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-is-jokulsarlon",
@@ -2241,10 +2349,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live28.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live28.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Icebergs bleus millénaires dérivant du glacier Vatnajökull vers la plage de sable noir volcanique.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/island/austurland/jokulsarlon/glacier-lagoon.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/island/austurland/jokulsarlon/glacier-lagoon.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-cz-prague-horloge",
@@ -2263,10 +2372,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live732.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live732.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Place médiévale de l'Horloge astronomique, église gothique Notre-Dame du Týn au cœur de Prague.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/ceska-republika/praha/praha/prague.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/ceska-republika/praha/praha/prague.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-si-piran-tartini",
@@ -2285,10 +2395,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live35.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live35.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Place circulaire de marbre blanc, campanile vénitien et mer Adriatique sur la côte slovène.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/slovenija/obala/piran/tartini-square.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/slovenija/obala/piran/tartini-square.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-us-nyc-timessquare",
@@ -2307,10 +2418,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live538.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live538.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80",
     "description": "Écrans LED géants, carrefour du monde et circulation continue au cœur de Manhattan.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/united-states/new-york/new-york/times-square.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/united-states/new-york/new-york/times-square.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-sky-us-nyc-skyline",
@@ -2329,10 +2441,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live790.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live790.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80",
     "description": "Ligne d'horizon monumentale des gratte-ciels du sud de Manhattan et fleuve Hudson.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/united-states/new-york/new-york/skyline.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/united-states/new-york/new-york/skyline.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-sky-us-miami-marina",
@@ -2351,10 +2464,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live5615.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5615.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=800&q=80",
     "description": "Marina vénitienne de Miami, yachts de luxe et skyline de Biscayne Bay sous le soleil de Floride.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/united-states/florida/miami/venetian-marina-biscayne-bay.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/united-states/florida/miami/venetian-marina-biscayne-bay.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=800&q=80"
   },
   {
     "id": "cctv-sky-us-miami-skyline",
@@ -2373,10 +2487,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live373.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live373.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=800&q=80",
     "description": "Gratte-ciels étincelants du centre financier de Miami et navigation de plaisance.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/united-states/florida/miami/miami.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/united-states/florida/miami/miami.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=800&q=80"
   },
   {
     "id": "cctv-sky-ar-ushuaia-beagle",
@@ -2395,10 +2510,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live1053.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live1053.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "La cité la plus australe de la planète, monts Martial enneigés et eaux glacées de la Terre de Feu.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/argentina/tierra-del-fuego/ushuaia/puerto-ushuaia.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/argentina/tierra-del-fuego/ushuaia/puerto-ushuaia.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-pe-cuzco-plazamayor",
@@ -2417,10 +2533,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live831.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live831.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Ancienne capitale de l'Empire inca à 3 400 m d'altitude dans la cordillère des Andes.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/peru/cusco/cusco/plaza-mayor-cusco.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/peru/cusco/cusco/plaza-mayor-cusco.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-mx-cabosanlucas-arco",
@@ -2439,10 +2556,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live984.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live984.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Arche rocheuse spectaculaire d'El Arco marquant la rencontre du Pacifique et de la mer de Cortés.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/mexico/baja-california-sur/cabo-san-lucas/cabo-san-lucas.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/mexico/baja-california-sur/cabo-san-lucas/cabo-san-lucas.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-cn-shanghai-bund",
@@ -2461,10 +2579,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live5216.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5216.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1538428494232-9c0d8a3ab403?w=800&q=80",
     "description": "Tours géantes de Pudong (Shanghai Tower, Tour Perle de l'Orient) et fleuve Huangpu.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/china/shanghai/shanghai/bund.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/china/shanghai/shanghai/bund.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1538428494232-9c0d8a3ab403?w=800&q=80"
   },
   {
     "id": "cctv-sky-il-jerusalem-kotel",
@@ -2483,10 +2602,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live860.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live860.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Place de prière du Kotel au pied du Mont du Temple dans la vieille ville de Jérusalem.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/israel/jerusalem-district/jerusalem/western-wall.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/israel/jerusalem-district/jerusalem/western-wall.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-tr-cappadoce-uchisar",
@@ -2505,10 +2625,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live979.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live979.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Forteresse troglodytique volcanique d'Uçhisar et montgolfières au lever du soleil sur la Cappadoce.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/turkey/central-anatolia/uchisar/uchisar.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/turkey/central-anatolia/uchisar/uchisar.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-ph-elnido-palawan",
@@ -2527,10 +2648,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live1057.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live1057.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Falaises de calcaire karstique vertigineuses, lagons émeraude et îles préservées de Palawan.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/philippines/mimaropa/el-nido/el-nido.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/philippines/mimaropa/el-nido/el-nido.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-au-sydney-harbourbridge",
@@ -2549,10 +2671,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live1765.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live1765.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=800&q=80",
     "description": "Surveillance de la baie de Sydney, des ferries de Circular Quay et de l'arche de l'Harbour Bridge.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/australia/new-south-wales/sydney/sydney-harbour.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/australia/new-south-wales/sydney/sydney-harbour.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=800&q=80"
   },
   {
     "id": "cctv-sky-mv-meeru-island",
@@ -2571,10 +2694,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live814.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live814.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Villas sur pilotis, récif corallien vivant et atoll paradisiaque de l'océan Indien aux Maldives.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/maldives/kaafu-atoll/meeru-island/meeru-island-beach.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/maldives/kaafu-atoll/meeru-island/meeru-island-beach.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-sc-beauvallon",
@@ -2593,10 +2717,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live5.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Sable blanc corallien, blocs de granit légendaires et eaux turquoise chaudes de l'océan Indien.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/seychelles/mahe/beau-vallon/beau-vallon.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/seychelles/mahe/beau-vallon/beau-vallon.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-tz-zanzibar-kiwengwa",
@@ -2615,10 +2740,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live1188.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live1188.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Plage bordée de cocotiers, marées spectaculaires de l'océan Indien et bancs de sable blanc.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/tanzania/zanzibar-north/kiwengwa/kiwengwa.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/tanzania/zanzibar-north/kiwengwa/kiwengwa.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-zm-zambezi-safari",
@@ -2637,10 +2763,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live1159.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live1159.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Fleuve Zambèze en direct, éléphants sauvages venant s'abreuver, hippopotames et faune africaine.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/zambia/lusaka/lower-zambezi/lower-zambezi-national-park.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/zambia/lusaka/lower-zambezi/lower-zambezi-national-park.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-ke-watamu-parc",
@@ -2659,10 +2786,11 @@ export const CCTV_FEEDS = [
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
     "feedUrl": "https://cdn.skylinewebcams.com/live572.jpg",
-    "thumbnail": "https://cdn.skylinewebcams.com/live572.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Réserve marine kenyane de Watamu, bancs de sable blanc immaculés et récif corallien.",
     "provider": "SkylineWebcams HD",
-    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/kenya/coast/watamu/watamu.html"
+    "externalUrl": "https://www.skylinewebcams.com/fr/webcam/kenya/coast/watamu/watamu.html",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-nyc-midtown",
@@ -2678,13 +2806,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "4988",
-    "thumbnail": "https://cdn.skylinewebcams.com/live4988.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80",
     "description": "Panorama des gratte-ciel de Midtown Manhattan en direct depuis SkylineWebcams.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/new-york/new-york/midtown-manhattan.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live4988.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live4988.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-sky-nyc-harbor",
@@ -2700,13 +2829,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "2692",
-    "thumbnail": "https://cdn.skylinewebcams.com/live2692.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80",
     "description": "Vue sur le port de New York et la Statue de la Liberté depuis SkylineWebcams.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/new-york/new-york/new-york-city-harbor.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live2692.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live2692.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-sky-nyc-46th-street",
@@ -2722,13 +2852,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "942",
-    "thumbnail": "https://cdn.skylinewebcams.com/live942.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80",
     "description": "Vue de la 46ème Rue entre la 5ème et la 6ème Avenue en plein cœur de Manhattan.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/new-york/new-york/nyc-46th-street.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live942.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live942.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-sky-nyc-coney-island",
@@ -2744,13 +2875,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "5581",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5581.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80",
     "description": "Vue sur Coney Island et le parc Luna Park en direct depuis Brooklyn.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/new-york/new-york/coney-island.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live5581.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live5581.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-sky-nyc-triborough",
@@ -2766,13 +2898,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "4488",
-    "thumbnail": "https://cdn.skylinewebcams.com/live4488.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80",
     "description": "Vue sur le Triborough Bridge (RFK Bridge) reliant Manhattan, Queens et le Bronx.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/new-york/new-york/triborough-bridge.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live4488.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live4488.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-sky-sf-castro",
@@ -2788,13 +2921,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "1834",
-    "thumbnail": "https://cdn.skylinewebcams.com/live1834.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80",
     "description": "Intersection de Castro Street et Market Street dans le quartier historique de San Francisco.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/california/san-francisco/castro-street-san-francisco.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live1834.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live1834.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80"
   },
   {
     "id": "cctv-sky-sf-golden-gate",
@@ -2810,13 +2944,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "1833",
-    "thumbnail": "https://cdn.skylinewebcams.com/live1833.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80",
     "description": "Vue panoramique sur le Golden Gate Bridge depuis SkylineWebcams.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/california/san-francisco/san-francisco.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live1833.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live1833.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80"
   },
   {
     "id": "cctv-sky-sf-treasure-island",
@@ -2832,13 +2967,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "5785",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5785.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80",
     "description": "Vue depuis Treasure Island sur la baie et la skyline de San Francisco.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/california/san-francisco/treasure-island.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live5785.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live5785.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80"
   },
   {
     "id": "cctv-sky-ca-laguna-beach",
@@ -2854,13 +2990,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "926",
-    "thumbnail": "https://cdn.skylinewebcams.com/live926.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Vue de la côte californienne depuis The Cliff Restaurant à Laguna Beach.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/california/laguna-beach/laguna-beach.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live926.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live926.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-ca-santa-barbara",
@@ -2876,13 +3013,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "245",
-    "thumbnail": "https://cdn.skylinewebcams.com/live245.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Vue sur Stearns Wharf, la plage et le port de Santa Barbara.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/california/santa-barbara/santa-barbara.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live245.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live245.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-ca-encinitas",
@@ -2898,13 +3036,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "3461",
-    "thumbnail": "https://cdn.skylinewebcams.com/live3461.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Vue panoramique sur la plage d'Encinitas en Californie.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/california/encinitas/encinitas-california.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live3461.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live3461.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-ca-san-diego-ocean",
@@ -2920,13 +3059,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "3901",
-    "thumbnail": "https://cdn.skylinewebcams.com/live3901.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Vue depuis Ocean Beach à San Diego, Californie.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/california/san-diego/ocean-beach.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live3901.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live3901.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-ca-san-diego-harbor",
@@ -2942,13 +3082,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "5799",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5799.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Vue sur le port de San Diego depuis Harbor Island.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/california/san-diego/harbor-island.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live5799.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live5799.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-ca-manhattan-beach",
@@ -2964,13 +3105,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "5387",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5387.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Vue depuis Manhattan Beach sur la côte Pacifique en Californie.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/california/manhattan-beach/manhattan-beach.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live5387.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live5387.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-ca-mammoth-mountain",
@@ -2986,13 +3128,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "3596",
-    "thumbnail": "https://cdn.skylinewebcams.com/live3596.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Vue sur le domaine skiable de Mammoth Mountain en Californie.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/california/mammoth-lakes/mammoth-mountain.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live3596.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live3596.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-nyc-brooklyn-bridge-sk",
@@ -3008,13 +3151,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "2183",
-    "thumbnail": "https://cdn.skylinewebcams.com/live2183.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80",
     "description": "Vue sur le Brooklyn Bridge et la skyline de Manhattan depuis SkylineWebcams.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/new-york/new-york/nyc-brooklyn-bridge-manhattan.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live2183.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live2183.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-sky-nyc-ball-drop",
@@ -3030,13 +3174,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "544",
-    "thumbnail": "https://cdn.skylinewebcams.com/live544.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80",
     "description": "Surveillance en direct de l'emblématique tour One Times Square et de la sphère du réveillon.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/new-york/new-york/times-square-ball-drop.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live544.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live544.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80"
   },
   {
     "id": "cctv-sky-la-venice-boardwalk",
@@ -3052,13 +3197,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "2806",
-    "thumbnail": "https://cdn.skylinewebcams.com/live2806.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1580655653885-65763b2597d0?w=800&q=80",
     "description": "Promenade piétonne animée de Venice Beach, palmiers et ambiance californienne en direct.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/california/los-angeles/venice-beach.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live2806.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live2806.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1580655653885-65763b2597d0?w=800&q=80"
   },
   {
     "id": "cctv-sky-la-santa-monica-park",
@@ -3074,13 +3220,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "5922",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5922.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Jetée historique de Santa Monica, parc d'attractions Pacific Park et grande roue solaire.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/en/webcam/united-states/california/santa-monica/santa-monica-pier.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live5922.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live5922.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-mx-mexico-zocalo",
@@ -3096,13 +3243,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "3357",
-    "thumbnail": "https://cdn.skylinewebcams.com/live3357.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Grand Zócalo de Mexico, cathédrale métropolitaine et palais national mexicain.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/mexico/distrito-federal/mexico/mexico-zocalo.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live3357.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live3357.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-mx-mexico-reforma",
@@ -3118,13 +3266,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "972",
-    "thumbnail": "https://cdn.skylinewebcams.com/live972.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Avenue emblématique du Paseo de la Reforma et gratte-ciels du centre financier de Mexico.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/mexico/distrito-federal/mexico/mexico-city.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live972.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live972.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-mx-cancun-playa",
@@ -3140,13 +3289,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "3216",
-    "thumbnail": "https://cdn.skylinewebcams.com/live3216.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Plage turquoise et barrière côtière de la zone hôtelière de Cancún au Quintana Roo.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/mexico/quintana-roo/cancun/cancun-playa.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live3216.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live3216.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-mx-tulum-playa",
@@ -3162,13 +3312,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "5418",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5418.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Plage paradisiaque de Tulum, sable blanc corallien et mer des Caraïbes.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/mexico/quintana-roo/tulum/playa-tulum.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live5418.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live5418.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-mx-popocatepetl",
@@ -3184,13 +3335,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "5827",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5827.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Surveillance volcanologique en direct du volcan actif Popocatépetl (5 426 m).",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/mexico/puebla/puebla/popocatepetl.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live5827.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live5827.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-th-bangkok-sukhumvit",
@@ -3206,13 +3358,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "2998",
-    "thumbnail": "https://cdn.skylinewebcams.com/live2998.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80",
     "description": "Avenue névralgique de Sukhumvit à Bangkok, passage du métro aérien BTS et vie urbaine nocturne.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/thailand/central-thailand/bangkok/sukhumvit-road.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live2998.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live2998.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80"
   },
   {
     "id": "cctv-sky-th-kohsamui-chaweng",
@@ -3228,13 +3381,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "1820",
-    "thumbnail": "https://cdn.skylinewebcams.com/live1820.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&q=80",
     "description": "Front de mer tropical de Chaweng Beach, récifs coralliens et eaux chaudes de Koh Samui.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/thailand/surat-thani/koh-samui/chaweng.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live1820.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live1820.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&q=80"
   },
   {
     "id": "cctv-sky-th-kohtao-plage",
@@ -3250,13 +3404,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "5986",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5986.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80",
     "description": "Sanctuaire mondial de plongée sous-marine de Koh Tao et eaux cristallines insulaires.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/thailand/surat-thani/koh-tao/koh-tao.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live5986.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live5986.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80"
   },
   {
     "id": "cctv-sky-th-pattaya-baie",
@@ -3272,13 +3427,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "3613",
-    "thumbnail": "https://cdn.skylinewebcams.com/live3613.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&q=80",
     "description": "Panorama côtier sur la baie animée de Pattaya et la marina du golfe de Thaïlande.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/thailand/chonburi/pattaya/pattaya.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live3613.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live3613.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&q=80"
   },
   {
     "id": "cctv-sky-de-neuschwanstein",
@@ -3294,13 +3450,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "6022",
-    "thumbnail": "https://cdn.skylinewebcams.com/live6022.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Chef-d'œuvre néo-romantique de Louis II de Bavière perché sur les crêtes alpines bavaroises.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/deutschland/bavaria/schwangau/neuschwanstein-castle.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live6022.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live6022.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-de-grainau-zugspitze",
@@ -3316,13 +3473,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "5796",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5796.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Vue alpine sur les sommets enneigés de la Zugspitze, plus haute montagne d'Allemagne.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/deutschland/bavaria/grainau/grainau.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live5796.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live5796.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-de-baden-baden",
@@ -3338,13 +3496,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "1040",
-    "thumbnail": "https://cdn.skylinewebcams.com/live1040.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Cité thermale historique de la Forêt-Noire, Kurhaus et promenade historique.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/deutschland/baden-wurttemberg/baden-baden/baden-baden.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live1040.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live1040.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-uk-dover-beach",
@@ -3360,13 +3519,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "848",
-    "thumbnail": "https://cdn.skylinewebcams.com/live848.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Vue sur le détroit du pas de Calais, trafic maritime des ferries et falaises crayeuses de Douvres.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/united-kingdom/england/dover/dover-beach-kent.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live848.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live848.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-uk-brighton-pier",
@@ -3382,13 +3542,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "896",
-    "thumbnail": "https://cdn.skylinewebcams.com/live896.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Jetée victorienne historique de Brighton, plage de galets et promenade maritime du Sussex.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/united-kingdom/england/brighton/brighton.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live896.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live896.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-uk-cardiff-city",
@@ -3404,13 +3565,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "974",
-    "thumbnail": "https://cdn.skylinewebcams.com/live974.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Surveillance urbaine en direct du cœur métropolitain de Cardiff au Pays de Galles.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/united-kingdom/wales/cardiff/cardiff.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live974.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live974.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-es-madrid-callemayor",
@@ -3426,13 +3588,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "6111",
-    "thumbnail": "https://cdn.skylinewebcams.com/live6111.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80",
     "description": "Cœur historique madrilène, intersection de la Calle Mayor et de la Puerta del Sol.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/comunidad-de-madrid/madrid/puerta-del-sol-calle-mayor.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live6111.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live6111.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80"
   },
   {
     "id": "cctv-sky-es-seville-sanfrancisco",
@@ -3448,13 +3611,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "823",
-    "thumbnail": "https://cdn.skylinewebcams.com/live823.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Place monumentale de San Francisco à Séville, hôtel de ville Renaissance et ruelles andalouses.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/andalucia/sevilla/plaza-de-san-francisco.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live823.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live823.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-es-calpe-ifach",
@@ -3470,13 +3634,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "3032",
-    "thumbnail": "https://cdn.skylinewebcams.com/live3032.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Spectaculaire massif calcaire du Peñón de Ifach dominant la mer Méditerranée sur la Costa Blanca.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/espana/comunidad-valenciana/calpe/penon-de-ifach.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live3032.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live3032.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-rome-pantheon",
@@ -3492,13 +3657,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "165",
-    "thumbnail": "https://cdn.skylinewebcams.com/live165.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80",
     "description": "Le Panthéon d'Hadrien et sa coupole antique monumentale donnant sur la Piazza della Rotonda.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/lazio/roma/pantheon.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live165.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live165.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-verona-arena",
@@ -3514,13 +3680,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "963",
-    "thumbnail": "https://cdn.skylinewebcams.com/live963.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Intérieur grandiose de l'amphithéâtre romain des arènes de Vérone, scène d'opéra légendaire.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/veneto/verona/arena-di-verona.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live963.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live963.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-taormina",
@@ -3536,13 +3703,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "891",
-    "thumbnail": "https://cdn.skylinewebcams.com/live891.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Perle de la Sicile, falaise de Taormine, îlot Isola Bella et mer Ionienne scintillante.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/sicilia/messina/taormina.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live891.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live891.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-it-stromboli-volcan",
@@ -3558,13 +3726,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "474",
-    "thumbnail": "https://cdn.skylinewebcams.com/live474.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Surveillance volcanologique en temps réel du volcan explosif Stromboli en mer Tyrrhénienne.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/italia/sicilia/messina/stromboli.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live474.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live474.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-fr-aix-grandport",
@@ -3580,13 +3749,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "5755",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5755.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Surveillance de la marina et du plan d'eau du plus grand lac naturel d'origine glaciaire de France.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/auvergne-rhone-alpes/aix-les-bains/lac-du-bourget-grand-port.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live5755.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live5755.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   },
   {
     "id": "cctv-sky-fr-hauteluce-coljoly",
@@ -3602,13 +3772,14 @@ export const CCTV_FEEDS = [
     "resolution": "1080p Full HD",
     "type": "skyline",
     "skylineId": "5671",
-    "thumbnail": "https://cdn.skylinewebcams.com/live5671.jpg",
+    "thumbnail": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80",
     "description": "Panorama grandiose sur le massif du Mont-Blanc depuis le col du Joly dans le Beaufortain.",
     "provider": "SkylineWebcams",
     "externalUrl": "https://www.skylinewebcams.com/fr/webcam/france/auvergne-rhone-alpes/hauteluce/col-du-joly.html",
     "isLiveSnapshot": true,
     "refreshInterval": 2500,
-    "feedUrl": "https://cdn.skylinewebcams.com/live5671.jpg"
+    "feedUrl": "https://cdn.skylinewebcams.com/live5671.jpg",
+    "fallbackImage": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=800&q=80"
   }
 ];
 

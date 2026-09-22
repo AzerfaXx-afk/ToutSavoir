@@ -2009,12 +2009,11 @@ export function TacticalMap2D({
             const displayName = TERRITORY_NAMES_FR[rawName] || rawName;
             const sovereign = props.SOVEREIGNT || props.ADMIN || displayName;
             const continent = props.CONTINENT || 'Terre';
-            const subregion = props.SUBREGION || props.REGION_UN || '';
-            const popFormatted = props.POP_EST
-              ? new Intl.NumberFormat('fr-FR').format(props.POP_EST)
-              : 'N/A';
-            const areaKm2 = getCountryAreaKm2(feature);
-            const areaFormatted = formatAreaKm2(areaKm2);
+            const geopolitics = resolveCountryGeopolitics(rawName, props);
+            const popFormatted = geopolitics.popFormatted
+              || (props.POP_EST ? new Intl.NumberFormat('fr-FR').format(props.POP_EST) : 'N/A');
+            const areaKm2 = geopolitics.areaKm2 || getCountryAreaKm2(feature);
+            const areaFormatted = geopolitics.areaFormatted || formatAreaKm2(areaKm2);
 
             const groupKey = getFeatureCountryKey(feature);
             layer._groupKey = groupKey;
@@ -2024,8 +2023,6 @@ export function TacticalMap2D({
               countryGroupLayersMapRef.current.set(groupKey, []);
             }
             countryGroupLayersMapRef.current.get(groupKey).push(layer);
-
-            const geopolitics = resolveCountryGeopolitics(rawName, props);
 
             layer.on({
               mouseover: (e) => {
