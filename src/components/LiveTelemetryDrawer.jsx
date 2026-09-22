@@ -317,18 +317,6 @@ export function LiveTelemetryDrawer({
   const unProjection = useMemo(() => getUNProjectionForYear(activeYear), [activeYear]);
   const ecoProjection = useMemo(() => getHistoricalAndFutureEcologicalModel(activeYear), [activeYear]);
 
-  const handleJumpYear = useCallback((targetYear) => {
-    sound.click();
-    if (customDateRef.current) {
-      const d = new Date(customDateRef.current);
-      d.setFullYear(targetYear);
-      updateCustomDate(d);
-    }
-    if (onYearChange) {
-      onYearChange(targetYear);
-    }
-  }, [onYearChange, updateCustomDate]);
-
   const updateCustomDate = useCallback((newDate) => {
     customDateRef.current = newDate;
     setCustomDate(newDate);
@@ -353,6 +341,18 @@ export function LiveTelemetryDrawer({
       );
     }
   }, []);
+
+  const handleJumpYear = useCallback((targetYear) => {
+    sound.click();
+    if (customDateRef.current) {
+      const d = new Date(customDateRef.current);
+      d.setFullYear(targetYear);
+      updateCustomDate(d);
+    }
+    if (onYearChange) {
+      onYearChange(targetYear);
+    }
+  }, [onYearChange, updateCustomDate]);
 
   /* ── Live Clock & Date Display Engine (100% Direct Temps Réel ou Prédiction Temporelle) ─── */
   useEffect(() => {
