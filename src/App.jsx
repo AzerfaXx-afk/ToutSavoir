@@ -158,8 +158,16 @@ export default function App() {
   // Universal keyboard shortcuts listener
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // 1. Universal Cmd+K / Ctrl+K
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      // 1. Universal Cmd+K / Ctrl+K -> Direct focus on Top Country & Territory Search Bar
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        sound.click(0.4);
+        window.dispatchEvent(new CustomEvent('focus-top-search-bar'));
+        return;
+      }
+
+      // 1b. Cmd+Shift+K or Ctrl+Shift+K -> Global Tactical Spotlight (Satellites, CCTV, Cables)
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         sound.click();
         setIsSpotlightOpen((prev) => !prev);
@@ -170,6 +178,14 @@ export default function App() {
       const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
       const isInput = activeTag === 'input' || activeTag === 'textarea' || document.activeElement?.isContentEditable;
       if (isInput) return;
+
+      // 1c. Slash '/' shortcut outside input fields focuses the country search bar
+      if (e.key === '/') {
+        e.preventDefault();
+        sound.click(0.4);
+        window.dispatchEvent(new CustomEvent('focus-top-search-bar'));
+        return;
+      }
 
       // 2. Escape: close modals / PiP / drawer hierarchically
       if (e.key === 'Escape') {

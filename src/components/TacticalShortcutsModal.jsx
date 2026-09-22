@@ -7,10 +7,12 @@ const SHORTCUTS = [
   {
     category: 'NAVIGATION & RECHERCHE',
     items: [
-      { key: '⌘ + K / Ctrl + K', label: 'Recherche Universelle (Spotlight)', desc: '195 pays, satellites, CCTV, câbles, Worldometer' },
+      { key: '⌘ + K / Ctrl + K', label: 'Barre de Recherche Pays & Territoires', desc: 'Focus direct sur les 276 pays, îles & archipels avec drapeaux officiels' },
+      { key: '/', label: 'Recherche Rapide', desc: 'Active immédiatement la barre de recherche tactique' },
+      { key: '⌘ + ⇧ + K / Ctrl + Shift + K', label: 'Spotlight Télémétrie Globale', desc: 'Satellites, CCTV, câbles sous-marins, Worldometer' },
       { key: 'T', label: 'Tiroir Télémétrie & Intel', desc: 'Ouvre/ferme le centre de commandement latéral' },
-      { key: '↑ / ↓ / Entrée', label: 'Navigation Spotlight', desc: 'Parcourir et sélectionner les résultats' },
-      { key: 'Échap', label: 'Fermer / Retour', desc: 'Ferme les fenêtres modales, la vidéo CCTV ou le tiroir' },
+      { key: '↑ / ↓ / Entrée', label: 'Navigation Clavier', desc: 'Parcourir les résultats et centrer la caméra' },
+      { key: 'Échap', label: 'Fermer / Retour', desc: 'Ferme les fenêtres modales, la recherche ou le tiroir' },
     ],
   },
   {

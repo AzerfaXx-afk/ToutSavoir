@@ -22,7 +22,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7.2,
     "pop": "243 000 hab.",
     "area": "2 322 km²",
-    "flagUrl": "https://flagcdn.com/w40/pt.png"
+    "flagUrl": "https://flagcdn.com/w80/pt.png"
   },
   {
     "id": "AFG-Afghanistan",
@@ -43,7 +43,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "34 124 811 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/af.png"
+    "flagUrl": "https://flagcdn.com/w80/af.png"
   },
   {
     "id": "ZAF-South_Africa",
@@ -64,7 +64,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.2,
     "pop": "60 600 000 hab.",
     "area": "1 221 037 km²",
-    "flagUrl": "https://flagcdn.com/w40/za.png"
+    "flagUrl": "https://flagcdn.com/w80/za.png"
   },
   {
     "id": "USA-Alaska",
@@ -77,7 +77,7 @@ export const WORLD_TERRITORIES = [
     "continent": "North America",
     "subregion": "Northern America",
     "capital": null,
-    "iso2": null,
+    "iso2": "US",
     "iso3": "USA",
     "groupKey": "USA",
     "lat": 58.7216,
@@ -85,7 +85,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "722 718 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/us.png"
   },
   {
     "id": "ALB-Albania",
@@ -106,7 +106,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "3 047 987 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/al.png"
+    "flagUrl": "https://flagcdn.com/w80/al.png"
   },
   {
     "id": "DZA-Algeria",
@@ -127,7 +127,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5,
     "pop": "45 600 000 hab.",
     "area": "2 381 741 km²",
-    "flagUrl": "https://flagcdn.com/w40/dz.png"
+    "flagUrl": "https://flagcdn.com/w80/dz.png"
   },
   {
     "id": "DEU-Germany",
@@ -148,7 +148,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.8,
     "pop": "84 400 000 hab.",
     "area": "357 022 km²",
-    "flagUrl": "https://flagcdn.com/w40/de.png"
+    "flagUrl": "https://flagcdn.com/w80/de.png"
   },
   {
     "id": "AND-Andorra",
@@ -169,7 +169,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "85 702 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/ad.png"
+    "flagUrl": "https://flagcdn.com/w80/ad.png"
   },
   {
     "id": "AGO-Angola",
@@ -190,7 +190,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "29 310 273 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/ao.png"
+    "flagUrl": "https://flagcdn.com/w80/ao.png"
   },
   {
     "id": "AIA-Anguilla",
@@ -211,7 +211,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 10,
     "pop": "15 700 hab.",
     "area": "91 km²",
-    "flagUrl": "https://flagcdn.com/w40/ai.png"
+    "flagUrl": "https://flagcdn.com/w80/ai.png"
   },
   {
     "id": "ATA-S__Orkney_Is_",
@@ -232,7 +232,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 2.8,
     "pop": "~1 100 à 4 500 chercheurs",
     "area": "14 200 000 km²",
-    "flagUrl": "https://flagcdn.com/w40/aq.png"
+    "flagUrl": "https://flagcdn.com/w80/aq.png"
   },
   {
     "id": "ATG-Antigua",
@@ -240,12 +240,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Antigua",
     "admin": "Antigua and Barbuda",
     "sovereign": "Antigua and Barbuda",
-    "type": "country",
-    "typeLabel": "PAYS",
+    "type": "island",
+    "typeLabel": "ÎLE (ANTIGUA-ET-BARBUDA)",
     "continent": "North America",
     "subregion": "Caribbean",
     "capital": null,
-    "iso2": null,
+    "iso2": "AG",
     "iso3": "ATG",
     "groupKey": "ATG",
     "lat": 17.073,
@@ -253,7 +253,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "93 361 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/ag.png"
   },
   {
     "id": "ATG-Antigua_and_Barb_",
@@ -274,7 +274,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9,
     "pop": "93 000 hab.",
     "area": "442 km²",
-    "flagUrl": "https://flagcdn.com/w40/ag.png"
+    "flagUrl": "https://flagcdn.com/w80/ag.png"
   },
   {
     "id": "SAU-Saudi_Arabia",
@@ -295,7 +295,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5,
     "pop": "36 900 000 hab.",
     "area": "2 149 690 km²",
-    "flagUrl": "https://flagcdn.com/w40/sa.png"
+    "flagUrl": "https://flagcdn.com/w80/sa.png"
   },
   {
     "id": "ARG-Argentina",
@@ -316,7 +316,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 4.5,
     "pop": "46 200 000 hab.",
     "area": "2 780 400 km²",
-    "flagUrl": "https://flagcdn.com/w40/ar.png"
+    "flagUrl": "https://flagcdn.com/w80/ar.png"
   },
   {
     "id": "ARM-Armenia",
@@ -337,7 +337,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "3 045 191 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/am.png"
+    "flagUrl": "https://flagcdn.com/w80/am.png"
   },
   {
     "id": "ABW-Aruba",
@@ -358,7 +358,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "107 000 hab.",
     "area": "180 km²",
-    "flagUrl": "https://flagcdn.com/w40/aw.png"
+    "flagUrl": "https://flagcdn.com/w80/aw.png"
   },
   {
     "id": "ATC-Ashmore_and_Cartier_Is_",
@@ -366,12 +366,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Ashmore and Cartier Is.",
     "admin": "Ashmore and Cartier Islands",
     "sovereign": "Australia",
-    "type": "territory",
-    "typeLabel": "TERRITOIRE",
+    "type": "island",
+    "typeLabel": "TERRITOIRE EXTÉRIEUR (AU)",
     "continent": "Oceania",
     "subregion": "Australia and New Zealand",
     "capital": null,
-    "iso2": null,
+    "iso2": "AU",
     "iso3": "ATC",
     "groupKey": "ATC",
     "lat": -12.4291,
@@ -379,7 +379,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "N/A",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/au.png"
   },
   {
     "id": "AUS-Australia",
@@ -400,7 +400,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 4.2,
     "pop": "26 500 000 hab.",
     "area": "7 692 024 km²",
-    "flagUrl": "https://flagcdn.com/w40/au.png"
+    "flagUrl": "https://flagcdn.com/w80/au.png"
   },
   {
     "id": "AUT-Austria",
@@ -421,7 +421,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7,
     "pop": "9 105 000 hab.",
     "area": "83 871 km²",
-    "flagUrl": "https://flagcdn.com/w40/at.png"
+    "flagUrl": "https://flagcdn.com/w80/at.png"
   },
   {
     "id": "AZE-Azerbaijan",
@@ -442,7 +442,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "9 961 396 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/az.png"
+    "flagUrl": "https://flagcdn.com/w80/az.png"
   },
   {
     "id": "BHS-Bahamas",
@@ -463,7 +463,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.5,
     "pop": "410 000 hab.",
     "area": "13 943 km²",
-    "flagUrl": "https://flagcdn.com/w40/bs.png"
+    "flagUrl": "https://flagcdn.com/w80/bs.png"
   },
   {
     "id": "BHR-Bahrain",
@@ -484,7 +484,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "1 500 000 hab.",
     "area": "765 km²",
-    "flagUrl": "https://flagcdn.com/w40/bh.png"
+    "flagUrl": "https://flagcdn.com/w80/bh.png"
   },
   {
     "id": "BGD-Bangladesh",
@@ -505,7 +505,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "157 826 578 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/bd.png"
+    "flagUrl": "https://flagcdn.com/w80/bd.png"
   },
   {
     "id": "BRB-Barbados",
@@ -526,7 +526,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "280 000 hab.",
     "area": "430 km²",
-    "flagUrl": "https://flagcdn.com/w40/bb.png"
+    "flagUrl": "https://flagcdn.com/w80/bb.png"
   },
   {
     "id": "ATG-Barbuda",
@@ -534,12 +534,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Barbuda",
     "admin": "Antigua and Barbuda",
     "sovereign": "Antigua and Barbuda",
-    "type": "country",
-    "typeLabel": "PAYS",
+    "type": "island",
+    "typeLabel": "ÎLE (ANTIGUA-ET-BARBUDA)",
     "continent": "North America",
     "subregion": "Caribbean",
     "capital": null,
-    "iso2": null,
+    "iso2": "AG",
     "iso3": "ATG",
     "groupKey": "ATG",
     "lat": 17.6447,
@@ -547,7 +547,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 370 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/ag.png"
   },
   {
     "id": "BEL-Walloon",
@@ -568,7 +568,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7.5,
     "pop": "11 690 000 hab.",
     "area": "30 528 km²",
-    "flagUrl": "https://flagcdn.com/w40/be.png"
+    "flagUrl": "https://flagcdn.com/w80/be.png"
   },
   {
     "id": "BLZ-Belize",
@@ -589,7 +589,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "360 346 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/bz.png"
+    "flagUrl": "https://flagcdn.com/w80/bz.png"
   },
   {
     "id": "BEN-Benin",
@@ -610,7 +610,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "11 038 805 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/bj.png"
+    "flagUrl": "https://flagcdn.com/w80/bj.png"
   },
   {
     "id": "BMU-Bermuda",
@@ -631,7 +631,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "64 000 hab.",
     "area": "54 km²",
-    "flagUrl": "https://flagcdn.com/w40/bm.png"
+    "flagUrl": "https://flagcdn.com/w80/bm.png"
   },
   {
     "id": "BTN-Bhutan",
@@ -652,7 +652,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "758 288 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/bt.png"
+    "flagUrl": "https://flagcdn.com/w80/bt.png"
   },
   {
     "id": "BLR-Belarus",
@@ -673,7 +673,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "9 549 747 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/by.png"
+    "flagUrl": "https://flagcdn.com/w80/by.png"
   },
   {
     "id": "BOL-Bolivia",
@@ -694,7 +694,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "11 138 234 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/bo.png"
+    "flagUrl": "https://flagcdn.com/w80/bo.png"
   },
   {
     "id": "BWA-Botswana",
@@ -715,7 +715,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "2 214 858 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/bw.png"
+    "flagUrl": "https://flagcdn.com/w80/bw.png"
   },
   {
     "id": "BRA-Brazil",
@@ -736,7 +736,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 4.2,
     "pop": "215 300 000 hab.",
     "area": "8 515 767 km²",
-    "flagUrl": "https://flagcdn.com/w40/br.png"
+    "flagUrl": "https://flagcdn.com/w80/br.png"
   },
   {
     "id": "BRN-Brunei",
@@ -757,7 +757,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "443 593 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/bn.png"
+    "flagUrl": "https://flagcdn.com/w80/bn.png"
   },
   {
     "id": "BGR-Bulgaria",
@@ -778,7 +778,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "7 101 510 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/bg.png"
+    "flagUrl": "https://flagcdn.com/w80/bg.png"
   },
   {
     "id": "BFA-Burkina_Faso",
@@ -799,7 +799,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "20 107 509 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/bf.png"
+    "flagUrl": "https://flagcdn.com/w80/bf.png"
   },
   {
     "id": "BDI-Burundi",
@@ -820,7 +820,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "11 466 756 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/bi.png"
+    "flagUrl": "https://flagcdn.com/w80/bi.png"
   },
   {
     "id": "CPV-Cabo_Verde",
@@ -841,7 +841,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "560 899 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/cv.png"
+    "flagUrl": "https://flagcdn.com/w80/cv.png"
   },
   {
     "id": "KHM-Cambodia",
@@ -862,7 +862,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "16 204 486 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/kh.png"
+    "flagUrl": "https://flagcdn.com/w80/kh.png"
   },
   {
     "id": "CMR-Cameroon",
@@ -883,7 +883,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "24 994 885 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/cm.png"
+    "flagUrl": "https://flagcdn.com/w80/cm.png"
   },
   {
     "id": "CAN-Canada",
@@ -904,7 +904,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 3.8,
     "pop": "40 100 000 hab.",
     "area": "9 984 670 km²",
-    "flagUrl": "https://flagcdn.com/w40/ca.png"
+    "flagUrl": "https://flagcdn.com/w80/ca.png"
   },
   {
     "id": "CPV-Cape_Verde",
@@ -925,7 +925,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7.5,
     "pop": "590 000 hab.",
     "area": "4 033 km²",
-    "flagUrl": "https://flagcdn.com/w40/cv.png"
+    "flagUrl": "https://flagcdn.com/w80/cv.png"
   },
   {
     "id": "CHL-Isla_Sala_y_Gomez",
@@ -946,7 +946,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 4.8,
     "pop": "19 600 000 hab.",
     "area": "756 102 km²",
-    "flagUrl": "https://flagcdn.com/w40/cl.png"
+    "flagUrl": "https://flagcdn.com/w80/cl.png"
   },
   {
     "id": "CHN-China",
@@ -967,7 +967,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 4.2,
     "pop": "1 411 750 000 hab.",
     "area": "9 596 960 km²",
-    "flagUrl": "https://flagcdn.com/w40/cn.png"
+    "flagUrl": "https://flagcdn.com/w80/cn.png"
   },
   {
     "id": "IOA-Christmas_I_",
@@ -988,7 +988,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "2 205 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/cx.png"
+    "flagUrl": "https://flagcdn.com/w80/cx.png"
   },
   {
     "id": "CYP-Cyprus",
@@ -1009,7 +1009,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8,
     "pop": "1 250 000 hab.",
     "area": "9 251 km²",
-    "flagUrl": "https://flagcdn.com/w40/cy.png"
+    "flagUrl": "https://flagcdn.com/w80/cy.png"
   },
   {
     "id": "COL-Colombia",
@@ -1030,7 +1030,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "52 000 000 hab.",
     "area": "1 141 748 km²",
-    "flagUrl": "https://flagcdn.com/w40/co.png"
+    "flagUrl": "https://flagcdn.com/w80/co.png"
   },
   {
     "id": "COM-Comoros",
@@ -1051,7 +1051,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "850 000 hab.",
     "area": "1 862 km²",
-    "flagUrl": "https://flagcdn.com/w40/km.png"
+    "flagUrl": "https://flagcdn.com/w80/km.png"
   },
   {
     "id": "COG-Congo",
@@ -1072,7 +1072,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "4 954 674 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/cg.png"
+    "flagUrl": "https://flagcdn.com/w80/cg.png"
   },
   {
     "id": "PRK-North_Korea",
@@ -1093,7 +1093,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.8,
     "pop": "26 000 000 hab.",
     "area": "120 538 km²",
-    "flagUrl": "https://flagcdn.com/w40/kp.png"
+    "flagUrl": "https://flagcdn.com/w80/kp.png"
   },
   {
     "id": "KOR-Ulleungdo",
@@ -1114,7 +1114,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.8,
     "pop": "51 740 000 hab.",
     "area": "100 210 km²",
-    "flagUrl": "https://flagcdn.com/w40/kr.png"
+    "flagUrl": "https://flagcdn.com/w80/kr.png"
   },
   {
     "id": "FRA-Corsica",
@@ -1135,7 +1135,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7.5,
     "pop": "344 000 hab.",
     "area": "8 680 km²",
-    "flagUrl": "https://flagcdn.com/w40/fr.png"
+    "flagUrl": "https://flagcdn.com/w80/fr.png"
   },
   {
     "id": "CRI-Costa_Rica",
@@ -1156,7 +1156,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "4 930 258 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/cr.png"
+    "flagUrl": "https://flagcdn.com/w80/cr.png"
   },
   {
     "id": "CIV-C_te_d_Ivoire",
@@ -1177,7 +1177,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "24 184 810 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/ci.png"
+    "flagUrl": "https://flagcdn.com/w80/ci.png"
   },
   {
     "id": "HRV-Croatia",
@@ -1198,7 +1198,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "4 292 095 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/hr.png"
+    "flagUrl": "https://flagcdn.com/w80/hr.png"
   },
   {
     "id": "CUB-Cuba",
@@ -1219,7 +1219,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6,
     "pop": "11 200 000 hab.",
     "area": "109 884 km²",
-    "flagUrl": "https://flagcdn.com/w40/cu.png"
+    "flagUrl": "https://flagcdn.com/w80/cu.png"
   },
   {
     "id": "CUW-Cura_ao",
@@ -1240,7 +1240,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "155 000 hab.",
     "area": "444 km²",
-    "flagUrl": "https://flagcdn.com/w40/cw.png"
+    "flagUrl": "https://flagcdn.com/w80/cw.png"
   },
   {
     "id": "DNK-Denmark",
@@ -1261,7 +1261,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7,
     "pop": "5 930 000 hab.",
     "area": "43 094 km²",
-    "flagUrl": "https://flagcdn.com/w40/dk.png"
+    "flagUrl": "https://flagcdn.com/w80/dk.png"
   },
   {
     "id": "IOT-Diego_Garcia_NSF",
@@ -1269,12 +1269,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Diego Garcia NSF",
     "admin": "British Indian Ocean Territory",
     "sovereign": "United Kingdom",
-    "type": "country",
-    "typeLabel": "PAYS",
+    "type": "island",
+    "typeLabel": "TERRITOIRE BRITANNIQUE",
     "continent": "Seven seas (open ocean)",
     "subregion": "Seven seas (open ocean)",
     "capital": null,
-    "iso2": null,
+    "iso2": "IO",
     "iso3": "IOT",
     "groupKey": "IOT",
     "lat": -7.3214,
@@ -1282,7 +1282,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "4 097,98 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/io.png"
   },
   {
     "id": "DJI-Djibouti",
@@ -1303,7 +1303,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "865 267 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/dj.png"
+    "flagUrl": "https://flagcdn.com/w80/dj.png"
   },
   {
     "id": "DMA-Dominica",
@@ -1324,7 +1324,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "72 000 hab.",
     "area": "751 km²",
-    "flagUrl": "https://flagcdn.com/w40/dm.png"
+    "flagUrl": "https://flagcdn.com/w80/dm.png"
   },
   {
     "id": "EGY-Egypt",
@@ -1345,7 +1345,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "109 300 000 hab.",
     "area": "1 002 450 km²",
-    "flagUrl": "https://flagcdn.com/w40/eg.png"
+    "flagUrl": "https://flagcdn.com/w80/eg.png"
   },
   {
     "id": "ARE-United_Arab_Emirates",
@@ -1366,7 +1366,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.8,
     "pop": "9 500 000 hab.",
     "area": "83 600 km²",
-    "flagUrl": "https://flagcdn.com/w40/ae.png"
+    "flagUrl": "https://flagcdn.com/w80/ae.png"
   },
   {
     "id": "ECU-Ecuador",
@@ -1374,12 +1374,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Ecuador",
     "admin": "Ecuador",
     "sovereign": "Ecuador",
-    "type": "territory",
-    "typeLabel": "TERRITOIRE",
+    "type": "country",
+    "typeLabel": "PAYS SOUVERAIN",
     "continent": "South America",
     "subregion": "South America",
     "capital": null,
-    "iso2": null,
+    "iso2": "EC",
     "iso3": "ECU",
     "groupKey": "ECU",
     "lat": -1.9823,
@@ -1387,7 +1387,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "16 267 913 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/ec.png"
   },
   {
     "id": "ERI-Eritrea",
@@ -1408,7 +1408,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "5 918 919 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/er.png"
+    "flagUrl": "https://flagcdn.com/w80/er.png"
   },
   {
     "id": "ESP-Spain",
@@ -1429,7 +1429,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.8,
     "pop": "47 780 000 hab.",
     "area": "505 990 km²",
-    "flagUrl": "https://flagcdn.com/w40/es.png"
+    "flagUrl": "https://flagcdn.com/w80/es.png"
   },
   {
     "id": "EST-Estonia",
@@ -1450,7 +1450,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 251 581 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/ee.png"
+    "flagUrl": "https://flagcdn.com/w80/ee.png"
   },
   {
     "id": "USA-United_States",
@@ -1471,7 +1471,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 4.1,
     "pop": "335 893 238 hab.",
     "area": "9 833 517 km²",
-    "flagUrl": "https://flagcdn.com/w40/us.png"
+    "flagUrl": "https://flagcdn.com/w80/us.png"
   },
   {
     "id": "ETH-Ethiopia",
@@ -1492,7 +1492,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "105 350 020 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/et.png"
+    "flagUrl": "https://flagcdn.com/w80/et.png"
   },
   {
     "id": "FRO-Faeroe_Is_",
@@ -1513,7 +1513,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "50 730 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/fo.png"
+    "flagUrl": "https://flagcdn.com/w80/fo.png"
   },
   {
     "id": "BIH-Fed__of_Bos____Herz_",
@@ -1522,11 +1522,11 @@ export const WORLD_TERRITORIES = [
     "admin": "Bosnia and Herzegovina",
     "sovereign": "Bosnia and Herzegovina",
     "type": "country",
-    "typeLabel": "PAYS",
+    "typeLabel": "FÉDÉRATION (BOSNIE)",
     "continent": "Europe",
     "subregion": "Southern Europe",
     "capital": null,
-    "iso2": null,
+    "iso2": "BA",
     "iso3": "BIH",
     "groupKey": "BIH",
     "lat": 44.2381,
@@ -1534,7 +1534,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "2 325 003,96 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/ba.png"
   },
   {
     "id": "FJI-Fiji",
@@ -1555,7 +1555,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7,
     "pop": "930 000 hab.",
     "area": "18 274 km²",
-    "flagUrl": "https://flagcdn.com/w40/fj.png"
+    "flagUrl": "https://flagcdn.com/w80/fj.png"
   },
   {
     "id": "FIN-Finland",
@@ -1576,7 +1576,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5,
     "pop": "5 560 000 hab.",
     "area": "338 145 km²",
-    "flagUrl": "https://flagcdn.com/w40/fi.png"
+    "flagUrl": "https://flagcdn.com/w80/fi.png"
   },
   {
     "id": "FRA-France",
@@ -1597,7 +1597,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.8,
     "pop": "68 042 591 hab.",
     "area": "643 801 km²",
-    "flagUrl": "https://flagcdn.com/w40/fr.png"
+    "flagUrl": "https://flagcdn.com/w80/fr.png"
   },
   {
     "id": "GAB-Gabon",
@@ -1618,7 +1618,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 772 255 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/ga.png"
+    "flagUrl": "https://flagcdn.com/w80/ga.png"
   },
   {
     "id": "GMB-Gambia",
@@ -1639,7 +1639,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "2 051 363 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/gm.png"
+    "flagUrl": "https://flagcdn.com/w80/gm.png"
   },
   {
     "id": "GEO-Georgia",
@@ -1648,11 +1648,11 @@ export const WORLD_TERRITORIES = [
     "admin": "Georgia",
     "sovereign": "Georgia",
     "type": "country",
-    "typeLabel": "PAYS",
+    "typeLabel": "PAYS SOUVERAIN",
     "continent": "Asia",
     "subregion": "Western Asia",
     "capital": null,
-    "iso2": null,
+    "iso2": "GE",
     "iso3": "GEO",
     "groupKey": "GEO",
     "lat": 42.0606,
@@ -1660,7 +1660,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "4 550 314 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/ge.png"
   },
   {
     "id": "GHA-Ghana",
@@ -1681,7 +1681,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "27 499 924 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/gh.png"
+    "flagUrl": "https://flagcdn.com/w80/gh.png"
   },
   {
     "id": "GIB-Gibraltar",
@@ -1702,7 +1702,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 11,
     "pop": "34 000 hab.",
     "area": "6.8 km²",
-    "flagUrl": "https://flagcdn.com/w40/gi.png"
+    "flagUrl": "https://flagcdn.com/w80/gi.png"
   },
   {
     "id": "GRC-Greece",
@@ -1723,7 +1723,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.2,
     "pop": "10 430 000 hab.",
     "area": "131 957 km²",
-    "flagUrl": "https://flagcdn.com/w40/gr.png"
+    "flagUrl": "https://flagcdn.com/w80/gr.png"
   },
   {
     "id": "GRD-Grenada",
@@ -1744,7 +1744,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "125 000 hab.",
     "area": "344 km²",
-    "flagUrl": "https://flagcdn.com/w40/gd.png"
+    "flagUrl": "https://flagcdn.com/w80/gd.png"
   },
   {
     "id": "GRL-Greenland",
@@ -1765,7 +1765,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 3.8,
     "pop": "56 600 hab.",
     "area": "2 166 086 km²",
-    "flagUrl": "https://flagcdn.com/w40/gl.png"
+    "flagUrl": "https://flagcdn.com/w80/gl.png"
   },
   {
     "id": "GLP-Guadeloupe",
@@ -1786,7 +1786,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "384 200 hab.",
     "area": "1 628 km²",
-    "flagUrl": "https://flagcdn.com/w40/gp.png"
+    "flagUrl": "https://flagcdn.com/w80/gp.png"
   },
   {
     "id": "GUM-Guam",
@@ -1807,7 +1807,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "170 000 hab.",
     "area": "544 km²",
-    "flagUrl": "https://flagcdn.com/w40/gu.png"
+    "flagUrl": "https://flagcdn.com/w80/gu.png"
   },
   {
     "id": "GTM-Guatemala",
@@ -1828,7 +1828,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "15 460 732 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/gt.png"
+    "flagUrl": "https://flagcdn.com/w80/gt.png"
   },
   {
     "id": "GGY-Guernsey",
@@ -1849,7 +1849,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 10,
     "pop": "63 000 hab.",
     "area": "65 km²",
-    "flagUrl": "https://flagcdn.com/w40/gg.png"
+    "flagUrl": "https://flagcdn.com/w80/gg.png"
   },
   {
     "id": "GIN-Guinea",
@@ -1870,7 +1870,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "12 413 867 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/gn.png"
+    "flagUrl": "https://flagcdn.com/w80/gn.png"
   },
   {
     "id": "GNQ-Bioko",
@@ -1878,12 +1878,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Bioko",
     "admin": "Equatorial Guinea",
     "sovereign": "Equatorial Guinea",
-    "type": "territory",
-    "typeLabel": "TERRITOIRE",
+    "type": "island",
+    "typeLabel": "ÎLE (GUINÉE ÉQUATORIALE)",
     "continent": "Africa",
     "subregion": "Middle Africa",
     "capital": null,
-    "iso2": null,
+    "iso2": "GQ",
     "iso3": "GNQ",
     "groupKey": "GNQ",
     "lat": 3.5103,
@@ -1891,7 +1891,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "224 979,93 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/gq.png"
   },
   {
     "id": "GNB-Guinea-Bissau",
@@ -1912,7 +1912,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 792 338 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/gw.png"
+    "flagUrl": "https://flagcdn.com/w80/gw.png"
   },
   {
     "id": "GUY-Guyana",
@@ -1933,7 +1933,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "737 718 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/gy.png"
+    "flagUrl": "https://flagcdn.com/w80/gy.png"
   },
   {
     "id": "GUF-French_Guiana",
@@ -1954,7 +1954,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.5,
     "pop": "294 000 hab.",
     "area": "83 534 km²",
-    "flagUrl": "https://flagcdn.com/w40/gf.png"
+    "flagUrl": "https://flagcdn.com/w80/gf.png"
   },
   {
     "id": "HTI-Haiti",
@@ -1975,7 +1975,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7.5,
     "pop": "11 500 000 hab.",
     "area": "27 750 km²",
-    "flagUrl": "https://flagcdn.com/w40/ht.png"
+    "flagUrl": "https://flagcdn.com/w80/ht.png"
   },
   {
     "id": "USA-Hawaii",
@@ -1996,7 +1996,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.8,
     "pop": "1 440 000 hab.",
     "area": "28 311 km²",
-    "flagUrl": "https://flagcdn.com/w40/us.png"
+    "flagUrl": "https://flagcdn.com/w80/us.png"
   },
   {
     "id": "HMD-Heard_I__and_McDonald_Is_",
@@ -2017,7 +2017,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "N/A",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/hm.png"
+    "flagUrl": "https://flagcdn.com/w80/hm.png"
   },
   {
     "id": "HND-Honduras",
@@ -2038,7 +2038,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "9 038 741 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/hn.png"
+    "flagUrl": "https://flagcdn.com/w80/hn.png"
   },
   {
     "id": "HKG-Hong_Kong",
@@ -2059,7 +2059,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "7 191 503 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/hk.png"
+    "flagUrl": "https://flagcdn.com/w80/hk.png"
   },
   {
     "id": "HUN-Hungary",
@@ -2080,7 +2080,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.8,
     "pop": "9 600 000 hab.",
     "area": "93 028 km²",
-    "flagUrl": "https://flagcdn.com/w40/hu.png"
+    "flagUrl": "https://flagcdn.com/w80/hu.png"
   },
   {
     "id": "CXR-Christmas_Island",
@@ -2101,7 +2101,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "1 800 hab.",
     "area": "135 km²",
-    "flagUrl": "https://flagcdn.com/w40/cx.png"
+    "flagUrl": "https://flagcdn.com/w80/cx.png"
   },
   {
     "id": "SHN-Ascension",
@@ -2122,7 +2122,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9,
     "pop": "800 hab.",
     "area": "88 km²",
-    "flagUrl": "https://flagcdn.com/w40/sh.png"
+    "flagUrl": "https://flagcdn.com/w80/sh.png"
   },
   {
     "id": "IMN-Isle_of_Man",
@@ -2143,7 +2143,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9,
     "pop": "84 000 hab.",
     "area": "572 km²",
-    "flagUrl": "https://flagcdn.com/w40/im.png"
+    "flagUrl": "https://flagcdn.com/w80/im.png"
   },
   {
     "id": "CHL-Easter_I_",
@@ -2164,7 +2164,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "7 750 hab.",
     "area": "163 km²",
-    "flagUrl": "https://flagcdn.com/w40/cl.png"
+    "flagUrl": "https://flagcdn.com/w80/cl.png"
   },
   {
     "id": "NFK-Norfolk_Island",
@@ -2185,7 +2185,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "2 200 hab.",
     "area": "36 km²",
-    "flagUrl": "https://flagcdn.com/w40/nf.png"
+    "flagUrl": "https://flagcdn.com/w80/nf.png"
   },
   {
     "id": "ESP-Balearic_Is_",
@@ -2206,7 +2206,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8,
     "pop": "1 170 000 hab.",
     "area": "4 992 km²",
-    "flagUrl": "https://flagcdn.com/w40/es.png"
+    "flagUrl": "https://flagcdn.com/w80/es.png"
   },
   {
     "id": "CYM-Cayman_Is_",
@@ -2227,7 +2227,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9,
     "pop": "71 000 hab.",
     "area": "264 km²",
-    "flagUrl": "https://flagcdn.com/w40/ky.png"
+    "flagUrl": "https://flagcdn.com/w80/ky.png"
   },
   {
     "id": "ESP-Canary_Is_",
@@ -2248,7 +2248,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7.2,
     "pop": "2 200 000 hab.",
     "area": "7 493 km²",
-    "flagUrl": "https://flagcdn.com/w40/es.png"
+    "flagUrl": "https://flagcdn.com/w80/es.png"
   },
   {
     "id": "CCK-Cocos_Is_",
@@ -2269,7 +2269,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "600 hab.",
     "area": "14 km²",
-    "flagUrl": "https://flagcdn.com/w40/cc.png"
+    "flagUrl": "https://flagcdn.com/w80/cc.png"
   },
   {
     "id": "COK-Cook_Is_",
@@ -2290,7 +2290,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "17 500 hab.",
     "area": "236 km²",
-    "flagUrl": "https://flagcdn.com/w40/ck.png"
+    "flagUrl": "https://flagcdn.com/w80/ck.png"
   },
   {
     "id": "ALA-_land",
@@ -2311,7 +2311,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "30 000 hab.",
     "area": "1 580 km²",
-    "flagUrl": "https://flagcdn.com/w40/ax.png"
+    "flagUrl": "https://flagcdn.com/w80/ax.png"
   },
   {
     "id": "FRO-Faroe_Is_",
@@ -2332,7 +2332,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8,
     "pop": "54 000 hab.",
     "area": "1 393 km²",
-    "flagUrl": "https://flagcdn.com/w40/fo.png"
+    "flagUrl": "https://flagcdn.com/w80/fo.png"
   },
   {
     "id": "ECU-Galapagos",
@@ -2353,7 +2353,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7.5,
     "pop": "33 000 hab.",
     "area": "8 010 km²",
-    "flagUrl": "https://flagcdn.com/w40/ec.png"
+    "flagUrl": "https://flagcdn.com/w80/ec.png"
   },
   {
     "id": "FLK-Falkland_Is_",
@@ -2374,7 +2374,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.8,
     "pop": "3 500 hab.",
     "area": "12 173 km²",
-    "flagUrl": "https://flagcdn.com/w40/fk.png"
+    "flagUrl": "https://flagcdn.com/w80/fk.png"
   },
   {
     "id": "MNP-N__Mariana_Is_",
@@ -2395,7 +2395,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8,
     "pop": "47 000 hab.",
     "area": "464 km²",
-    "flagUrl": "https://flagcdn.com/w40/mp.png"
+    "flagUrl": "https://flagcdn.com/w80/mp.png"
   },
   {
     "id": "MHL-Marshall_Is_",
@@ -2416,7 +2416,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.5,
     "pop": "42 000 hab.",
     "area": "181 km²",
-    "flagUrl": "https://flagcdn.com/w40/mh.png"
+    "flagUrl": "https://flagcdn.com/w80/mh.png"
   },
   {
     "id": "PCN-Pitcairn_Is_",
@@ -2437,7 +2437,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9,
     "pop": "50 hab.",
     "area": "47 km²",
-    "flagUrl": "https://flagcdn.com/w40/pn.png"
+    "flagUrl": "https://flagcdn.com/w80/pn.png"
   },
   {
     "id": "SLB-Solomon_Is_",
@@ -2458,7 +2458,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.5,
     "pop": "720 000 hab.",
     "area": "28 896 km²",
-    "flagUrl": "https://flagcdn.com/w40/sb.png"
+    "flagUrl": "https://flagcdn.com/w80/sb.png"
   },
   {
     "id": "TCA-Turks_and_Caicos_Is_",
@@ -2479,7 +2479,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "44 500 hab.",
     "area": "948 km²",
-    "flagUrl": "https://flagcdn.com/w40/tc.png"
+    "flagUrl": "https://flagcdn.com/w80/tc.png"
   },
   {
     "id": "VGB-British_Virgin_Is_",
@@ -2500,7 +2500,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "30 000 hab.",
     "area": "153 km²",
-    "flagUrl": "https://flagcdn.com/w40/vg.png"
+    "flagUrl": "https://flagcdn.com/w80/vg.png"
   },
   {
     "id": "VIR-U_S__Virgin_Is_",
@@ -2521,7 +2521,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "87 000 hab.",
     "area": "346 km²",
-    "flagUrl": "https://flagcdn.com/w40/vi.png"
+    "flagUrl": "https://flagcdn.com/w80/vi.png"
   },
   {
     "id": "IND-India",
@@ -2542,7 +2542,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 4.8,
     "pop": "1 428 627 663 hab.",
     "area": "3 287 263 km²",
-    "flagUrl": "https://flagcdn.com/w40/in.png"
+    "flagUrl": "https://flagcdn.com/w80/in.png"
   },
   {
     "id": "IDN-Indonesia",
@@ -2563,7 +2563,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 4.8,
     "pop": "277 530 000 hab.",
     "area": "1 904 569 km²",
-    "flagUrl": "https://flagcdn.com/w40/id.png"
+    "flagUrl": "https://flagcdn.com/w80/id.png"
   },
   {
     "id": "IRQ-Iraq",
@@ -2584,7 +2584,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "39 192 111 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/iq.png"
+    "flagUrl": "https://flagcdn.com/w80/iq.png"
   },
   {
     "id": "IRN-Iran",
@@ -2605,7 +2605,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5,
     "pop": "89 000 000 hab.",
     "area": "1 648 195 km²",
-    "flagUrl": "https://flagcdn.com/w40/ir.png"
+    "flagUrl": "https://flagcdn.com/w80/ir.png"
   },
   {
     "id": "IRL-Ireland",
@@ -2626,7 +2626,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.8,
     "pop": "5 130 000 hab.",
     "area": "70 273 km²",
-    "flagUrl": "https://flagcdn.com/w40/ie.png"
+    "flagUrl": "https://flagcdn.com/w80/ie.png"
   },
   {
     "id": "ISL-Iceland",
@@ -2647,7 +2647,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6,
     "pop": "382 000 hab.",
     "area": "103 000 km²",
-    "flagUrl": "https://flagcdn.com/w40/is.png"
+    "flagUrl": "https://flagcdn.com/w80/is.png"
   },
   {
     "id": "ISR-Israel",
@@ -2668,7 +2668,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7.8,
     "pop": "9 750 000 hab.",
     "area": "20 770 km²",
-    "flagUrl": "https://flagcdn.com/w40/il.png"
+    "flagUrl": "https://flagcdn.com/w80/il.png"
   },
   {
     "id": "ITA-Sicily",
@@ -2689,7 +2689,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.8,
     "pop": "58 850 000 hab.",
     "area": "301 340 km²",
-    "flagUrl": "https://flagcdn.com/w40/it.png"
+    "flagUrl": "https://flagcdn.com/w80/it.png"
   },
   {
     "id": "JAM-Jamaica",
@@ -2710,7 +2710,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8,
     "pop": "2 800 000 hab.",
     "area": "10 991 km²",
-    "flagUrl": "https://flagcdn.com/w40/jm.png"
+    "flagUrl": "https://flagcdn.com/w80/jm.png"
   },
   {
     "id": "JPN-Kyushu",
@@ -2731,7 +2731,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "125 100 000 hab.",
     "area": "377 975 km²",
-    "flagUrl": "https://flagcdn.com/w40/jp.png"
+    "flagUrl": "https://flagcdn.com/w80/jp.png"
   },
   {
     "id": "JEY-Jersey",
@@ -2752,7 +2752,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 10,
     "pop": "103 000 hab.",
     "area": "118 km²",
-    "flagUrl": "https://flagcdn.com/w40/je.png"
+    "flagUrl": "https://flagcdn.com/w80/je.png"
   },
   {
     "id": "JOR-Jordan",
@@ -2773,7 +2773,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "10 248 069 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/jo.png"
+    "flagUrl": "https://flagcdn.com/w80/jo.png"
   },
   {
     "id": "KAZ-Kazakhstan",
@@ -2794,7 +2794,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "18 556 698 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/kz.png"
+    "flagUrl": "https://flagcdn.com/w80/kz.png"
   },
   {
     "id": "KEN-Kenya",
@@ -2815,7 +2815,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6,
     "pop": "55 100 000 hab.",
     "area": "580 367 km²",
-    "flagUrl": "https://flagcdn.com/w40/ke.png"
+    "flagUrl": "https://flagcdn.com/w80/ke.png"
   },
   {
     "id": "KGZ-Kyrgyzstan",
@@ -2836,7 +2836,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "5 789 122 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/kg.png"
+    "flagUrl": "https://flagcdn.com/w80/kg.png"
   },
   {
     "id": "KIR-Kiribati",
@@ -2857,7 +2857,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "130 000 hab.",
     "area": "811 km²",
-    "flagUrl": "https://flagcdn.com/w40/ki.png"
+    "flagUrl": "https://flagcdn.com/w80/ki.png"
   },
   {
     "id": "KOS-Kosovo",
@@ -2878,7 +2878,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 895 250 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/xk.png"
+    "flagUrl": "https://flagcdn.com/w80/xk.png"
   },
   {
     "id": "KWT-Kuwait",
@@ -2899,7 +2899,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "2 875 422 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/kw.png"
+    "flagUrl": "https://flagcdn.com/w80/kw.png"
   },
   {
     "id": "REU-Reunion",
@@ -2920,7 +2920,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "868 850 hab.",
     "area": "2 511 km²",
-    "flagUrl": "https://flagcdn.com/w40/re.png"
+    "flagUrl": "https://flagcdn.com/w80/re.png"
   },
   {
     "id": "LAO-Laos",
@@ -2941,7 +2941,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "7 126 706 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/la.png"
+    "flagUrl": "https://flagcdn.com/w80/la.png"
   },
   {
     "id": "LSO-Lesotho",
@@ -2962,7 +2962,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 958 042 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/ls.png"
+    "flagUrl": "https://flagcdn.com/w80/ls.png"
   },
   {
     "id": "LVA-Latvia",
@@ -2983,7 +2983,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 944 643 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/lv.png"
+    "flagUrl": "https://flagcdn.com/w80/lv.png"
   },
   {
     "id": "LBN-Lebanon",
@@ -3004,7 +3004,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "5 500 000 hab.",
     "area": "10 452 km²",
-    "flagUrl": "https://flagcdn.com/w40/lb.png"
+    "flagUrl": "https://flagcdn.com/w80/lb.png"
   },
   {
     "id": "LBR-Liberia",
@@ -3025,7 +3025,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "4 689 021 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/lr.png"
+    "flagUrl": "https://flagcdn.com/w80/lr.png"
   },
   {
     "id": "LBY-Libya",
@@ -3046,7 +3046,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "6 653 210 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/ly.png"
+    "flagUrl": "https://flagcdn.com/w80/ly.png"
   },
   {
     "id": "LIE-Liechtenstein",
@@ -3067,7 +3067,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "38 244 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/li.png"
+    "flagUrl": "https://flagcdn.com/w80/li.png"
   },
   {
     "id": "LTU-Lithuania",
@@ -3088,7 +3088,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "2 823 859 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/lt.png"
+    "flagUrl": "https://flagcdn.com/w80/lt.png"
   },
   {
     "id": "LUX-Luxembourg",
@@ -3109,7 +3109,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "594 130 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/lu.png"
+    "flagUrl": "https://flagcdn.com/w80/lu.png"
   },
   {
     "id": "MAC-Macao",
@@ -3130,7 +3130,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "601 969 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/mo.png"
+    "flagUrl": "https://flagcdn.com/w80/mo.png"
   },
   {
     "id": "MKD-Macedonia",
@@ -3151,7 +3151,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "2 103 721 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/mk.png"
+    "flagUrl": "https://flagcdn.com/w80/mk.png"
   },
   {
     "id": "MDG-Madagascar",
@@ -3172,7 +3172,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "29 600 000 hab.",
     "area": "587 041 km²",
-    "flagUrl": "https://flagcdn.com/w40/mg.png"
+    "flagUrl": "https://flagcdn.com/w80/mg.png"
   },
   {
     "id": "PRT-Madeira",
@@ -3193,7 +3193,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "251 000 hab.",
     "area": "801 km²",
-    "flagUrl": "https://flagcdn.com/w40/pt.png"
+    "flagUrl": "https://flagcdn.com/w80/pt.png"
   },
   {
     "id": "MYS-Malaysia",
@@ -3214,7 +3214,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "31 381 992 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/my.png"
+    "flagUrl": "https://flagcdn.com/w80/my.png"
   },
   {
     "id": "MWI-Malawi",
@@ -3235,7 +3235,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "19 196 246 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/mw.png"
+    "flagUrl": "https://flagcdn.com/w80/mw.png"
   },
   {
     "id": "MDV-Maldives",
@@ -3256,7 +3256,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7,
     "pop": "520 000 hab.",
     "area": "300 km²",
-    "flagUrl": "https://flagcdn.com/w40/mv.png"
+    "flagUrl": "https://flagcdn.com/w80/mv.png"
   },
   {
     "id": "MLI-Mali",
@@ -3277,7 +3277,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "17 885 245 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/ml.png"
+    "flagUrl": "https://flagcdn.com/w80/ml.png"
   },
   {
     "id": "MLT-Malta",
@@ -3298,7 +3298,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 10,
     "pop": "530 000 hab.",
     "area": "316 km²",
-    "flagUrl": "https://flagcdn.com/w40/mt.png"
+    "flagUrl": "https://flagcdn.com/w80/mt.png"
   },
   {
     "id": "MAR-Morocco",
@@ -3319,7 +3319,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.8,
     "pop": "37 800 000 hab.",
     "area": "446 550 km²",
-    "flagUrl": "https://flagcdn.com/w40/ma.png"
+    "flagUrl": "https://flagcdn.com/w80/ma.png"
   },
   {
     "id": "MTQ-Martinique",
@@ -3340,7 +3340,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "364 500 hab.",
     "area": "1 128 km²",
-    "flagUrl": "https://flagcdn.com/w40/mq.png"
+    "flagUrl": "https://flagcdn.com/w80/mq.png"
   },
   {
     "id": "MUS-Mauritius",
@@ -3361,7 +3361,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9,
     "pop": "1 260 000 hab.",
     "area": "2 040 km²",
-    "flagUrl": "https://flagcdn.com/w40/mu.png"
+    "flagUrl": "https://flagcdn.com/w80/mu.png"
   },
   {
     "id": "MRT-Mauritania",
@@ -3382,7 +3382,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "3 758 571 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/mr.png"
+    "flagUrl": "https://flagcdn.com/w80/mr.png"
   },
   {
     "id": "MYT-Mayotte",
@@ -3403,7 +3403,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9,
     "pop": "310 000 hab.",
     "area": "374 km²",
-    "flagUrl": "https://flagcdn.com/w40/yt.png"
+    "flagUrl": "https://flagcdn.com/w80/yt.png"
   },
   {
     "id": "MEX-Mexico",
@@ -3424,7 +3424,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5,
     "pop": "128 450 000 hab.",
     "area": "1 964 375 km²",
-    "flagUrl": "https://flagcdn.com/w40/mx.png"
+    "flagUrl": "https://flagcdn.com/w80/mx.png"
   },
   {
     "id": "FSM-Micronesia",
@@ -3445,7 +3445,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6,
     "pop": "115 000 hab.",
     "area": "702 km²",
-    "flagUrl": "https://flagcdn.com/w40/fm.png"
+    "flagUrl": "https://flagcdn.com/w80/fm.png"
   },
   {
     "id": "MDA-Moldova",
@@ -3466,7 +3466,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "3 474 121 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/md.png"
+    "flagUrl": "https://flagcdn.com/w80/md.png"
   },
   {
     "id": "MCO-Monaco",
@@ -3487,7 +3487,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "30 645 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/mc.png"
+    "flagUrl": "https://flagcdn.com/w80/mc.png"
   },
   {
     "id": "MNG-Mongolia",
@@ -3508,7 +3508,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "3 068 243 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/mn.png"
+    "flagUrl": "https://flagcdn.com/w80/mn.png"
   },
   {
     "id": "MNE-Montenegro",
@@ -3529,7 +3529,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "642 550 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/me.png"
+    "flagUrl": "https://flagcdn.com/w80/me.png"
   },
   {
     "id": "MSR-Montserrat",
@@ -3550,7 +3550,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 10,
     "pop": "4 600 hab.",
     "area": "102 km²",
-    "flagUrl": "https://flagcdn.com/w40/ms.png"
+    "flagUrl": "https://flagcdn.com/w80/ms.png"
   },
   {
     "id": "MOZ-Mozambique",
@@ -3571,7 +3571,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "26 573 706 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/mz.png"
+    "flagUrl": "https://flagcdn.com/w80/mz.png"
   },
   {
     "id": "MMR-Myanmar",
@@ -3592,7 +3592,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "55 123 814 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/mm.png"
+    "flagUrl": "https://flagcdn.com/w80/mm.png"
   },
   {
     "id": "CYN-N__Cyprus",
@@ -3600,12 +3600,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "N. Cyprus",
     "admin": "Northern Cyprus",
     "sovereign": "Northern Cyprus",
-    "type": "country",
-    "typeLabel": "PAYS",
+    "type": "territory",
+    "typeLabel": "CHYPRE DU NORD",
     "continent": "Asia",
     "subregion": "Western Asia",
     "capital": null,
-    "iso2": null,
+    "iso2": "CY",
     "iso3": "CYN",
     "groupKey": "CYN",
     "lat": 35.2025,
@@ -3613,7 +3613,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "265 100 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/cy.png"
   },
   {
     "id": "NAM-Namibia",
@@ -3634,7 +3634,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "2 484 780 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/na.png"
+    "flagUrl": "https://flagcdn.com/w80/na.png"
   },
   {
     "id": "NRU-Nauru",
@@ -3655,7 +3655,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 10.5,
     "pop": "12 500 hab.",
     "area": "21 km²",
-    "flagUrl": "https://flagcdn.com/w40/nr.png"
+    "flagUrl": "https://flagcdn.com/w80/nr.png"
   },
   {
     "id": "NPL-Nepal",
@@ -3676,7 +3676,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "29 384 297 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/np.png"
+    "flagUrl": "https://flagcdn.com/w80/np.png"
   },
   {
     "id": "NIC-Nicaragua",
@@ -3697,7 +3697,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "6 025 951 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/ni.png"
+    "flagUrl": "https://flagcdn.com/w80/ni.png"
   },
   {
     "id": "NER-Niger",
@@ -3718,7 +3718,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "19 245 344 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/ne.png"
+    "flagUrl": "https://flagcdn.com/w80/ne.png"
   },
   {
     "id": "NGA-Nigeria",
@@ -3739,7 +3739,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.8,
     "pop": "223 800 000 hab.",
     "area": "923 768 km²",
-    "flagUrl": "https://flagcdn.com/w40/ng.png"
+    "flagUrl": "https://flagcdn.com/w80/ng.png"
   },
   {
     "id": "NIU-Niue",
@@ -3760,7 +3760,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "1 900 hab.",
     "area": "260 km²",
-    "flagUrl": "https://flagcdn.com/w40/nu.png"
+    "flagUrl": "https://flagcdn.com/w80/nu.png"
   },
   {
     "id": "NOR-Svalbard_Is_",
@@ -3781,7 +3781,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 4.8,
     "pop": "5 488 000 hab.",
     "area": "385 207 km²",
-    "flagUrl": "https://flagcdn.com/w40/no.png"
+    "flagUrl": "https://flagcdn.com/w80/no.png"
   },
   {
     "id": "NCL-New_Caledonia",
@@ -3802,7 +3802,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.8,
     "pop": "271 000 hab.",
     "area": "18 575 km²",
-    "flagUrl": "https://flagcdn.com/w40/nc.png"
+    "flagUrl": "https://flagcdn.com/w80/nc.png"
   },
   {
     "id": "NZL-South_I_",
@@ -3823,7 +3823,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.2,
     "pop": "5 120 000 hab.",
     "area": "268 021 km²",
-    "flagUrl": "https://flagcdn.com/w40/nz.png"
+    "flagUrl": "https://flagcdn.com/w80/nz.png"
   },
   {
     "id": "OMN-Oman",
@@ -3844,7 +3844,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "3 424 386 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/om.png"
+    "flagUrl": "https://flagcdn.com/w80/om.png"
   },
   {
     "id": "UGA-Uganda",
@@ -3865,7 +3865,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "39 570 125 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/ug.png"
+    "flagUrl": "https://flagcdn.com/w80/ug.png"
   },
   {
     "id": "UZB-Uzbekistan",
@@ -3886,7 +3886,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "29 748 859 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/uz.png"
+    "flagUrl": "https://flagcdn.com/w80/uz.png"
   },
   {
     "id": "PAK-Pakistan",
@@ -3907,7 +3907,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "204 924 861 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/pk.png"
+    "flagUrl": "https://flagcdn.com/w80/pk.png"
   },
   {
     "id": "PLW-Palau",
@@ -3928,7 +3928,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "18 000 hab.",
     "area": "459 km²",
-    "flagUrl": "https://flagcdn.com/w40/pw.png"
+    "flagUrl": "https://flagcdn.com/w80/pw.png"
   },
   {
     "id": "PSX-Gaza",
@@ -3936,12 +3936,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Gaza",
     "admin": "Palestine",
     "sovereign": "Israel",
-    "type": "country",
-    "typeLabel": "PAYS",
+    "type": "territory",
+    "typeLabel": "TERRITOIRE PALESTINIEN",
     "continent": "Asia",
     "subregion": "Western Asia",
     "capital": null,
-    "iso2": null,
+    "iso2": "PS",
     "iso3": "PSX",
     "groupKey": "PSX",
     "lat": 31.3823,
@@ -3949,7 +3949,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 795 183 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/ps.png"
   },
   {
     "id": "PAN-Panama",
@@ -3970,7 +3970,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "3 753 142 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/pa.png"
+    "flagUrl": "https://flagcdn.com/w80/pa.png"
   },
   {
     "id": "TLS-Pante_Makasar",
@@ -3979,11 +3979,11 @@ export const WORLD_TERRITORIES = [
     "admin": "East Timor",
     "sovereign": "East Timor",
     "type": "territory",
-    "typeLabel": "TERRITOIRE",
+    "typeLabel": "ENCLAVE (TIMOR-LESTE)",
     "continent": "Asia",
     "subregion": "South-Eastern Asia",
     "capital": null,
-    "iso2": null,
+    "iso2": "TL",
     "iso3": "TLS",
     "groupKey": "TLS",
     "lat": -9.3348,
@@ -3991,7 +3991,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "4 730 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/tl.png"
   },
   {
     "id": "PNG-Papua_New_Guinea",
@@ -4012,7 +4012,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "10 140 000 hab.",
     "area": "462 840 km²",
-    "flagUrl": "https://flagcdn.com/w40/pg.png"
+    "flagUrl": "https://flagcdn.com/w80/pg.png"
   },
   {
     "id": "PRY-Paraguay",
@@ -4033,7 +4033,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "6 943 739 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/py.png"
+    "flagUrl": "https://flagcdn.com/w80/py.png"
   },
   {
     "id": "NLD-Caribbean_Netherlands",
@@ -4054,7 +4054,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7.2,
     "pop": "17 700 000 hab.",
     "area": "41 850 km²",
-    "flagUrl": "https://flagcdn.com/w40/nl.png"
+    "flagUrl": "https://flagcdn.com/w80/nl.png"
   },
   {
     "id": "PER-Peru",
@@ -4075,7 +4075,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.2,
     "pop": "34 000 000 hab.",
     "area": "1 285 216 km²",
-    "flagUrl": "https://flagcdn.com/w40/pe.png"
+    "flagUrl": "https://flagcdn.com/w80/pe.png"
   },
   {
     "id": "PHL-Philippines",
@@ -4096,7 +4096,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "115 560 000 hab.",
     "area": "300 000 km²",
-    "flagUrl": "https://flagcdn.com/w40/ph.png"
+    "flagUrl": "https://flagcdn.com/w80/ph.png"
   },
   {
     "id": "POL-Poland",
@@ -4117,7 +4117,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.8,
     "pop": "37 750 000 hab.",
     "area": "312 696 km²",
-    "flagUrl": "https://flagcdn.com/w40/pl.png"
+    "flagUrl": "https://flagcdn.com/w80/pl.png"
   },
   {
     "id": "PYF-Fr__Polynesia",
@@ -4138,7 +4138,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6,
     "pop": "279 000 hab.",
     "area": "4 167 km²",
-    "flagUrl": "https://flagcdn.com/w40/pf.png"
+    "flagUrl": "https://flagcdn.com/w80/pf.png"
   },
   {
     "id": "PRI-Puerto_Rico",
@@ -4159,7 +4159,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "3 285 000 hab.",
     "area": "9 104 km²",
-    "flagUrl": "https://flagcdn.com/w40/pr.png"
+    "flagUrl": "https://flagcdn.com/w80/pr.png"
   },
   {
     "id": "PRT-Portugal",
@@ -4180,7 +4180,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.5,
     "pop": "10 350 000 hab.",
     "area": "92 212 km²",
-    "flagUrl": "https://flagcdn.com/w40/pt.png"
+    "flagUrl": "https://flagcdn.com/w80/pt.png"
   },
   {
     "id": "STP-Principe",
@@ -4188,12 +4188,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Principe",
     "admin": "Sao Tome and Principe",
     "sovereign": "Sao Tome and Principe",
-    "type": "territory",
-    "typeLabel": "TERRITOIRE",
+    "type": "island",
+    "typeLabel": "ÎLE (SAO TOMÉ-ET-PRINCIPE)",
     "continent": "Africa",
     "subregion": "Middle Africa",
     "capital": null,
-    "iso2": null,
+    "iso2": "ST",
     "iso3": "STP",
     "groupKey": "STP",
     "lat": 1.6199,
@@ -4201,7 +4201,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "6 030,75 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/st.png"
   },
   {
     "id": "QAT-Qatar",
@@ -4222,7 +4222,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "2 314 307 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/qa.png"
+    "flagUrl": "https://flagcdn.com/w80/qa.png"
   },
   {
     "id": "BIH-Rep__Srpska",
@@ -4230,12 +4230,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Rep. Srpska",
     "admin": "Bosnia and Herzegovina",
     "sovereign": "Bosnia and Herzegovina",
-    "type": "country",
-    "typeLabel": "PAYS",
+    "type": "territory",
+    "typeLabel": "RÉP. SERBE DE BOSNIE",
     "continent": "Europe",
     "subregion": "Southern Europe",
     "capital": null,
-    "iso2": null,
+    "iso2": "BA",
     "iso3": "BIH",
     "groupKey": "BIH",
     "lat": 44.2078,
@@ -4243,7 +4243,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 438 241,54 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/ba.png"
   },
   {
     "id": "CAF-Central_African_Rep_",
@@ -4264,7 +4264,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "5 625 118 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/cf.png"
+    "flagUrl": "https://flagcdn.com/w80/cf.png"
   },
   {
     "id": "COD-Dem__Rep__Congo",
@@ -4285,7 +4285,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "83 301 151 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/cd.png"
+    "flagUrl": "https://flagcdn.com/w80/cd.png"
   },
   {
     "id": "DOM-Dominican_Rep_",
@@ -4306,7 +4306,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7.2,
     "pop": "11 200 000 hab.",
     "area": "48 670 km²",
-    "flagUrl": "https://flagcdn.com/w40/do.png"
+    "flagUrl": "https://flagcdn.com/w80/do.png"
   },
   {
     "id": "ROU-Romania",
@@ -4327,7 +4327,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6,
     "pop": "19 050 000 hab.",
     "area": "238 391 km²",
-    "flagUrl": "https://flagcdn.com/w40/ro.png"
+    "flagUrl": "https://flagcdn.com/w80/ro.png"
   },
   {
     "id": "GBR-Wales",
@@ -4348,7 +4348,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "67 080 000 hab.",
     "area": "242 900 km²",
-    "flagUrl": "https://flagcdn.com/w40/gb.png"
+    "flagUrl": "https://flagcdn.com/w80/gb.png"
   },
   {
     "id": "RUS-Kaliningrad",
@@ -4369,7 +4369,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 3.2,
     "pop": "144 200 000 hab.",
     "area": "17 098 242 km²",
-    "flagUrl": "https://flagcdn.com/w40/ru.png"
+    "flagUrl": "https://flagcdn.com/w80/ru.png"
   },
   {
     "id": "RWA-Rwanda",
@@ -4390,7 +4390,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "11 901 484 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/rw.png"
+    "flagUrl": "https://flagcdn.com/w80/rw.png"
   },
   {
     "id": "SGS-S__Georgia",
@@ -4398,12 +4398,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "S. Georgia",
     "admin": "South Georgia and the Islands",
     "sovereign": "United Kingdom",
-    "type": "territory",
-    "typeLabel": "TERRITOIRE",
+    "type": "island",
+    "typeLabel": "GÉORGIE DU SUD (UK)",
     "continent": "Seven seas (open ocean)",
     "subregion": "Seven seas (open ocean)",
     "capital": null,
-    "iso2": null,
+    "iso2": "GS",
     "iso3": "SGS",
     "groupKey": "SGS",
     "lat": -54.3365,
@@ -4411,7 +4411,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "30,73 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/gs.png"
   },
   {
     "id": "SGS-S__Sandwich_Is_",
@@ -4419,12 +4419,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "S. Sandwich Is.",
     "admin": "South Georgia and the Islands",
     "sovereign": "United Kingdom",
-    "type": "territory",
-    "typeLabel": "TERRITOIRE",
+    "type": "island",
+    "typeLabel": "ÎLES SANDWICH DU SUD (UK)",
     "continent": "Seven seas (open ocean)",
     "subregion": "Seven seas (open ocean)",
     "capital": null,
-    "iso2": null,
+    "iso2": "GS",
     "iso3": "SGS",
     "groupKey": "SGS",
     "lat": -58.4231,
@@ -4432,7 +4432,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "30,73 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/gs.png"
   },
   {
     "id": "SAH-W__Sahara",
@@ -4453,7 +4453,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "603 253 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/eh.png"
+    "flagUrl": "https://flagcdn.com/w80/eh.png"
   },
   {
     "id": "BLM-St-Barth_lemy",
@@ -4474,7 +4474,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 10,
     "pop": "10 000 hab.",
     "area": "25 km²",
-    "flagUrl": "https://flagcdn.com/w40/bl.png"
+    "flagUrl": "https://flagcdn.com/w80/bl.png"
   },
   {
     "id": "KNA-St__Kitts_and_Nevis",
@@ -4495,7 +4495,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "48 000 hab.",
     "area": "261 km²",
-    "flagUrl": "https://flagcdn.com/w40/kn.png"
+    "flagUrl": "https://flagcdn.com/w80/kn.png"
   },
   {
     "id": "SMR-San_Marino",
@@ -4516,7 +4516,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "33 537 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/sm.png"
+    "flagUrl": "https://flagcdn.com/w80/sm.png"
   },
   {
     "id": "MAF-Saint-Martin",
@@ -4537,7 +4537,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 10,
     "pop": "32 500 hab.",
     "area": "53 km²",
-    "flagUrl": "https://flagcdn.com/w40/mf.png"
+    "flagUrl": "https://flagcdn.com/w80/mf.png"
   },
   {
     "id": "SXM-Sint_Maarten",
@@ -4558,7 +4558,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 10,
     "pop": "41 000 hab.",
     "area": "34 km²",
-    "flagUrl": "https://flagcdn.com/w40/sx.png"
+    "flagUrl": "https://flagcdn.com/w80/sx.png"
   },
   {
     "id": "SPM-St__Pierre_and_Miquelon",
@@ -4579,7 +4579,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9,
     "pop": "6 000 hab.",
     "area": "242 km²",
-    "flagUrl": "https://flagcdn.com/w40/pm.png"
+    "flagUrl": "https://flagcdn.com/w80/pm.png"
   },
   {
     "id": "VCT-St__Vin__and_Gren_",
@@ -4600,7 +4600,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "104 000 hab.",
     "area": "389 km²",
-    "flagUrl": "https://flagcdn.com/w40/vc.png"
+    "flagUrl": "https://flagcdn.com/w80/vc.png"
   },
   {
     "id": "SHN-Saint_Helena",
@@ -4621,7 +4621,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9,
     "pop": "4 500 hab.",
     "area": "122 km²",
-    "flagUrl": "https://flagcdn.com/w40/sh.png"
+    "flagUrl": "https://flagcdn.com/w80/sh.png"
   },
   {
     "id": "LCA-Saint_Lucia",
@@ -4642,7 +4642,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9.5,
     "pop": "180 000 hab.",
     "area": "616 km²",
-    "flagUrl": "https://flagcdn.com/w40/lc.png"
+    "flagUrl": "https://flagcdn.com/w80/lc.png"
   },
   {
     "id": "SLV-El_Salvador",
@@ -4663,7 +4663,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "6 172 011 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/sv.png"
+    "flagUrl": "https://flagcdn.com/w80/sv.png"
   },
   {
     "id": "WSM-Samoa",
@@ -4684,7 +4684,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "220 000 hab.",
     "area": "2 842 km²",
-    "flagUrl": "https://flagcdn.com/w40/ws.png"
+    "flagUrl": "https://flagcdn.com/w80/ws.png"
   },
   {
     "id": "ASM-American_Samoa",
@@ -4705,7 +4705,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9,
     "pop": "50 000 hab.",
     "area": "199 km²",
-    "flagUrl": "https://flagcdn.com/w40/as.png"
+    "flagUrl": "https://flagcdn.com/w80/as.png"
   },
   {
     "id": "STP-Sao_Tome",
@@ -4713,12 +4713,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Sao Tome",
     "admin": "Sao Tome and Principe",
     "sovereign": "Sao Tome and Principe",
-    "type": "territory",
-    "typeLabel": "TERRITOIRE",
+    "type": "island",
+    "typeLabel": "ÎLE (SAO TOMÉ)",
     "continent": "Africa",
     "subregion": "Middle Africa",
     "capital": null,
-    "iso2": null,
+    "iso2": "ST",
     "iso3": "STP",
     "groupKey": "STP",
     "lat": 0.2245,
@@ -4726,7 +4726,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "194 994,25 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/st.png"
   },
   {
     "id": "STP-S_o_Tom__and_Principe",
@@ -4747,7 +4747,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "225 000 hab.",
     "area": "964 km²",
-    "flagUrl": "https://flagcdn.com/w40/st.png"
+    "flagUrl": "https://flagcdn.com/w80/st.png"
   },
   {
     "id": "SEN-Senegal",
@@ -4768,7 +4768,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "14 668 522 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/sn.png"
+    "flagUrl": "https://flagcdn.com/w80/sn.png"
   },
   {
     "id": "SRB-Serbia",
@@ -4777,11 +4777,11 @@ export const WORLD_TERRITORIES = [
     "admin": "Republic of Serbia",
     "sovereign": "Republic of Serbia",
     "type": "country",
-    "typeLabel": "PAYS",
+    "typeLabel": "PAYS SOUVERAIN",
     "continent": "Europe",
     "subregion": "Southern Europe",
     "capital": null,
-    "iso2": null,
+    "iso2": "RS",
     "iso3": "SRB",
     "groupKey": "SRB",
     "lat": 43.7586,
@@ -4789,7 +4789,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "5 162 603,42 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/rs.png"
   },
   {
     "id": "SYC-Seychelles",
@@ -4810,7 +4810,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "100 000 hab.",
     "area": "459 km²",
-    "flagUrl": "https://flagcdn.com/w40/sc.png"
+    "flagUrl": "https://flagcdn.com/w80/sc.png"
   },
   {
     "id": "KAS-Siachen_Glacier",
@@ -4818,12 +4818,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Siachen Glacier",
     "admin": "Siachen Glacier",
     "sovereign": "Kashmir",
-    "type": "country",
-    "typeLabel": "PAYS",
+    "type": "territory",
+    "typeLabel": "GLACIER DE SIACHEN",
     "continent": "Asia",
     "subregion": "Southern Asia",
     "capital": null,
-    "iso2": null,
+    "iso2": "IN",
     "iso3": "KAS",
     "groupKey": "KAS",
     "lat": 35.4206,
@@ -4831,7 +4831,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "6 000 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/in.png"
   },
   {
     "id": "SLE-Sierra_Leone",
@@ -4852,7 +4852,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "6 163 195 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/sl.png"
+    "flagUrl": "https://flagcdn.com/w80/sl.png"
   },
   {
     "id": "SGP-Singapore",
@@ -4873,7 +4873,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 10,
     "pop": "5 900 000 hab.",
     "area": "734 km²",
-    "flagUrl": "https://flagcdn.com/w40/sg.png"
+    "flagUrl": "https://flagcdn.com/w80/sg.png"
   },
   {
     "id": "SVK-Slovakia",
@@ -4894,7 +4894,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "5 445 829 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/sk.png"
+    "flagUrl": "https://flagcdn.com/w80/sk.png"
   },
   {
     "id": "SVN-Slovenia",
@@ -4915,7 +4915,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 972 126 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/si.png"
+    "flagUrl": "https://flagcdn.com/w80/si.png"
   },
   {
     "id": "SOM-Somalia",
@@ -4936,7 +4936,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "7 531 386 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/so.png"
+    "flagUrl": "https://flagcdn.com/w80/so.png"
   },
   {
     "id": "SOL-Somaliland",
@@ -4944,12 +4944,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Somaliland",
     "admin": "Somaliland",
     "sovereign": "Somaliland",
-    "type": "country",
-    "typeLabel": "PAYS",
+    "type": "territory",
+    "typeLabel": "RÉGION AUTONOME (SOMALILAND)",
     "continent": "Africa",
     "subregion": "Eastern Africa",
     "capital": null,
-    "iso2": null,
+    "iso2": "SO",
     "iso3": "SOL",
     "groupKey": "SOL",
     "lat": 10.0358,
@@ -4957,7 +4957,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "3 500 000 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/so.png"
   },
   {
     "id": "SDN-Sudan",
@@ -4978,7 +4978,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "37 345 935 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/sd.png"
+    "flagUrl": "https://flagcdn.com/w80/sd.png"
   },
   {
     "id": "SDS-S__Sudan",
@@ -4999,7 +4999,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "13 026 129 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/ss.png"
+    "flagUrl": "https://flagcdn.com/w80/ss.png"
   },
   {
     "id": "LKA-Sri_Lanka",
@@ -5020,7 +5020,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7.2,
     "pop": "22 180 000 hab.",
     "area": "65 610 km²",
-    "flagUrl": "https://flagcdn.com/w40/lk.png"
+    "flagUrl": "https://flagcdn.com/w80/lk.png"
   },
   {
     "id": "MAF-St-Martin",
@@ -5041,7 +5041,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "32 125 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/mf.png"
+    "flagUrl": "https://flagcdn.com/w80/mf.png"
   },
   {
     "id": "SWE-Sweden",
@@ -5062,7 +5062,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 4.8,
     "pop": "10 520 000 hab.",
     "area": "450 295 km²",
-    "flagUrl": "https://flagcdn.com/w40/se.png"
+    "flagUrl": "https://flagcdn.com/w80/se.png"
   },
   {
     "id": "CHE-Switzerland",
@@ -5083,7 +5083,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7.5,
     "pop": "8 815 000 hab.",
     "area": "41 285 km²",
-    "flagUrl": "https://flagcdn.com/w40/ch.png"
+    "flagUrl": "https://flagcdn.com/w80/ch.png"
   },
   {
     "id": "SUR-Suriname",
@@ -5104,7 +5104,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "591 919 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/sr.png"
+    "flagUrl": "https://flagcdn.com/w80/sr.png"
   },
   {
     "id": "NOR-Svalbard",
@@ -5125,7 +5125,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.2,
     "pop": "2 600 hab.",
     "area": "61 022 km²",
-    "flagUrl": "https://flagcdn.com/w40/sj.png"
+    "flagUrl": "https://flagcdn.com/w80/sj.png"
   },
   {
     "id": "SWZ-Swaziland",
@@ -5146,7 +5146,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 467 152 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/sz.png"
+    "flagUrl": "https://flagcdn.com/w80/sz.png"
   },
   {
     "id": "SYR-Syria",
@@ -5167,7 +5167,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "18 028 549 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/sy.png"
+    "flagUrl": "https://flagcdn.com/w80/sy.png"
   },
   {
     "id": "TJK-Tajikistan",
@@ -5188,7 +5188,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "8 468 555 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/tj.png"
+    "flagUrl": "https://flagcdn.com/w80/tj.png"
   },
   {
     "id": "TWN-Taiwan",
@@ -5209,7 +5209,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7.2,
     "pop": "23 570 000 hab.",
     "area": "36 197 km²",
-    "flagUrl": "https://flagcdn.com/w40/tw.png"
+    "flagUrl": "https://flagcdn.com/w80/tw.png"
   },
   {
     "id": "TZA-Tanzania",
@@ -5230,7 +5230,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "53 950 935 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/tz.png"
+    "flagUrl": "https://flagcdn.com/w80/tz.png"
   },
   {
     "id": "AUS-Tasmania",
@@ -5251,7 +5251,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.5,
     "pop": "571 000 hab.",
     "area": "68 401 km²",
-    "flagUrl": "https://flagcdn.com/w40/au.png"
+    "flagUrl": "https://flagcdn.com/w80/au.png"
   },
   {
     "id": "TCD-Chad",
@@ -5272,7 +5272,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "12 075 985 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/td.png"
+    "flagUrl": "https://flagcdn.com/w80/td.png"
   },
   {
     "id": "CZE-Czechia",
@@ -5293,7 +5293,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.8,
     "pop": "10 830 000 hab.",
     "area": "78 867 km²",
-    "flagUrl": "https://flagcdn.com/w40/cz.png"
+    "flagUrl": "https://flagcdn.com/w80/cz.png"
   },
   {
     "id": "ATF-Fr__S__Antarctic_Lands",
@@ -5314,7 +5314,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "140 scientifiques",
     "area": "439 781 km²",
-    "flagUrl": "https://flagcdn.com/w40/tf.png"
+    "flagUrl": "https://flagcdn.com/w80/tf.png"
   },
   {
     "id": "THA-Thailand",
@@ -5335,7 +5335,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "68 414 135 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/th.png"
+    "flagUrl": "https://flagcdn.com/w80/th.png"
   },
   {
     "id": "TLS-Timor-Leste",
@@ -5343,12 +5343,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Timor-Leste",
     "admin": "East Timor",
     "sovereign": "East Timor",
-    "type": "territory",
-    "typeLabel": "TERRITOIRE",
+    "type": "country",
+    "typeLabel": "PAYS SOUVERAIN",
     "continent": "Asia",
     "subregion": "South-Eastern Asia",
     "capital": null,
-    "iso2": null,
+    "iso2": "TL",
     "iso3": "TLS",
     "groupKey": "TLS",
     "lat": -8.8054,
@@ -5356,7 +5356,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 286 628 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/tl.png"
   },
   {
     "id": "TGO-Togo",
@@ -5377,7 +5377,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "7 965 055 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/tg.png"
+    "flagUrl": "https://flagcdn.com/w80/tg.png"
   },
   {
     "id": "TKL-Tokelau",
@@ -5398,7 +5398,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9,
     "pop": "1 500 hab.",
     "area": "12 km²",
-    "flagUrl": "https://flagcdn.com/w40/tk.png"
+    "flagUrl": "https://flagcdn.com/w80/tk.png"
   },
   {
     "id": "TON-Tonga",
@@ -5419,7 +5419,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8,
     "pop": "106 000 hab.",
     "area": "747 km²",
-    "flagUrl": "https://flagcdn.com/w40/to.png"
+    "flagUrl": "https://flagcdn.com/w80/to.png"
   },
   {
     "id": "TTO-Tobago",
@@ -5440,7 +5440,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 8.5,
     "pop": "1 530 000 hab.",
     "area": "5 128 km²",
-    "flagUrl": "https://flagcdn.com/w40/tt.png"
+    "flagUrl": "https://flagcdn.com/w80/tt.png"
   },
   {
     "id": "TUN-Tunisia",
@@ -5461,7 +5461,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 6.5,
     "pop": "12 400 000 hab.",
     "area": "163 610 km²",
-    "flagUrl": "https://flagcdn.com/w40/tn.png"
+    "flagUrl": "https://flagcdn.com/w80/tn.png"
   },
   {
     "id": "TKM-Turkmenistan",
@@ -5482,7 +5482,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "5 351 277 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/tm.png"
+    "flagUrl": "https://flagcdn.com/w80/tm.png"
   },
   {
     "id": "TUR-Turkey",
@@ -5503,7 +5503,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "85 300 000 hab.",
     "area": "783 562 km²",
-    "flagUrl": "https://flagcdn.com/w40/tr.png"
+    "flagUrl": "https://flagcdn.com/w80/tr.png"
   },
   {
     "id": "TUV-Tuvalu",
@@ -5524,7 +5524,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9,
     "pop": "11 200 hab.",
     "area": "26 km²",
-    "flagUrl": "https://flagcdn.com/w40/tv.png"
+    "flagUrl": "https://flagcdn.com/w80/tv.png"
   },
   {
     "id": "UKR-Ukraine",
@@ -5545,7 +5545,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "38 000 000 hab.",
     "area": "603 500 km²",
-    "flagUrl": "https://flagcdn.com/w40/ua.png"
+    "flagUrl": "https://flagcdn.com/w80/ua.png"
   },
   {
     "id": "USA-United_States_of_America",
@@ -5553,12 +5553,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "United States of America",
     "admin": "United States of America",
     "sovereign": "United States of America",
-    "type": "territory",
-    "typeLabel": "TERRITOIRE",
+    "type": "country",
+    "typeLabel": "PAYS SOUVERAIN",
     "continent": "North America",
     "subregion": "Northern America",
     "capital": null,
-    "iso2": null,
+    "iso2": "US",
     "iso3": "USA",
     "groupKey": "USA",
     "lat": 37.6325,
@@ -5566,7 +5566,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "324 528 263 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/us.png"
   },
   {
     "id": "URY-Uruguay",
@@ -5587,7 +5587,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "3 360 148 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/uy.png"
+    "flagUrl": "https://flagcdn.com/w80/uy.png"
   },
   {
     "id": "VUT-Vanuatu",
@@ -5608,7 +5608,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 7,
     "pop": "320 000 hab.",
     "area": "12 189 km²",
-    "flagUrl": "https://flagcdn.com/w40/vu.png"
+    "flagUrl": "https://flagcdn.com/w80/vu.png"
   },
   {
     "id": "VAT-Vatican",
@@ -5629,7 +5629,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 000 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/va.png"
+    "flagUrl": "https://flagcdn.com/w80/va.png"
   },
   {
     "id": "VEN-Venezuela",
@@ -5650,7 +5650,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "31 304 016 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/ve.png"
+    "flagUrl": "https://flagcdn.com/w80/ve.png"
   },
   {
     "id": "VNM-Vietnam",
@@ -5671,7 +5671,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "96 160 163 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/vn.png"
+    "flagUrl": "https://flagcdn.com/w80/vn.png"
   },
   {
     "id": "SRB-Vojvodina",
@@ -5679,12 +5679,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Vojvodina",
     "admin": "Republic of Serbia",
     "sovereign": "Republic of Serbia",
-    "type": "country",
-    "typeLabel": "PAYS",
+    "type": "territory",
+    "typeLabel": "PROVINCE AUTONOME (VOÏVODINE)",
     "continent": "Europe",
     "subregion": "Southern Europe",
     "capital": null,
-    "iso2": null,
+    "iso2": "RS",
     "iso3": "SRB",
     "groupKey": "SRB",
     "lat": 45.2815,
@@ -5692,7 +5692,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 948 420,58 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/rs.png"
   },
   {
     "id": "WLF-Wallis_and_Futuna_Is_",
@@ -5713,7 +5713,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 9,
     "pop": "11 500 hab.",
     "area": "142 km²",
-    "flagUrl": "https://flagcdn.com/w40/wf.png"
+    "flagUrl": "https://flagcdn.com/w80/wf.png"
   },
   {
     "id": "YEM-Yemen",
@@ -5734,7 +5734,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "28 036 829 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/ye.png"
+    "flagUrl": "https://flagcdn.com/w80/ye.png"
   },
   {
     "id": "ZMB-Zambia",
@@ -5755,7 +5755,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "15 972 000 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/zm.png"
+    "flagUrl": "https://flagcdn.com/w80/zm.png"
   },
   {
     "id": "TZA-Zanzibar",
@@ -5763,12 +5763,12 @@ export const WORLD_TERRITORIES = [
     "rawName": "Zanzibar",
     "admin": "United Republic of Tanzania",
     "sovereign": "United Republic of Tanzania",
-    "type": "country",
-    "typeLabel": "PAYS",
+    "type": "island",
+    "typeLabel": "ARCHIPEL (TANZANIE)",
     "continent": "Africa",
     "subregion": "Eastern Africa",
     "capital": null,
-    "iso2": null,
+    "iso2": "TZ",
     "iso3": "TZA",
     "groupKey": "TZA",
     "lat": -5.7581,
@@ -5776,7 +5776,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "1 070 000 hab.",
     "area": "N/A",
-    "flagUrl": null
+    "flagUrl": "https://flagcdn.com/w80/tz.png"
   },
   {
     "id": "ZWE-Zimbabwe",
@@ -5797,7 +5797,7 @@ export const WORLD_TERRITORIES = [
     "zoom": 5.5,
     "pop": "13 805 084 hab.",
     "area": "N/A",
-    "flagUrl": "https://flagcdn.com/w40/zw.png"
+    "flagUrl": "https://flagcdn.com/w80/zw.png"
   }
 ];
 

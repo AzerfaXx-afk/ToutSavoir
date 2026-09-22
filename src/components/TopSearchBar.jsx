@@ -79,19 +79,38 @@ export function TopSearchBar({
     setFocusedIndex(0);
   }, [query, activeCategory, selectedLetter, sortMode]);
 
-  // Global keyboard shortcuts (Cmd+K / Ctrl+K focus)
+  // Focus helper: focuses input, opens dropdown and highlights text
+  const focusAndOpen = useCallback(() => {
+    sound.click(0.4);
+    setIsOpen(true);
+    requestAnimationFrame(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.select();
+      }
+    });
+  }, []);
+
+  // Global keyboard shortcuts (Cmd+K / Ctrl+K focus) and custom event listener
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        sound.click(0.4);
-        inputRef.current?.focus();
-        setIsOpen(true);
+        focusAndOpen();
       }
     };
+
+    const handleCustomFocus = () => {
+      focusAndOpen();
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+    window.addEventListener('focus-top-search-bar', handleCustomFocus);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('focus-top-search-bar', handleCustomFocus);
+    };
+  }, [focusAndOpen]);
 
   // Handle outside click to close dropdown
   useEffect(() => {
@@ -229,7 +248,8 @@ export function TopSearchBar({
           <button
             type="button"
             className="search-clear-btn"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               sound.tick(0.3);
               setQuery('');
               inputRef.current?.focus();
@@ -238,7 +258,20 @@ export function TopSearchBar({
           >
             <X size={13} strokeWidth={2.2} />
           </button>
-        ) : null}
+        ) : (
+          <div
+            className="search-shortcut-badge"
+            onClick={(e) => {
+              e.stopPropagation();
+              focusAndOpen();
+            }}
+            title="Raccourci clavier universel : Ctrl+K ou ⌘+K"
+          >
+            <kbd className="kbd-key">Ctrl</kbd>
+            <span className="kbd-sep">+</span>
+            <kbd className="kbd-key">K</kbd>
+          </div>
+        )}
       </div>
 
       {/* Extruded Neumorphic Dropdown Panel */}
@@ -464,6 +497,14 @@ function TerritoryRowItem({
 }) {
   const [imgError, setImgError] = useState(false);
 
+  // High-fidelity flag resolution with SVG fallback
+  const flagSrc = useMemo(() => {
+    if (imgError && item.iso2) {
+      return `https://flagcdn.com/${item.iso2.toLowerCase()}.svg`;
+    }
+    return item.flagUrl || (item.iso2 ? `https://flagcdn.com/w80/${item.iso2.toLowerCase()}.png` : null);
+  }, [item.flagUrl, item.iso2, imgError]);
+
   return (
     <div
       className={`top-search-item ${isFocused ? 'is-focused' : ''} is-${item.type}`}
@@ -471,18 +512,18 @@ function TerritoryRowItem({
       onMouseEnter={() => sound.hover(0.12)}
     >
       {/* Flag / Icon Avatar */}
-      <div className="item-flag-wrap">
-        {item.flagUrl && !imgError ? (
+      <div className="item-flag-wrap" title={`${item.name} (${item.iso2 || ''})`}>
+        {flagSrc ? (
           <img
-            src={item.flagUrl}
-            alt={item.name}
+            src={flagSrc}
+            alt={`Drapeau ${item.name}`}
             className="item-flag-img"
             onError={() => setImgError(true)}
             loading="lazy"
           />
         ) : (
           <div className="item-flag-fallback">
-            {item.type === 'island' ? '🏝️' : item.type === 'territory' ? '📍' : '🌐'}
+            <span className="item-flag-iso-fallback">{item.iso2 || 'TER'}</span>
           </div>
         )}
       </div>
