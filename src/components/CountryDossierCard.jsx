@@ -18,7 +18,11 @@ import {
 } from 'lucide-react';
 import { sound } from '../utils/soundFX';
 import { getCapitalLocalTimeString } from '../data/countryGeopolitics';
-import { getEstimatedPopulationForYear } from './TimelineWheel';
+import {
+  getUNProjectionForYear,
+  getCountryDemographicTrajectory,
+  getHistoricalAndFutureEcologicalModel,
+} from '../data/unWorldProjectionsData';
 import './CountryDossierCard.css';
 
 export function CountryDossierCard({
@@ -79,59 +83,22 @@ export function CountryDossierCard({
       ? parseInt(String(territory.pop).replace(/\s+/g, ''), 10)
       : (territory.properties?.POP_EST || 0);
 
-    const un2026 = 8185420000;
-    const unTarget = getEstimatedPopulationForYear(year);
-    const globalRatio = unTarget / un2026;
-
-    // Continent-specific demographic weighting
-    const continent = (territory.continent || '').toLowerCase();
-    let regionalGrowth = 0.007; // 0.7% default
-    if (continent.includes('europe')) regionalGrowth = 0.0012; // stable/aging
-    else if (continent.includes('africa')) regionalGrowth = 0.021; // dynamic
-    else if (continent.includes('asia')) regionalGrowth = 0.0035;
-    else if (continent.includes('america')) regionalGrowth = 0.0055;
-
-    let projectedPop = rawPopNum;
-    if (rawPopNum > 0 && !isLiveYear) {
-      if (year > 2026) {
-        const compound = Math.pow(1 + regionalGrowth, diffYears);
-        const blended = 0.55 * compound + 0.45 * globalRatio;
-        projectedPop = Math.round(rawPopNum * blended);
-      } else {
-        projectedPop = Math.round(rawPopNum * globalRatio);
-      }
-    }
-
-    const popDeltaPct =
-      rawPopNum > 0 && !isLiveYear
-        ? (((projectedPop - rawPopNum) / rawPopNum) * 100).toFixed(1)
-        : null;
-
-    // Nominal GDP Projections (trajectoire FMI / Banque Mondiale)
+    const iso2 = geo.iso2 || territory.properties?.ISO_A2 || territory.code || '';
     const baseGdpStr = geo.gdpNominalUsd || '';
-    const gdpMatch = baseGdpStr.match(/([\d\s,]+)\s*(Mrds|Billion|Milliard)/i);
-    let projectedGdp = baseGdpStr;
-    let gdpDeltaPct = null;
 
-    if (gdpMatch && !isLiveYear) {
-      const baseNum = parseFloat(gdpMatch[1].replace(/\s+/g, '').replace(',', '.'));
-      if (!isNaN(baseNum)) {
-        const rate = continent.includes('europe') ? 0.021 : 0.034;
-        const gdpFactor = Math.pow(1 + rate, diffYears);
-        const nextVal = Math.round(baseNum * gdpFactor);
-        projectedGdp = `${nextVal.toLocaleString('fr-FR')} Mrds $`;
-        gdpDeltaPct = (((nextVal - baseNum) / baseNum) * 100).toFixed(1);
-      }
-    }
+    // Certified trajectory from UN DESA / Regional demographic models
+    const trajectory = getCountryDemographicTrajectory(iso2, year, rawPopNum, baseGdpStr);
+    const unGlobal = getUNProjectionForYear(year);
+    const ecoModel = getHistoricalAndFutureEcologicalModel(year);
 
-    // Defense Budget Projection (ex: LPM 2024-2030 pour la France)
+    // Defense Budget Projection (ex: LPM 2024-2030)
     let projectedMilBudget = geo.militaryBudget || 'Souverain';
     if (!isLiveYear && geo.militaryBudget) {
-      const milMatch = geo.militaryBudget.match(/([\d\s,]+)\s*(Mrds|Milliard)/i);
+      const milMatch = geo.militaryBudget.match(/([\d\s,]+)\s*(Mrds|Milliard|Billion)/i);
       if (milMatch) {
         const milNum = parseFloat(milMatch[1].replace(/\s+/g, '').replace(',', '.'));
         if (!isNaN(milNum)) {
-          const milRate = year > 2026 ? 0.038 : 0.02;
+          const milRate = year > 2026 ? 0.032 : 0.018;
           const milFactor = Math.pow(1 + milRate, diffYears);
           const nextMil = (milNum * milFactor).toFixed(1).replace('.', ',');
           projectedMilBudget = `${nextMil} Mrds $`;
@@ -139,19 +106,36 @@ export function CountryDossierCard({
       }
     }
 
+    // Trajectory milestones for this country across major benchmarks
+    const milestoneYears = [2026, 2030, 2040, 2050, 2084, 2100];
+    const countryBenchmarks = milestoneYears.map((my) => {
+      const t = getCountryDemographicTrajectory(iso2, my, rawPopNum, baseGdpStr);
+      const un = getUNProjectionForYear(my);
+      return {
+        year: my,
+        label: my === 2026 ? '2026 (Présent)' : my === 2084 ? '2084 (Pic Mondial)' : `${my}`,
+        popFormatted: t.projectedPopFormatted,
+        popDeltaPct: t.popDeltaPct,
+        unPop: un.popFormatted,
+        isCurrent: my === year,
+      };
+    });
+
     return {
       isLiveYear,
       year,
       projectedPop:
-        projectedPop > 0
-          ? projectedPop.toLocaleString('fr-FR')
-          : territory.pop || 'N/A',
-      popDeltaPct,
-      projectedGdp,
-      gdpDeltaPct,
+        trajectory.projectedPopFormatted ||
+        (rawPopNum ? rawPopNum.toLocaleString('fr-FR') : territory.pop || 'N/A'),
+      popDeltaPct: trajectory.popDeltaPct !== 0 ? trajectory.popDeltaPct : null,
+      projectedGdp: trajectory.projectedGdp || baseGdpStr,
+      gdpDeltaPct: trajectory.gdpDeltaPct !== 0 ? trajectory.gdpDeltaPct : null,
       projectedMilBudget,
+      unGlobal,
+      ecoModel,
+      countryBenchmarks,
     };
-  }, [territory, selectedYear, geo.gdpNominalUsd, geo.militaryBudget]);
+  }, [territory, selectedYear, geo.iso2, geo.gdpNominalUsd, geo.militaryBudget]);
 
   /* ── Drag & Drop Pointer Logic (header grab) ──────────────────── */
   const handlePointerDownHeader = useCallback((e) => {
@@ -678,30 +662,25 @@ export function CountryDossierCard({
               </p>
             </div>
 
-            {/* Prospective Timeline Milestones */}
+            {/* Prospective Timeline Milestones (Certified UN / Demography Models) */}
             <div className="prospect-benchmarks-grid">
-              <div className={`prospect-card ${selectedYear === 2026 ? 'is-selected' : ''}`}>
-                <span className="pc-year">2026 (Présent)</span>
-                <span className="pc-val">{territory.pop || 'N/A'}</span>
-                <span className="pc-sub">Population de référence</span>
-              </div>
-              <div className={`prospect-card ${selectedYear === 2030 ? 'is-selected' : ''}`}>
-                <span className="pc-year">2030 (Objectifs ONU)</span>
-                <span className="pc-val text-cyan">
-                  {getEstimatedPopulationForYear(2030) ? projections?.projectedPop : 'Calcul...'}
-                </span>
-                <span className="pc-sub">Transition énergétique & LPM</span>
-              </div>
-              <div className={`prospect-card ${selectedYear === 2040 ? 'is-selected' : ''}`}>
-                <span className="pc-year">2040 (Automatisation)</span>
-                <span className="pc-val text-emerald">Capacité IA & Décarbonation</span>
-                <span className="pc-sub">Avionique hydrogène & Fusion</span>
-              </div>
-              <div className={`prospect-card ${selectedYear === 2050 ? 'is-selected' : ''}`}>
-                <span className="pc-year">2050 (Neutralité Net-Zéro)</span>
-                <span className="pc-val text-amber">Stabilisation démographique</span>
-                <span className="pc-sub">Horizon prospectif climat</span>
-              </div>
+              {projections?.countryBenchmarks?.map((bm) => (
+                <div
+                  key={bm.year}
+                  className={`prospect-card ${selectedYear === bm.year ? 'is-selected' : ''}`}
+                >
+                  <span className="pc-year">{bm.label}</span>
+                  <span className="pc-val text-cyan">{bm.popFormatted} hab.</span>
+                  <span className="pc-sub">
+                    {bm.popDeltaPct
+                      ? bm.popDeltaPct > 0
+                        ? `+${bm.popDeltaPct}% vs 2026`
+                        : `${bm.popDeltaPct}% vs 2026`
+                      : 'Réf. 2026'}
+                    {' · '}Monde : {bm.unPop}
+                  </span>
+                </div>
+              ))}
             </div>
 
             {/* Energy & Geoeconomics forecast breakdown */}
@@ -715,12 +694,27 @@ export function CountryDossierCard({
                 <span className="pdt-val text-cyan">{projections?.projectedMilBudget}</span>
               </div>
               <div className="pdt-row">
-                <span className="pdt-label">Mix Énergétique Cible</span>
-                <span className="pdt-val">80% Bas-carbone (Nucléaire + Renouvelable)</span>
+                <span className="pdt-label">Phase Démographique Mondiale</span>
+                <span
+                  className="pdt-val"
+                  style={{ color: projections?.unGlobal?.phase?.color || 'var(--cyan-bright)' }}
+                >
+                  {projections?.unGlobal?.phase?.label} ({projections?.unGlobal?.phase?.tag})
+                </span>
               </div>
               <div className="pdt-row">
-                <span className="pdt-label">Espace & Constellations</span>
-                <span className="pdt-val">Partenaire constellation souveraine IRIS²</span>
+                <span className="pdt-label">Émissions Mondiales CO2</span>
+                <span className="pdt-val">{projections?.ecoModel?.co2Gigatons} Gt/an</span>
+              </div>
+              <div className="pdt-row">
+                <span className="pdt-label">Mix Énergétique Cible</span>
+                <span className="pdt-val">{projections?.ecoModel?.renewableEnergyPct}% Renouvelable (Scénario GIEC SSP2-4.5)</span>
+              </div>
+              <div className="pdt-row">
+                <span className="pdt-label">Réserves Pétrolières Restantes</span>
+                <span className="pdt-val">
+                  {projections?.ecoModel?.oilReservesBillionBarrels} Mds barils ({projections?.ecoModel?.oilYearsLeft} ans restants)
+                </span>
               </div>
             </div>
           </div>

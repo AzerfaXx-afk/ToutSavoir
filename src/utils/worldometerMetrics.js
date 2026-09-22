@@ -1,7 +1,7 @@
-// Worldometer Complete Real-time Indicators Engine
-// Models all 64 official indicators from worldometers.info/fr
-// High-precision live ticking based on elapsed seconds (year & day)
-// Calibrated exactly to official live baseline dump on Sept 12, 2026 (22,117,080s into year, 85,080s into day)
+import {
+  getUNProjectionForYear,
+  getHistoricalAndFutureEcologicalModel,
+} from '../data/unWorldProjectionsData.js';
 
 export const WORLDOMETER_CATEGORIES = [
   { id: 'all', label: 'TOUS LES INDICATEURS', shortLabel: 'TOUS' },
@@ -746,60 +746,18 @@ export const METRIC_DEFINITIONS = [
   },
 ];
 
-// Official UN World Population Prospects Benchmark Table (1900 - 2050)
-export const HISTORICAL_UN_POPULATIONS = {
-  1900: 1650000000,
-  1910: 1750000000,
-  1920: 1860000000,
-  1930: 2070000000,
-  1940: 2300000000,
-  1950: 2536431000,
-  1960: 3034949000,
-  1970: 3700437000,
-  1980: 4458003000,
-  1990: 5327231000,
-  2000: 6143493000,
-  2005: 6541907000,
-  2010: 6956823000,
-  2015: 7379797000,
-  2018: 7631091000,
-  2020: 7794798000,
-  2021: 7874965000,
-  2022: 7954000000,
-  2023: 8045311000,
-  2024: 8118835000,
-  2025: 8191988000,
-  2026: 8264179671, // Base 01/01/2026 -> 8 316 180 710 in Sept 2026
-  2030: 8546141000,
-  2035: 8887524000,
-  2040: 9198847000,
-  2050: 9709491000,
-};
-
-// Returns exact or interpolated benchmark population for any year
+// Official UN World Population Prospects Benchmark Table (1900 - 2100)
 export function getBenchmarkPopulationForYear(year) {
-  if (HISTORICAL_UN_POPULATIONS[year]) return HISTORICAL_UN_POPULATIONS[year];
-  const keys = Object.keys(HISTORICAL_UN_POPULATIONS).map(Number).sort((a, b) => a - b);
-  if (year <= keys[0]) return HISTORICAL_UN_POPULATIONS[keys[0]];
-  if (year >= keys[keys.length - 1]) return HISTORICAL_UN_POPULATIONS[keys[keys.length - 1]];
-
-  let prev = keys[0];
-  let next = keys[keys.length - 1];
-  for (let i = 0; i < keys.length - 1; i++) {
-    if (year >= keys[i] && year <= keys[i + 1]) {
-      prev = keys[i];
-      next = keys[i + 1];
-      break;
-    }
-  }
-  const ratio = (year - prev) / (next - prev);
-  return Math.round(HISTORICAL_UN_POPULATIONS[prev] + ratio * (HISTORICAL_UN_POPULATIONS[next] - HISTORICAL_UN_POPULATIONS[prev]));
+  const proj = getUNProjectionForYear(year);
+  return proj ? proj.pop : 8300678395;
 }
 
 // Exact official mathematical engine matching Worldometer (worldometers.info/fr)
+// Enhanced with UN DESA 2024 Revision & IPCC / IAE ecological models for past & future years
 export function computeWorldometerMetrics(yearMultiplier = 1, referenceDate = null) {
   const dateObj = referenceDate ? new Date(referenceDate) : new Date();
   const year = dateObj.getFullYear();
+  const isPresent = year === 2026;
 
   // 1. Client local midnight (start of today in local time, as per Worldometer)
   const startOfDay = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 0, 0, 0, 0);
@@ -809,14 +767,14 @@ export function computeWorldometerMetrics(yearMultiplier = 1, referenceDate = nu
   const startOfYear = new Date(dateObj.getFullYear(), 0, 1, 0, 0, 0, 0);
   const secondsYear = Math.max(0, (dateObj.getTime() - startOfYear.getTime()) / 1000);
 
-  // Demography benchmark scale for historical years (1900-2050+)
-  const yearBasePop = getBenchmarkPopulationForYear(year);
-  const nextYearBasePop = getBenchmarkPopulationForYear(year + 1);
-  const annualGrowth = Math.max(1000000, nextYearBasePop - yearBasePop);
-  const dynamicRatePerSec = annualGrowth / (365.25 * 86400);
-  const eraScale = yearBasePop / 8264179671;
+  // Official UN Certified Projections & Ecological Data
+  const proj = getUNProjectionForYear(year);
+  const eco = getHistoricalAndFutureEcologicalModel(year);
+  const yearBasePop = proj.pop;
+  const eraScale = yearBasePop / 8300678395;
+  const progressYear = secondsYear / (365.25 * 86400);
 
-  // Exact Worldometer reference anchor points
+  // Exact Worldometer reference anchor points (Live 2026 baseline calibration)
   const seconds_since_jul24 = Math.round((dateObj.getTime() - 1719792000000) / 1000);
   const seconds_since_end13 = (dateObj.getTime() - 1388448000000) / 1000;
   const seconds_since_end16 = (dateObj.getTime() - 1483142400000) / 1000;
@@ -827,71 +785,105 @@ export function computeWorldometerMetrics(yearMultiplier = 1, referenceDate = nu
     let val = 0;
 
     if (def.id === 'world_pop') {
-      if (year === 2026) {
+      if (isPresent) {
         // Exact official Worldometer formula:
         val = Math.round(seconds_since_jul24 * 2.2202 + 8161972572 - secondsToday * 2.2202) + Math.round(secondsToday * 4.1986) - Math.round(secondsToday * 1.9784);
       } else {
-        val = Math.floor(yearBasePop + secondsYear * dynamicRatePerSec);
+        // Official UN annual baseline + seconds elapsed progress scaled to net variation
+        val = Math.floor(yearBasePop + progressYear * proj.net);
       }
     } else if (def.id === 'births_year') {
-      if (year === 2026) {
+      if (isPresent) {
         val = Math.round(secondsYear * 4.1986 - secondsToday * 4.1986) + Math.round(secondsToday * 4.1986);
       } else {
-        val = Math.floor(secondsYear * def.ratePerSec * eraScale);
+        const estBirthsAnnual = Math.max(80000000, Math.floor(yearBasePop * Math.max(0.010, 0.016 + (proj.rate / 200))));
+        val = Math.floor(progressYear * estBirthsAnnual);
       }
     } else if (def.id === 'births_today') {
-      if (year === 2026) {
+      if (isPresent) {
         val = Math.round(secondsToday * 4.1986);
       } else {
-        val = Math.floor(secondsToday * def.ratePerSec * eraScale);
+        const estBirthsAnnual = Math.max(80000000, Math.floor(yearBasePop * Math.max(0.010, 0.016 + (proj.rate / 200))));
+        val = Math.floor((secondsToday / 86400) * (estBirthsAnnual / 365.25));
       }
     } else if (def.id === 'deaths_year') {
-      if (year === 2026) {
+      if (isPresent) {
         val = Math.round(secondsYear * 1.9784 - secondsToday * 1.9784) + Math.round(secondsToday * 1.9784);
       } else {
-        val = Math.floor(secondsYear * def.ratePerSec * eraScale);
+        const estBirthsAnnual = Math.max(80000000, Math.floor(yearBasePop * Math.max(0.010, 0.016 + (proj.rate / 200))));
+        const estDeathsAnnual = Math.max(40000000, estBirthsAnnual - proj.net);
+        val = Math.floor(progressYear * estDeathsAnnual);
       }
     } else if (def.id === 'deaths_today') {
-      if (year === 2026) {
+      if (isPresent) {
         val = Math.round(secondsToday * 1.9784);
       } else {
-        val = Math.floor(secondsToday * def.ratePerSec * eraScale);
+        const estBirthsAnnual = Math.max(80000000, Math.floor(yearBasePop * Math.max(0.010, 0.016 + (proj.rate / 200))));
+        const estDeathsAnnual = Math.max(40000000, estBirthsAnnual - proj.net);
+        val = Math.floor((secondsToday / 86400) * (estDeathsAnnual / 365.25));
       }
     } else if (def.id === 'net_growth_year') {
-      if (year === 2026) {
+      if (isPresent) {
         val = (results['births_year'] || Math.round(secondsYear * 4.1986)) - (results['deaths_year'] || Math.round(secondsYear * 1.9784));
       } else {
-        val = Math.floor(secondsYear * def.ratePerSec * eraScale);
+        val = Math.floor(progressYear * proj.net);
       }
     } else if (def.id === 'net_growth_today') {
-      if (year === 2026) {
+      if (isPresent) {
         val = (results['births_today'] || Math.round(secondsToday * 4.1986)) - (results['deaths_today'] || Math.round(secondsToday * 1.9784));
       } else {
-        val = Math.floor(secondsToday * def.ratePerSec * eraScale);
+        val = Math.floor((secondsToday / 86400) * (proj.net / 365.25));
       }
+    } else if (def.id === 'co2_emissions_year') {
+      if (isPresent) {
+        val = Math.floor(secondsYear * def.ratePerSec);
+      } else {
+        val = Math.floor(eco.co2Gigatons * 1e9 * progressYear);
+      }
+    } else if (def.id === 'energy_renewable_today') {
+      if (isPresent) {
+        val = Math.floor(secondsToday * def.ratePerSec);
+      } else {
+        const totalEnergyToday = secondsToday * 4500 * eraScale;
+        val = Math.floor(totalEnergyToday * (eco.renewableEnergyPct / 100));
+      }
+    } else if (def.id === 'energy_non_renewable_today') {
+      if (isPresent) {
+        val = Math.floor(secondsToday * def.ratePerSec);
+      } else {
+        const totalEnergyToday = secondsToday * 4500 * eraScale;
+        val = Math.floor(totalEnergyToday * (1 - eco.renewableEnergyPct / 100));
+      }
+    } else if (def.id === 'oil_reserves_barrels') {
+      val = Math.max(0, Math.floor(eco.oilReservesBillionBarrels * 1e9 - (secondsYear / 86400) * 98000000));
+    } else if (def.id === 'oil_days_left') {
+      const remainingBarrels = Math.max(0, Math.floor(eco.oilReservesBillionBarrels * 1e9 - (secondsYear / 86400) * 98000000));
+      val = Math.max(0, Math.floor(remainingBarrels / 98000000));
+    } else if (def.id === 'internet_users_world') {
+      val = Math.floor(yearBasePop * (eco.internetUsersPct / 100));
     } else if (def.id === 'health_spending_public_today') {
-      if (year === 2026) {
+      if (isPresent) {
         val = Math.round((4498086121149 * Math.pow(Math.pow(4641584035116 / 4498086121149, 1 / 31556900), seconds_since_end13)) / 31556900 * secondsToday);
       } else {
-        val = Math.floor(secondsToday * def.ratePerSec * Math.min(1.5, Math.max(0.1, eraScale)));
+        val = Math.floor(secondsToday * def.ratePerSec * (eco.globalGdpTrillionUsd / 108.5));
       }
     } else if (def.id === 'education_spending_today') {
-      if (year === 2026) {
+      if (isPresent) {
         val = Math.round((3465599783414 * Math.pow(Math.pow(3550465124803 / 3465599783414, 1 / 31556900), seconds_since_end16)) / 31556900 * secondsToday);
       } else {
-        val = Math.floor(secondsToday * def.ratePerSec * Math.min(1.5, Math.max(0.1, eraScale)));
+        val = Math.floor(secondsToday * def.ratePerSec * (eco.globalGdpTrillionUsd / 108.5));
       }
     } else if (def.id === 'military_spending_today') {
-      if (year === 2026) {
+      if (isPresent) {
         val = Math.round((1690000000000 * Math.pow(Math.pow(1696760000000 / 1690000000000, 1 / 31556900), seconds_since_end16)) / 31556900 * secondsToday);
       } else {
-        val = Math.floor(secondsToday * def.ratePerSec * Math.min(1.5, Math.max(0.1, eraScale)));
+        val = Math.floor(secondsToday * def.ratePerSec * (eco.globalGdpTrillionUsd / 108.5));
       }
     } else if (def.scope === 'day') {
-      const scaledRate = def.ratePerSec * (def.cat === 'population' ? eraScale : Math.min(1.5, Math.max(0.1, eraScale)));
+      const scaledRate = def.ratePerSec * (def.cat === 'population' ? eraScale : Math.min(2.5, Math.max(0.1, eraScale)));
       val = Math.floor(secondsToday * scaledRate);
     } else if (def.scope === 'year') {
-      const scaledRate = def.ratePerSec * (def.cat === 'population' ? eraScale : Math.min(1.5, Math.max(0.05, eraScale)));
+      const scaledRate = def.ratePerSec * (def.cat === 'population' ? eraScale : Math.min(2.5, Math.max(0.05, eraScale)));
       val = Math.floor(secondsYear * scaledRate);
     } else if (def.scope === 'instant') {
       val = Math.floor((def.baseVal + (secondsYear - 22117080) * (def.ratePerSec || 0)) * eraScale);

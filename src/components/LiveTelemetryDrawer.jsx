@@ -5,6 +5,11 @@ import {
   computeWorldometerMetrics,
 } from '../utils/worldometerMetrics';
 import { getEstimatedPopulationForYear } from './TimelineWheel';
+import {
+  getUNProjectionForYear,
+  getHistoricalAndFutureEcologicalModel,
+  UN_POPULATION_BENCHMARKS,
+} from '../data/unWorldProjectionsData';
 import { sound } from '../utils/soundFX';
 import {
   SATELLITES_DATA,
@@ -307,6 +312,22 @@ export function LiveTelemetryDrawer({
     () => getEstimatedPopulationForYear(activeYear) / 8185420000,
     [activeYear]
   );
+
+  // Official UN Certified Projections and Ecological models for any temporal horizon
+  const unProjection = useMemo(() => getUNProjectionForYear(activeYear), [activeYear]);
+  const ecoProjection = useMemo(() => getHistoricalAndFutureEcologicalModel(activeYear), [activeYear]);
+
+  const handleJumpYear = useCallback((targetYear) => {
+    sound.click();
+    if (customDateRef.current) {
+      const d = new Date(customDateRef.current);
+      d.setFullYear(targetYear);
+      updateCustomDate(d);
+    }
+    if (onYearChange) {
+      onYearChange(targetYear);
+    }
+  }, [onYearChange, updateCustomDate]);
 
   const updateCustomDate = useCallback((newDate) => {
     customDateRef.current = newDate;
@@ -1120,6 +1141,127 @@ export function LiveTelemetryDrawer({
               {/* ── METRICS ── */}
               {activeType === 'metrics' && (
                 <>
+                  {/* Official UN DESA 2024 & IPCC Planetary Projections Banner */}
+                  <div className="un-projections-card">
+                    <div className="un-proj-top">
+                      <div className="un-proj-title-group">
+                        <span
+                          className="un-proj-pulse"
+                          style={{
+                            backgroundColor: unProjection?.phase?.color || '#00f2fe',
+                            boxShadow: `0 0 10px ${unProjection?.phase?.color || '#00f2fe'}`,
+                          }}
+                        />
+                        <span className="un-proj-heading">
+                          PROJECTIONS OFFICIELLES MONDIALES // HORIZON {activeYear}
+                        </span>
+                        <span className="un-proj-source-tag">ONU DESA 2024 · WORLDOMETER</span>
+                      </div>
+                      <span
+                        className="un-proj-badge"
+                        style={{
+                          borderColor: unProjection?.phase?.color || '#00f2fe',
+                          color: unProjection?.phase?.color || '#00f2fe',
+                          boxShadow: `0 0 12px ${unProjection?.phase?.color || '#00f2fe'}40`,
+                        }}
+                      >
+                        {activeYear === 2026
+                          ? 'DIRECT EN TEMPS RÉEL (OFFICIEL)'
+                          : activeYear === 2084
+                          ? '★ APOGÉE DÉMOGRAPHIQUE UNIVERSELLE'
+                          : activeYear > 2084
+                          ? `DÉCRUE NATURELLE POST-PIC (${activeYear})`
+                          : activeYear > 2026
+                          ? `PROJECTION PROSPECTIVE (+${activeYear - 2026} ANS)`
+                          : `ARCHIVE HISTORIQUE (-${2026 - activeYear} ANS)`}
+                      </span>
+                    </div>
+
+                    {/* Phase Definition Callout */}
+                    {unProjection?.phase && (
+                      <div
+                        className="un-proj-phase-box"
+                        style={{
+                          borderLeftColor: unProjection.phase.color,
+                          background: `linear-gradient(90deg, ${unProjection.phase.color}15 0%, transparent 100%)`,
+                        }}
+                      >
+                        <div className="un-proj-phase-title" style={{ color: unProjection.phase.color }}>
+                          {unProjection.phase.label}
+                          <span className="un-proj-phase-pill">{unProjection.phase.tag}</span>
+                        </div>
+                        <div className="un-proj-phase-desc">{unProjection.phase.desc}</div>
+                      </div>
+                    )}
+
+                    {/* 4-Stat Telemetry Matrix */}
+                    <div className="un-proj-kpi-grid">
+                      <div className="un-proj-kpi-cell">
+                        <span className="un-proj-kpi-label">POPULATION PLANÉTAIRE</span>
+                        <span className="un-proj-kpi-val cyan">{unProjection?.popFormatted}</span>
+                        <span className="un-proj-kpi-sub">
+                          Taux de var. : <strong>{unProjection?.rateFormatted}</strong> / an
+                        </span>
+                      </div>
+
+                      <div className="un-proj-kpi-cell">
+                        <span className="un-proj-kpi-label">VARIATION NETTE</span>
+                        <span
+                          className={`un-proj-kpi-val ${
+                            (unProjection?.net || 0) >= 0 ? 'emerald' : 'magenta'
+                          }`}
+                        >
+                          {unProjection?.netFormatted}
+                        </span>
+                        <span className="un-proj-kpi-sub">
+                          {(unProjection?.net || 0) >= 0
+                            ? 'Surcroît annuel mondial'
+                            : 'Excédent naturel mondial négatif'}
+                        </span>
+                      </div>
+
+                      <div className="un-proj-kpi-cell">
+                        <span className="un-proj-kpi-label">DENSITÉ MONDIALE</span>
+                        <span className="un-proj-kpi-val gold">{unProjection?.densityFormatted}</span>
+                        <span className="un-proj-kpi-sub">Surfaces terrestres habitées</span>
+                      </div>
+
+                      <div className="un-proj-kpi-cell">
+                        <span className="un-proj-kpi-label">TRANSITION ÉNERGIE & CLIMAT</span>
+                        <span className="un-proj-kpi-val green">
+                          {ecoProjection?.renewableEnergyPct}% Renouvelable
+                        </span>
+                        <span className="un-proj-kpi-sub">
+                          CO2 : {ecoProjection?.co2Gigatons} Gt/an · Pétrole : {ecoProjection?.oilYearsLeft} ans
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Quick Interactive Era Jumps */}
+                    <div className="un-proj-shortcuts-bar">
+                      <span className="un-proj-shortcuts-label">JALONS CHRONOLOGIQUES :</span>
+                      <div className="un-proj-chips-row">
+                        {UN_POPULATION_BENCHMARKS.map((bm) => {
+                          const isSel = activeYear === bm.year;
+                          return (
+                            <button
+                              key={bm.year}
+                              type="button"
+                              className={`un-proj-chip ${isSel ? 'is-active' : ''}`}
+                              onClick={() => handleJumpYear(bm.year)}
+                              title={`${bm.year} : ${bm.note}`}
+                            >
+                              <span className="un-chip-year">{bm.year}</span>
+                              <span className="un-chip-note">
+                                {bm.year === 2026 ? 'Direct' : bm.year === 2084 ? 'Pic' : bm.note}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
                   {filteredMetrics.length === 0 ? (
                     <div className="empty-state">Aucun résultat trouvé.</div>
                   ) : (

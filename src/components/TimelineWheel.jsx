@@ -2,7 +2,10 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { ChevronRight, X } from 'lucide-react';
 import { sound } from '../utils/soundFX';
 
+import { getUNProjectionForYear } from '../data/unWorldProjectionsData.js';
+
 // UN Official Historical & Projected Population Benchmark Datapoints (1900 - 2100)
+// Certified by UN World Population Prospects: 2024 Revision & Worldometer
 export const UN_POPULATION_BENCHMARKS = [
   { year: 1900, pop: 1650000000, label: 'Aube du XXe Siècle' },
   { year: 1914, pop: 1780000000, label: 'Première Guerre Mondiale' },
@@ -22,29 +25,20 @@ export const UN_POPULATION_BENCHMARKS = [
   { year: 2001, pop: 6220000000, label: '11 Septembre & Guerre Terrorisme' },
   { year: 2010, pop: 6956823603, label: 'Ère des smartphones & réseaux' },
   { year: 2011, pop: 7040000000, label: 'Printemps Arabe' },
-  { year: 2020, pop: 7794798739, label: 'Pandémie Globale COVID-19' },
-  { year: 2022, pop: 7975000000, label: 'Invasion de l’Ukraine' },
-  { year: 2026, pop: 8185420000, label: 'PRÉSENT EN DIRECT' },
-  { year: 2030, pop: 8512000000, label: 'Objectifs climat ONU' },
-  { year: 2040, pop: 9180000000, label: 'Automatisation & IA' },
-  { year: 2050, pop: 9709000000, label: 'Pic démographique partiel' },
-  { year: 2075, pop: 10150000000, label: 'Stabilisation mondiale' },
-  { year: 2100, pop: 10350000000, label: 'Horizon prospectif ONU' },
+  { year: 2020, pop: 7840952880, label: 'Pandémie Globale COVID-19' },
+  { year: 2022, pop: 7975105156, label: 'Invasion de l’Ukraine' },
+  { year: 2026, pop: 8300678395, label: 'PRÉSENT EN DIRECT' },
+  { year: 2030, pop: 8569124911, label: 'Objectifs climat ONU (+0,77%)' },
+  { year: 2040, pop: 9177190203, label: 'Automatisation & IA (+0,62%)' },
+  { year: 2050, pop: 9664378587, label: 'Bascule démographique Sud Global (+0,43%)' },
+  { year: 2075, pop: 10250496432, label: 'Approche plateau mondial (+0,10%)' },
+  { year: 2084, pop: 10289315244, label: 'PIC DÉMOGRAPHIQUE HISTORIQUE ONU' },
+  { year: 2100, pop: 10180160751, label: 'Horizon prospectif ONU (-0,12%)' },
 ];
 
 export function getEstimatedPopulationForYear(year) {
-  if (year <= 1900) return UN_POPULATION_BENCHMARKS[0].pop;
-  if (year >= 2100) return UN_POPULATION_BENCHMARKS[UN_POPULATION_BENCHMARKS.length - 1].pop;
-
-  for (let i = 0; i < UN_POPULATION_BENCHMARKS.length - 1; i++) {
-    const p1 = UN_POPULATION_BENCHMARKS[i];
-    const p2 = UN_POPULATION_BENCHMARKS[i + 1];
-    if (year >= p1.year && year <= p2.year) {
-      const fraction = (year - p1.year) / (p2.year - p1.year);
-      return Math.round(p1.pop + fraction * (p2.pop - p1.pop));
-    }
-  }
-  return 8185420000;
+  const proj = getUNProjectionForYear(year);
+  return proj ? proj.pop : 8300678395;
 }
 
 // ARC OF CIRCLE GEOMETRY CONSTANTS

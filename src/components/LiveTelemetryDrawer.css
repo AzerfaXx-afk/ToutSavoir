@@ -418,6 +418,265 @@
   }
 }
 
+/* ── 6b. Official UN & IPCC Planetary Projections Banner ─────────── */
+.un-projections-card {
+  margin: 0 16px 16px 16px;
+  padding: 16px 18px 14px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(14, 20, 33, 0.95), rgba(8, 12, 20, 0.98));
+  border: 1px solid rgba(0, 242, 254, 0.2);
+  box-shadow: 6px 8px 24px rgba(0, 0, 0, 0.7),
+    inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  animation: cardFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.un-projections-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.6), rgba(16, 185, 129, 0.4), transparent);
+}
+
+.un-proj-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.un-proj-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.un-proj-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: pulseRing 2s infinite ease-in-out;
+}
+
+.un-proj-heading {
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: 0.6px;
+}
+
+.un-proj-source-tag {
+  font-size: 8.5px;
+  font-weight: 600;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  letter-spacing: 0.3px;
+}
+
+.un-proj-badge {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1px solid;
+  letter-spacing: 0.5px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.un-proj-phase-box {
+  border-left: 3px solid;
+  padding: 8px 12px;
+  border-radius: 0 10px 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.un-proj-phase-title {
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.un-proj-phase-pill {
+  font-size: 8px;
+  font-weight: 600;
+  color: #cbd5e1;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 1px 7px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.un-proj-phase-desc {
+  font-size: 9.5px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.un-proj-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.un-proj-kpi-cell {
+  background: rgba(8, 12, 20, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.2s ease;
+}
+
+.un-proj-kpi-cell:hover {
+  border-color: rgba(0, 242, 254, 0.25);
+}
+
+.un-proj-kpi-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.6px;
+}
+
+.un-proj-kpi-val {
+  font-family: var(--font-mono, monospace);
+  font-size: 14.5px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.un-proj-kpi-val.cyan {
+  color: #00f2fe;
+  text-shadow: 0 0 12px rgba(0, 242, 254, 0.4);
+}
+
+.un-proj-kpi-val.emerald {
+  color: #10b981;
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.un-proj-kpi-val.magenta {
+  color: #ec4899;
+  text-shadow: 0 0 12px rgba(236, 72, 153, 0.4);
+}
+
+.un-proj-kpi-val.gold {
+  color: #f59e0b;
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+}
+
+.un-proj-kpi-val.green {
+  color: #00f5a0;
+  text-shadow: 0 0 12px rgba(0, 245, 160, 0.4);
+}
+
+.un-proj-kpi-sub {
+  font-size: 8.5px;
+  color: #7a8baa;
+}
+
+.un-proj-shortcuts-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.un-proj-shortcuts-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.8px;
+}
+
+.un-proj-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.un-proj-chips-row::-webkit-scrollbar {
+  display: none;
+}
+
+.un-proj-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: rgba(14, 22, 35, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+  min-width: 58px;
+}
+
+.un-proj-chip:hover {
+  border-color: rgba(0, 242, 254, 0.4);
+  background: rgba(20, 32, 50, 0.9);
+  transform: translateY(-1px);
+}
+
+.un-proj-chip.is-active {
+  border-color: #00f2fe;
+  background: rgba(0, 242, 254, 0.12);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.25);
+}
+
+.un-chip-year {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 800;
+  color: #e2e8f0;
+}
+
+.un-proj-chip.is-active .un-chip-year {
+  color: #00f2fe;
+}
+
+.un-chip-note {
+  font-size: 7.5px;
+  color: #64748b;
+}
+
+.un-proj-chip.is-active .un-chip-note {
+  color: #38bdf8;
+}
+
 /* ── 7. Metric Cards Grid ─────────────────────────────────────────── */
 .metrics-grid {
   display: grid;
